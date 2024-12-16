@@ -1,0 +1,190 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Student Profile</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            background: #f2f4f8;
+            font-family: 'Poppins', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .form-container {
+            background: #ffffff;
+            padding: 3rem;
+            border-radius: 20px;
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 1000px;
+            transition: transform 0.3s ease;
+        }
+        .form-container:hover {
+            transform: translateY(-5px);
+        }
+        .form-container h2 {
+            font-size: 2.4rem;
+            margin-bottom: 1.5rem;
+            color: #333;
+            font-weight: 600;
+            text-align: center;
+        }
+        .form-group {
+            margin-bottom: 1.8rem;
+        }
+        .form-group label {
+            font-size: 1.1rem;
+            color: #555;
+            font-weight: 500;
+        }
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 1rem 1.25rem;
+            font-size: 1rem;
+            border-radius: 12px;
+            border: 1px solid #ddd;
+            background: #f9f9f9;
+            transition: all 0.3s ease;
+        }
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+            border-color: #6200ea;
+            background: #ffffff;
+            outline: none;
+        }
+        .form-group input[type="checkbox"] {
+            width: auto;
+            margin-right: 8px;
+            display: inline-block;
+        }
+        .checkbox-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 1.8rem;
+        }
+        .form-row .form-group {
+            margin-bottom: 0;
+        }
+        .form-group textarea {
+            resize: vertical;
+            min-height: 120px;
+        }
+        .button-container {
+            display: flex;
+            justify-content: center;
+        }
+        button[type="submit"] {
+            background: #6200ea;
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            font-size: 1.1rem;
+            border-radius: 12px;
+            width: 60%;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.3s ease;
+        }
+        button[type="submit"]:hover {
+            background: #3700b3;
+            transform: scale(1.05);
+        }
+        .footer-text {
+            text-align: center;
+            font-size: 0.9rem;
+            color: #777;
+            margin-top: 2rem;
+        }
+        .form-group input, .form-group select, .form-group textarea {
+            margin-bottom: 1.2rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="form-container">
+        <h2>Create Student Profile</h2>
+        <form method="post">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="id_first_name">First Name</label>
+                {{ form.first_name }}
+            </div>
+            <div class="form-group">
+                <label for="id_last_name">Last Name</label>
+                {{ form.last_name }}
+            </div>
+            <div class="form-group">
+                <label for="id_email">Email</label>
+                {{ form.email }}
+            </div>
+            <div class="form-group">
+                <label for="id_phone">Phone</label>
+                {{ form.phone }}
+            </div>
+            <div class="form-group">
+                <label for="id_school">School</label>
+                {{ form.school }}
+            </div>
+            <div class="form-group">
+                <label for="id_shift_requested">Shift Requested</label>
+                {{ form.shift_requested }}
+            </div>
+            <div class="form-group">
+                <label for="id_hours_requested">Hours Requested</label>
+                {{ form.hours_requested }}
+            </div>
+            <div class="form-group">
+                <label for="id_lchaim_orientation_date">Lchaim Orientation Date</label>
+                {{ form.lchaim_orientation_date }}
+            </div>
+            <div class="form-group">
+                <label for="id_lchaim_training_completed">Lchaim Training Completed</label>
+                {{ form.lchaim_training_completed }}
+            </div>
+            <div class="form-group">
+                <label for="id_skills_book_completed">Skills Book Completed</label>
+                {{ form.skills_book_completed }}
+            </div>
+            <div class="form-group">
+                <label for="id_police_check">Police Check</label>
+                {{ form.police_check }}
+            </div>
+            <div class="form-group">
+                <label for="id_med_docs">Medical Documents</label>
+                {{ form.med_docs }}
+            </div>
+            <div class="form-group">
+                <label for="id_comments">Comments</label>
+                {{ form.comments }}
+            </div>
+
+            <div class="button-container">
+                <button type="submit">Submit</button>
+            </div>
+        </form>
+        <div class="footer-text">
+            <p>&copy; 2024 Your Company. All Rights Reserved.</p>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS (Optional) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

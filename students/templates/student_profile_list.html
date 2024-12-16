@@ -1,0 +1,59 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Profiles</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container mt-4">
+        <h2>Student Profiles</h2>
+        <a href="{% url 'create_student_profile' %}" class="btn btn-primary mb-3">Create Profile</a>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>First Name</th>
+                    <th>Last Name</th>
+                    <th>Email</th>
+                    <th>Phone</th>
+                    <th>School</th>
+                    <th>Shift Requested</th>
+                    <th>Hours Requested</th>
+                    <th>Lchaim Orientation Date</th>
+                    {% comment %} <th>Lchaim Training Completed</th>
+                    <th>Skills Book Completed</th>
+                    <th>Police Check</th>
+                    <th>Medical Documents</th>
+                    <th>Comments</th> {% endcomment %}
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for profile in profiles %}
+                    <tr>
+                        <td>{{ profile.first_name }}</td>
+                        <td>{{ profile.last_name }}</td>
+                        <td>{{ profile.email }}</td>
+                        <td>{{ profile.phone }}</td>
+                        <td>{{ profile.get_school_display }}</td> <!-- For displaying choice field -->
+                        <td>{{ profile.get_shift_requested_display }}</td> <!-- For displaying choice field -->
+                        <td>{{ profile.hours_requested }}</td>
+                        <td>{{ profile.lchaim_orientation_date }}</td>
+                        {% comment %} <td>{% if profile.lchaim_training_completed %}Yes{% else %}No{% endif %}</td>
+                        <td>{% if profile.skills_book_completed %}Yes{% else %}No{% endif %}</td>
+                        <td>{% if profile.police_check %}Yes{% else %}No{% endif %}</td>
+                        <td>{% if profile.med_docs %}Yes{% else %}No{% endif %}</td> {% endcomment %}
+                        {% comment %} <td>{{ profile.comments }}</td> {% endcomment %}
+                        <td>
+                            <a href="{% url 'update_student_profile' profile.pk %}" class="btn btn-warning btn-sm">Edit</a>
+                            <a href="{% url 'delete_student_profile' profile.pk %}" class="btn btn-danger btn-sm">Delete</a>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>
