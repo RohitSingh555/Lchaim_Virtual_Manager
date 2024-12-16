@@ -1,32 +1,17 @@
-# from django.shortcuts import render
-# from rest_framework.views import APIView
-# from rest_framework.response import Response
-# from rest_framework import status
-    # from .models import StudentProfile
-# from .serializers import StudentProfileSerializer
-#
-# class StudentProfileCreateView(APIView):
-#     def post(self, request, *args, **kwargs):
-#         serializer = StudentProfileSerializer(data=request.data)
-#         if serializer.is_valid():
-#             serializer.save()
-#             return Response({"message": "Student profile created successfully", "data": serializer.data}, status=status.HTTP_201_CREATED)
-#         return Response({"error": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
-
+from datetime import datetime
+from django.utils import timezone
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponseRedirect
-from .models import StudentProfile
-from .forms import StudentProfileForm
-
+from .models import StudentProfile, VolunteerLog
+from django.http import JsonResponse
+from .forms import StudentProfileForm, VolunteerLogForm
 
 def create_student_profile(request):
     if request.method == "POST":
         form = StudentProfileForm(request.POST)
-        print(form)
         if form.is_valid():
-            print(form.cleaned_data)
-            form.save()
-            return redirect('student_profile_list')  # Make sure 'student_profile_list' is a valid URL name
+            student_profile = form.save()
+            return redirect('student_profile_list')  
     else:
         form = StudentProfileForm()
 
@@ -34,24 +19,72 @@ def create_student_profile(request):
 
 def student_profile_list(request):
     profiles = StudentProfile.objects.all()
-    print(profiles)
     return render(request, 'student_profile_list.html', {'profiles': profiles})
-
-
 
 def update_student_profile(request, pk):
     profile = get_object_or_404(StudentProfile, pk=pk)
     if request.method == "POST":
         form = StudentProfileForm(request.POST, instance=profile)
         if form.is_valid():
-            form.save()
-            return redirect('student_profile_list')  # Redirect after update
+            student_profile = form.save()
+            return redirect('student_profile_list')  
     else:
         form = StudentProfileForm(instance=profile)
+
     return render(request, 'update_profile.html', {'form': form})
+
 def delete_student_profile(request, pk):
     profile = get_object_or_404(StudentProfile, pk=pk)
     if request.method == "POST":
         profile.delete()
-        return redirect('student_profile_list')  # Redirect after deletion
+        return redirect('student_profile_list')  
     return render(request, 'delete_profile.html', {'profile': profile})
+
+def log_volunteer_hours(request, pk):
+    student = get_object_or_404(StudentProfile, pk=pk)
+    if request.method == "POST":
+        form = VolunteerLogForm(request.POST)
+        if form.is_valid():
+            volunteer_log = form.save(commit=False)
+            volunteer_log.student = student
+            volunteer_log.save()
+            
+            student.hours_completed += volunteer_log.hours_worked
+            student.save()
+
+            return redirect('student_profile_list')  # Redirect after saving the log
+    else:
+        form = VolunteerLogForm()
+
+    return render(request, 'log_volunteer_hours.html', {'form': form, 'student': student})
+
+def student_attendance(request):
+    today = timezone.now().date()
+    students = StudentProfile.objects.all()
+    student_logs = []
+
+    for student in students:
+        log, created = VolunteerLog.objects.get_or_create(student=student, date=today)
+        student_logs.append({'student': student, 'log': log})
+
+    return render(request, 'attendance/attendance.html', {
+        'students': student_logs,
+        'today': today,
+    })
+
+def update_attendance(request, student_id):
+    student = get_object_or_404(StudentProfile, id=student_id)
+    today = timezone.now().date()
+    log, created = VolunteerLog.objects.get_or_create(student=student, date=today)
+
+    if request.method == 'POST':
+        status = request.POST.get('status')
+        notes = request.POST.get('notes')
+
+        log.status = status
+        log.notes = notes
+        log.save()
+
+        return JsonResponse({'success': True})
+
+    return JsonResponse({'success': False})

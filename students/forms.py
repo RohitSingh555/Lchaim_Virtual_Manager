@@ -1,5 +1,5 @@
 from django import forms
-from .models import StudentProfile
+from .models import StudentProfile, VolunteerLog
 
 SCHOOL_CHOICES = [
     ('Toronto Business', 'Toronto Business'),
@@ -15,7 +15,6 @@ SHIFT_CHOICES = [
 ]
 
 class StudentProfileForm(forms.ModelForm):
-    # Using ChoiceField to create dropdowns and other form fields
     school = forms.ChoiceField(choices=SCHOOL_CHOICES)
     shift_requested = forms.ChoiceField(choices=SHIFT_CHOICES)
 
@@ -30,3 +29,8 @@ class StudentProfileForm(forms.ModelForm):
             'lchaim_orientation_date': forms.DateInput(attrs={'type': 'date'}),
             'comments': forms.Textarea(attrs={'rows': 4, 'cols': 40}),
         }
+
+class VolunteerLogForm(forms.ModelForm):
+    class Meta:
+        model = VolunteerLog
+        fields = ['student', 'date', 'start_time', 'end_time', 'status', 'notes']

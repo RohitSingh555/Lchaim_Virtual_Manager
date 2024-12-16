@@ -1,59 +1,75 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Student Profiles</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
-<body>
-    <div class="container mt-4">
-        <h2>Student Profiles</h2>
-        <a href="{% url 'create_student_profile' %}" class="btn btn-primary mb-3">Create Profile</a>
-        <table class="table">
-            <thead>
-                <tr>
-                    <th>First Name</th>
-                    <th>Last Name</th>
-                    <th>Email</th>
-                    <th>Phone</th>
-                    <th>School</th>
-                    <th>Shift Requested</th>
-                    <th>Hours Requested</th>
-                    <th>Lchaim Orientation Date</th>
-                    {% comment %} <th>Lchaim Training Completed</th>
-                    <th>Skills Book Completed</th>
-                    <th>Police Check</th>
-                    <th>Medical Documents</th>
-                    <th>Comments</th> {% endcomment %}
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for profile in profiles %}
-                    <tr>
-                        <td>{{ profile.first_name }}</td>
-                        <td>{{ profile.last_name }}</td>
-                        <td>{{ profile.email }}</td>
-                        <td>{{ profile.phone }}</td>
-                        <td>{{ profile.get_school_display }}</td> <!-- For displaying choice field -->
-                        <td>{{ profile.get_shift_requested_display }}</td> <!-- For displaying choice field -->
-                        <td>{{ profile.hours_requested }}</td>
-                        <td>{{ profile.lchaim_orientation_date }}</td>
-                        {% comment %} <td>{% if profile.lchaim_training_completed %}Yes{% else %}No{% endif %}</td>
-                        <td>{% if profile.skills_book_completed %}Yes{% else %}No{% endif %}</td>
-                        <td>{% if profile.police_check %}Yes{% else %}No{% endif %}</td>
-                        <td>{% if profile.med_docs %}Yes{% else %}No{% endif %}</td> {% endcomment %}
-                        {% comment %} <td>{{ profile.comments }}</td> {% endcomment %}
-                        <td>
-                            <a href="{% url 'update_student_profile' profile.pk %}" class="btn btn-warning btn-sm">Edit</a>
-                            <a href="{% url 'delete_student_profile' profile.pk %}" class="btn btn-danger btn-sm">Delete</a>
-                        </td>
-                    </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+
+
+<body class="bg-gray-100">
+    {% include 'navbar.html' %}
+    <div class="flex flex-col bg-gray-100 min-h-screen pt-24">
+
+        <div class="px-6 lg:px-20 py-6">
+
+            <div class="flex justify-between items-center mt-4">
+                <a href="{% url 'create_student_profile' %}" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition ease-in-out duration-200">
+                    Create Profile
+                </a>
+            </div>
+
+            <div class="overflow-x-auto bg-white shadow-lg rounded-lg mt-6 mx-auto">
+                <table class="min-w-full table-auto">
+                    <thead class="bg-blue-800 text-white">
+                        <tr>
+                            <th class="px-6 py-3 text-left">First Name</th>
+                            <th class="px-6 py-3 text-left">Last Name</th>
+                            <th class="px-6 py-3 text-left">Email</th>
+                            <th class="px-6 py-3 text-left">Phone</th>
+                            <th class="px-6 py-3 text-left">School</th>
+                            <th class="px-6 py-3 text-left">Shift Requested</th>
+                            <th class="px-6 py-3 text-left">Hours Requested</th>
+                            <th class="px-6 py-3 text-left">Orientation Date</th>
+                            <th class="px-6 py-3 text-left">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for profile in profiles %}
+                        <tr class="hover:bg-gray-100 transition duration-200">
+                            <td class="px-6 py-4">{{ profile.first_name }}</td>
+                            <td class="px-6 py-4">{{ profile.last_name }}</td>
+                            <td class="px-6 py-4">{{ profile.email }}</td>
+                            <td class="px-6 py-4">{{ profile.phone }}</td>
+                            <td class="px-6 py-4">{{ profile.get_school_display }}</td>
+                            <td class="px-6 py-4">{{ profile.get_shift_requested_display }}</td>
+                            <td class="px-6 py-4">{{ profile.hours_requested }}</td>
+                            <td class="px-6 py-4">{{ profile.lchaim_orientation_date }}</td>
+                            <td class="px-6 py-4 d-flex">
+                                <a href="{% url 'update_student_profile' profile.pk %}" class="bg-yellow-500 text-white px-3 py-1 rounded-md flex items-center justify-center space-x-2  hover:bg-yellow-600 transition ease-in-out duration-200 text-sm">
+                                    <i class="fas fa-pen"></i> 
+                                    <span>Edit</span>
+                                </a>
+                                
+                                <a href="{% url 'delete_student_profile' profile.pk %}" class="bg-red-500 text-white px-3 py-1 rounded-md flex items-center justify-center space-x-2 ml-3  hover:bg-red-600 transition ease-in-out duration-200 text-sm">
+                                    <i class="fas fa-trash"></i> 
+                                    <span>Delete</span>
+                                </a>
+                            </td>
+                                                 
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
+
 </body>
+
 </html>
