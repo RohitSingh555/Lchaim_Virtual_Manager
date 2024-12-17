@@ -80,9 +80,24 @@ def update_attendance(request, student_id):
     if request.method == 'POST':
         status = request.POST.get('status')
         notes = request.POST.get('notes')
+        start_time = request.POST.get('start_time')
+        end_time = request.POST.get('end_time')
+        hours_worked = request.POST.get('hours_worked')
+
+        # Convert the start and end times to datetime objects
+        if start_time and end_time:
+            start_time = datetime.strptime(start_time, '%H:%M').time()
+            end_time = datetime.strptime(end_time, '%H:%M').time()
+
+            log.start_time = start_time
+            log.end_time = end_time
 
         log.status = status
         log.notes = notes
+
+        if hours_worked:
+            log.hours_worked = float(hours_worked)
+
         log.save()
 
         return JsonResponse({'success': True})
