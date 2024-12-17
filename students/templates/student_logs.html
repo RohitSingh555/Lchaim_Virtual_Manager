@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Volunteer Logs</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .log-entry {
+            background-color: #f9fafb;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .log-entry header {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #333;
+        }
+        table th, table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        .back-button {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            text-decoration: none;
+            font-size: 16px;
+            display: inline-block;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: background-color 0.3s, transform 0.3s;
+        }
+        .back-button:hover {
+            background-color: #45a049;
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+
+    <a href="{% url 'student_profile_list' %}" class="back-button">
+        ← Back to Students List
+    </a>
+
+    <div class="container mx-auto mt-20">
+        <h1 class="text-3xl font-semibold text-center text-gray-800 mb-8">Student Volunteer Logs</h1>
+
+        <table class="min-w-full bg-white shadow-md rounded-lg">
+            <thead>
+                <tr>
+                    <th class="text-left text-lg font-semibold text-gray-700">Student Name</th>
+                    <th class="text-left text-lg font-semibold text-gray-700">Total Hours Completed</th>
+                    <th class="text-left text-lg font-semibold text-gray-700">Details</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for data in student_data %}
+                    <tr>
+                        <td class="py-4 px-6 text-gray-800">{{ data.student.first_name }} {{ data.student.last_name }}</td>
+                        <td class="py-4 px-6 text-gray-800">{{ data.total_hours }} hours</td>
+                        <td class="py-4 px-6">
+                            <a href="{% url 'student_details' student_id=data.student.id %}" class="text-blue-600 hover:underline">View Logs</a>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+</body>
+</html>

@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ student.first_name }} {{ student.last_name }} - Volunteer Logs</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .hover-row:hover {
+            background-color: #f0f4f8;
+        }
+        .info-card:hover {
+            background-color: #f7fafc;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+
+    <div class="container mx-auto mt-10 px-6">
+        <h1 class="text-3xl font-semibold text-center text-gray-800 mb-8">{{ student.first_name }} {{ student.last_name }}'s Volunteer Logs</h1>
+
+        <div class="grid gap-8 mb-8">
+            <div class="col-span-1 bg-white p-6 rounded-lg shadow-md hover:shadow-xl transition duration-300  ">
+                <h3 class="text-xl font-semibold text-gray-800 mb-6">Student Information</h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div class="space-y-2">
+                        <p class="text-gray-600"><strong>ID:</strong> {{ student.id }}</p>
+                        <p class="text-gray-600"><strong>Email:</strong> {{ student.email }}</p>
+                        <p class="text-gray-600"><strong>Phone:</strong> {{ student.phone }}</p>
+                    </div>
+                    <div class="space-y-2">
+                        <p class="text-gray-600"><strong>School:</strong> {{ student.school }}</p>
+                        <p class="text-gray-600"><strong>L'Chaim Training Completed:</strong> {{ student.lchaim_training_completed|yesno:"Yes,No" }}</p>
+                        <p class="text-gray-600"><strong>Police Check:</strong> {{ student.police_check|yesno:"Yes,No" }}</p>
+                    </div>
+                    <div class="space-y-2">
+                        <p class="text-gray-600"><strong>Medical Docs:</strong> {{ student.med_docs|yesno:"Yes,No" }}</p>
+                        <p class="text-gray-600"><strong>Skills Book Completed:</strong> {{ student.skills_book_completed|yesno:"Yes,No" }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="mb-6 text-center">
+            <h2 class="text-xl font-semibold text-gray-700">Total Hours Worked: {{ total_hours }} hours</h2>
+        </div>
+
+        <div class="mb-6 text-center">
+            <a href="{% url 'student_logs' %}" class="text-white bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg">Back to Student List</a>
+        </div>
+
+        <div class="overflow-x-auto bg-white shadow-md rounded-lg">
+            <table class="min-w-full">
+                <thead class="bg-gray-50">
+                    <tr class="border-b">
+                        <th class="py-3 px-6 text-left text-lg font-semibold text-gray-700">Date</th>
+                        <th class="py-3 px-6 text-left text-lg font-semibold text-gray-700">Status</th>
+                        <th class="py-3 px-6 text-left text-lg font-semibold text-gray-700">Shift</th>
+                        <th class="py-3 px-6 text-left text-lg font-semibold text-gray-700">Hours Worked</th>
+                        <th class="py-3 px-6 text-left text-lg font-semibold text-gray-700">Notes</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for log in volunteer_logs %}
+                        <tr class="hover-row border-b">
+                            <td class="py-4 px-6 text-gray-800">{{ log.date|date:"M d, Y" }}</td>
+                            <td class="py-4 px-6 text-gray-800">{{ log.status }}</td>
+                            <td class="py-4 px-6 text-gray-800">{{ log.start_time|time:"h:i a" }} - {{ log.end_time|time:"h:i a" }}</td>
+                            <td class="py-4 px-6 text-gray-800">{{ log.hours_worked }} hours</td>
+                            <td class="py-4 px-6 text-gray-800">{{ log.notes|default:"None" }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+
+</body>
+</html>

@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gradient-to-r from-gray-500 to-indigo-600 h-screen flex items-center justify-center">
+    <div class="max-w-md w-full bg-white shadow-md rounded-lg overflow-hidden">
+        <div class="px-6 py-8">
+            <h2 class="text-2xl font-bold text-center text-blue-600">Create Your Account</h2>
+            <p class="text-sm text-center text-gray-600 mt-2">
+                Already have an account? 
+                <a href="{% url 'login' %}" class="text-blue-500 hover:underline">Log in here</a>.
+            </p>
+            <form action="" method="post" class="mt-8 space-y-6">
+                {% csrf_token %}
+                <div>
+                    <label for="id_username" class="block text-sm font-medium text-gray-700">Username</label>
+                    <input type="text" name="username" id="id_username" 
+                           class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm 
+                                  focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" 
+                           required>
+                </div>
+                <div>
+                    <label for="id_password1" class="block text-sm font-medium text-gray-700">Password</label>
+                    <div class="relative">
+                        <input type="password" name="password1" id="id_password1" 
+                               class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm 
+                                      focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" 
+                               required>
+                        <button type="button" 
+                                onclick="togglePasswordVisibility('id_password1', this)"
+                                class="absolute inset-y-0 right-0 flex items-center px-3 text-gray-600 hover:text-gray-800">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" 
+                                 stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" 
+                                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" 
+                                      d="M2.458 12C3.732 7.943 7.522 5 12 5c4.478 0 8.268 2.943 9.542 7-.27.949-.665 1.839-1.162 2.638M17.656 17.656A9.96 9.96 0 0112 19c-4.478 0-8.268-2.943-9.542-7a9.978 9.978 0 012.08-3.217" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                <div>
+                    <label for="id_password2" class="block text-sm font-medium text-gray-700">Confirm Password</label>
+                    <div class="relative">
+                        <input type="password" name="password2" id="id_password2" 
+                               class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm 
+                                      focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" 
+                               required>
+                        <button type="button" 
+                                onclick="togglePasswordVisibility('id_password2', this)"
+                                class="absolute inset-y-0 right-0 flex items-center px-3 text-gray-600 hover:text-gray-800">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" 
+                                 stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" 
+                                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" 
+                                      d="M2.458 12C3.732 7.943 7.522 5 12 5c4.478 0 8.268 2.943 9.542 7-.27.949-.665 1.839-1.162 2.638M17.656 17.656A9.96 9.96 0 0112 19c-4.478 0-8.268-2.943-9.542-7a9.978 9.978 0 012.08-3.217" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                <div>
+                    <button type="submit" 
+                            class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 
+                                   transition duration-300">
+                        Sign Up
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function togglePasswordVisibility(inputId, toggleButton) {
+            const input = document.getElementById(inputId);
+            const isPasswordVisible = input.type === 'text';
+            input.type = isPasswordVisible ? 'password' : 'text';
+
+            toggleButton.innerHTML = isPasswordVisible 
+                ? `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                       <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                       <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.522 5 12 5c4.478 0 8.268 2.943 9.542 7-.27.949-.665 1.839-1.162 2.638M17.656 17.656A9.96 9.96 0 0112 19c-4.478 0-8.268-2.943-9.542-7a9.978 9.978 0 012.08-3.217" />
+                   </svg>`
+                : `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                       <path stroke-linecap="round" stroke-linejoin="round" d="M13.875 18.825A9.959 9.959 0 0112 19c-4.478 0-8.268-2.943-9.542-7-.271-.949-.665-1.839-1.162-2.638M16.656 16.656A9.96 9.96 0 0112 19c-4.478 0-8.268-2.943-9.542-7a9.978 9.978 0 012.08-3.217" />
+                   </svg>`;
+        }
+    </script>
+</body>
+</html>

@@ -27,7 +27,8 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
-
+LOGOUT_REDIRECT_URL = '/auth/login/'
+LOGIN_URL = '/auth/login/'
 # Application definition
 
 INSTALLED_APPS = [
