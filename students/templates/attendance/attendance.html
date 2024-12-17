@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Student Attendance</title>
+    <title>Volenteer Attendance</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.0.4/dist/tailwind.min.css" rel="stylesheet">
     <meta name="csrf-token" content="{{ csrf_token }}">
 </head>
@@ -11,7 +11,10 @@
 <body class="bg-gray-100 font-sans">
 
     <div class="container mx-auto mt-16 px-6 lg:px-20 py-6">
-        <h1 class="text-4xl font-semibold text-blue-900 mb-8 text-center">Attendance for {{ today }}</h1>
+        <h1 class="text-4xl font-semibold text-blue-900 mb-8 text-center">Attendance for 
+            <input type="date" id="attendance-date" class="text-4xl font-semibold text-blue-900 bg-transparent border-none focus:outline-none" 
+                   value="{{ today|date:"Y-m-d" }}" onchange="updateDate(this)">
+        </h1>
 
         <div class="overflow-x-auto bg-white border border-gray-300 rounded-lg shadow-lg">
             <table class="w-full table-auto">
@@ -125,6 +128,12 @@
                 console.error('Error:', error);
             });
         }
+
+        function updateDate(input) {
+            const selectedDate = input.value;
+            console.log("Selected date:", selectedDate);
+        }
+
         window.onload = function() {
             const checkboxes = document.querySelectorAll('input[type="checkbox"].status-toggle-toggle');
             checkboxes.forEach(checkbox => {
