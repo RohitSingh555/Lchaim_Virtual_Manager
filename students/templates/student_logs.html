@@ -65,6 +65,7 @@
                     <tr>
                         <td class="py-4 px-6 text-gray-800">{{ data.student.first_name }} {{ data.student.last_name }}</td>
                         <td class="py-4 px-6 text-gray-800">{{ data.total_hours }} hours</td>
+                        
                         <td class="py-4 px-6">
                             <a href="{% url 'student_details' student_id=data.student.id %}" class="text-blue-600 hover:underline">View Logs</a>
                         </td>

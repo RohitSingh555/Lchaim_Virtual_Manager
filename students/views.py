@@ -11,7 +11,9 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import Group
 from django.contrib.auth import login, logout, authenticate
-
+from datetime import timedelta
+import json
+from decimal import Decimal
 def admin_required(function):
     def wrap(request, *args, **kwargs):
         if not request.user.groups.filter(name='Admin').exists():
@@ -111,26 +113,40 @@ def log_volunteer_hours(request, pk):
         form = VolunteerLogForm()
     return render(request, 'log_volunteer_hours.html', {'form': form, 'student': student})
 
+
 @admin_required
 def student_attendance(request):
-    today = timezone.now().date()
+    date_str = request.GET.get('date') or timezone.now().strftime('%Y-%m-%d')
+    try:
+        selected_date = timezone.datetime.strptime(date_str, '%Y-%m-%d').date()
+    except ValueError:
+        selected_date = timezone.now().date()
+
     students = StudentProfile.objects.all()
     student_logs = []
 
     for student in students:
-        log, created = VolunteerLog.objects.get_or_create(student=student, date=today)
+        log, created = VolunteerLog.objects.get_or_create(student=student, date=selected_date)
         student_logs.append({'student': student, 'log': log})
+        print(students, log)
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':  # Check for AJAX request
+        return render(request, 'attendance/attendance_partial.html', {
+            'students': student_logs,
+            'selected_date': selected_date,
+        })
+    else:  # Full page load
+        return render(request, 'attendance/attendance.html', {
+            'students': student_logs,
+            'selected_date': selected_date,
+        })
 
-    return render(request, 'attendance/attendance.html', {
-        'students': student_logs,
-        'today': today,
-    })
 
 @admin_required
-def update_attendance(request, student_id):
+def update_attendance(request, student_id, date):
     student = get_object_or_404(StudentProfile, id=student_id)
     today = timezone.now().date()
-    log, created = VolunteerLog.objects.get_or_create(student=student, date=today)
+   
+    log, created = VolunteerLog.objects.get_or_create(student=student, date=date)
 
     if request.method == 'POST':
         status = request.POST.get('status')
@@ -182,9 +198,9 @@ def student_logs(request):
     
     for student in students:
         volunteer_logs = VolunteerLog.objects.filter(student=student)
-        
         total_hours = 0
         for log in volunteer_logs:
+            print(log)
             if log.status == 'Present':
                 if log.hours_worked is None:
                     total_hours += 7
@@ -197,3 +213,63 @@ def student_logs(request):
         })
     
     return render(request, 'student_logs.html', {'student_data': student_data})
+
+
+def get_start_of_week(date):
+    """Get the start of the week (Monday)."""
+    start = date - timedelta(days=date.weekday())
+    return start.replace(hour=0, minute=0, second=0, microsecond=0)
+
+def get_end_of_week(date):
+    """Get the end of the week (Sunday)."""
+    end = date + timedelta(days=(6 - date.weekday()))
+    return end.replace(hour=23, minute=59, second=59, microsecond=0)
+import decimal
+
+def calendar_student_logs(request):
+    # Get the current date or the date passed from the frontend
+    current_date = timezone.now()
+    week_start_date = get_start_of_week(current_date)
+    week_end_date = get_end_of_week(current_date)
+
+    # Get student data and their logs for the week
+    students = StudentProfile.objects.all()
+    student_data = []
+
+    for student in students:
+        volunteer_logs = VolunteerLog.objects.filter(student=student, date__range=[week_start_date, week_end_date])
+        total_hours = 0
+        formatted_logs = []
+
+        for log in volunteer_logs:
+            if log.status == 'Present':
+                if log.hours_worked is None:
+                    total_hours += 7
+                else:
+                    total_hours += log.hours_worked
+
+                formatted_logs.append({
+                    'date': log.date.isoformat(),
+                    'start_time': log.start_time.strftime('%H:%M') if log.start_time else None,
+                    'end_time': log.end_time.strftime('%H:%M') if log.end_time else None,
+                    'hours_worked': float(log.hours_worked) if isinstance(log.hours_worked, decimal.Decimal) else log.hours_worked,
+                    'notes': log.notes or '',
+                })
+
+        # Ensure total_hours is converted to float if it's a Decimal
+        student_data.append({
+            'id': student.id,
+            'name': f"{student.first_name} {student.last_name}",
+            'logs': formatted_logs,
+            'total_hours': float(total_hours) if isinstance(total_hours, decimal.Decimal) else total_hours
+        })
+
+    # Convert to JSON
+    student_data_json = json.dumps(student_data)
+
+    # Pass the dynamic data to the template
+    return render(request, 'calendar.html', {
+        'student_data': student_data_json,
+        'week_start_date': week_start_date,
+        'week_end_date': week_end_date
+    })
