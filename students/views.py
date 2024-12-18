@@ -1,7 +1,9 @@
 from datetime import datetime
 from django.utils import timezone
 from django.shortcuts import render, redirect, get_object_or_404
-from django.http import HttpResponseRedirect
+import decimal
+from openpyxl import Workbook
+from django.http import HttpResponse
 from .models import StudentProfile, VolunteerLog
 from django.db.models import Sum
 from django.http import JsonResponse
@@ -9,11 +11,13 @@ from .forms import StudentProfileForm, VolunteerLogForm
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.models import Group
 from django.contrib.auth import login, logout, authenticate
 from datetime import timedelta
 import json
+from django.db.models import Q
+from django.core.paginator import Paginator
 from decimal import Decimal
+
 def admin_required(function):
     def wrap(request, *args, **kwargs):
         if not request.user.groups.filter(name='Admin').exists():
@@ -28,6 +32,7 @@ def school_required(function):
         return function(request, *args, **kwargs)
     return wrap
 
+@admin_required
 def signup_view(request):
     if request.user.is_authenticated:
         return redirect('student_profile_list')  
@@ -60,7 +65,6 @@ def logout_view(request):
     logout(request)
     return redirect('login')
 
-@admin_required
 def create_student_profile(request):
     if request.method == "POST":
         form = StudentProfileForm(request.POST)
@@ -73,8 +77,36 @@ def create_student_profile(request):
 
 @login_required
 def student_profile_list(request):
+    query = request.GET.get('q', '')
+    orientation_date = request.GET.get('orientation_date', '')
+
     profiles = StudentProfile.objects.all()
-    return render(request, 'student_profile_list.html', {'profiles': profiles})
+
+    if query:
+        profiles = profiles.filter(
+            first_name__icontains=query
+        ) | profiles.filter(
+            last_name__icontains=query
+        ) | profiles.filter(
+            email__icontains=query
+        )
+
+    if orientation_date:
+        profiles = profiles.filter(lchaim_orientation_date=orientation_date)
+
+    paginator = Paginator(profiles, 10) 
+    page_number = request.GET.get('page', 1)
+    page_obj = paginator.get_page(page_number)
+
+    # Check if the user is part of the 'School' group
+    is_school_group = request.user.groups.filter(name='School').exists()
+
+    return render(request, 'student_profile_list.html', {
+        'page_obj': page_obj,
+        'query': query,
+        'orientation_date': orientation_date,
+        'is_school_group': is_school_group,  # Pass the boolean flag
+    })
 
 @admin_required
 def update_student_profile(request, pk):
@@ -129,7 +161,7 @@ def student_attendance(request):
         log, created = VolunteerLog.objects.get_or_create(student=student, date=selected_date)
         student_logs.append({'student': student, 'log': log})
         print(students, log)
-    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':  # Check for AJAX request
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':  
         return render(request, 'attendance/attendance_partial.html', {
             'students': student_logs,
             'selected_date': selected_date,
@@ -173,6 +205,7 @@ def update_attendance(request, student_id, date):
 
     return JsonResponse({'success': False})
 
+@admin_required
 def student_details(request, student_id):
     student = get_object_or_404(StudentProfile, id=student_id)
     volunteer_logs = VolunteerLog.objects.filter(student=student)
@@ -180,10 +213,8 @@ def student_details(request, student_id):
     total_hours = 0
     for log in volunteer_logs:
         if log.status == 'Present':
-            if log.hours_worked is None:
-                total_hours += 7
-            else:
-                total_hours += log.hours_worked
+            if log.status == 'Present':
+                total_hours += log.hours_worked if log.hours_worked else 7
     
     return render(request, 'student_details.html', {
         'student': student,
@@ -191,28 +222,31 @@ def student_details(request, student_id):
         'total_hours': total_hours
     })
 
+@admin_required
 def student_logs(request):
-    students = StudentProfile.objects.all()
+    query = request.GET.get('q', '').strip()
     
+    if query:
+        students = StudentProfile.objects.filter(
+            Q(first_name__icontains=query) | Q(last_name__icontains=query)
+        )
+    else:
+        students = StudentProfile.objects.all()
+
     student_data = []
-    
     for student in students:
         volunteer_logs = VolunteerLog.objects.filter(student=student)
         total_hours = 0
         for log in volunteer_logs:
-            print(log)
             if log.status == 'Present':
-                if log.hours_worked is None:
-                    total_hours += 7
-                else:
-                    total_hours += log.hours_worked
+                total_hours += log.hours_worked if log.hours_worked else 7
         student_data.append({
             'student': student,
             'volunteer_logs': volunteer_logs,
             'total_hours': total_hours
         })
-    
-    return render(request, 'student_logs.html', {'student_data': student_data})
+
+    return render(request, 'student_logs.html', {'student_data': student_data, 'query': query})
 
 
 def get_start_of_week(date):
@@ -224,15 +258,13 @@ def get_end_of_week(date):
     """Get the end of the week (Sunday)."""
     end = date + timedelta(days=(6 - date.weekday()))
     return end.replace(hour=23, minute=59, second=59, microsecond=0)
-import decimal
 
+@admin_required
 def calendar_student_logs(request):
-    # Get the current date or the date passed from the frontend
     current_date = timezone.now()
     week_start_date = get_start_of_week(current_date)
     week_end_date = get_end_of_week(current_date)
 
-    # Get student data and their logs for the week
     students = StudentProfile.objects.all()
     student_data = []
 
@@ -256,7 +288,6 @@ def calendar_student_logs(request):
                     'notes': log.notes or '',
                 })
 
-        # Ensure total_hours is converted to float if it's a Decimal
         student_data.append({
             'id': student.id,
             'name': f"{student.first_name} {student.last_name}",
@@ -264,12 +295,48 @@ def calendar_student_logs(request):
             'total_hours': float(total_hours) if isinstance(total_hours, decimal.Decimal) else total_hours
         })
 
-    # Convert to JSON
     student_data_json = json.dumps(student_data)
 
-    # Pass the dynamic data to the template
     return render(request, 'calendar.html', {
         'student_data': student_data_json,
         'week_start_date': week_start_date,
         'week_end_date': week_end_date
     })
+
+def download_excel(request, selected_date):
+    date = datetime.strptime(selected_date, '%Y-%m-%d').date()
+
+    student_data = []
+
+    students = StudentProfile.objects.all()
+    for student in students:
+        volunteer_logs = VolunteerLog.objects.filter(student=student, date=date)
+
+        for log in volunteer_logs:
+            student_data.append({
+                'Student Name': f"{student.first_name} {student.last_name}",
+                'School': student.school,
+                'Date of Attendance': log.date,
+                'Hours Worked': log.hours_worked if log.hours_worked is not None else 'N/A',
+                'Status': log.status,
+                'Notes': log.notes if log.notes else 'N/A',
+            })
+
+    if not student_data:
+        return HttpResponse("No attendance data found for the selected date.", status=404)
+
+    wb = Workbook()
+    ws = wb.active
+    ws.title = f"Attendance_{date}"
+
+    headers = ['Student Name', 'School', 'Date of Attendance', 'Hours Worked', 'Status', 'Notes']
+    ws.append(headers)
+
+    for entry in student_data:
+        ws.append([entry['Student Name'], entry['School'], entry['Date of Attendance'], entry['Hours Worked'], entry['Status'], entry['Notes']])
+
+    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response['Content-Disposition'] = f'attachment; filename=attendance_{date}.xlsx'
+
+    wb.save(response)
+    return response

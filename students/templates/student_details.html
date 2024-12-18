@@ -5,25 +5,48 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ student.first_name }} {{ student.last_name }} - Volunteer Logs</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://kit.fontawesome.com/a076d05399.js"></script> <!-- FontAwesome script -->
     <style>
         .hover-row:hover {
-            background-color: #f0f4f8;
+            background-color: #e0f7fa; /* Light blue on hover */
         }
         .info-card:hover {
-            background-color: #f7fafc;
+            background-color: #f1f5f9; /* Light grey on hover */
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
+        .back-button {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background-color: transparent;
+            color: #1E40AF; /* Deep blue */
+            font-size: 24px;
+            border: none;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+        .back-button:hover {
+            transform: scale(1.1);
+            color: #2563EB; /* Lighter blue on hover */
+        }
     </style>
 </head>
-<body class="bg-gray-100">
+<body class="bg-gray-50">
 
-    <div class="container mx-auto mt-10 px-6">
-        <h1 class="text-3xl font-semibold text-center text-gray-800 mb-8">{{ student.first_name }} {{ student.last_name }}'s Volunteer Logs</h1>
+    {% include 'navbar.html' %}
+
+    <!-- Back Button -->
+    <button onclick="window.history.back()" class="back-button mt-20">
+        <i class="fas fa-arrow-left"></i> 
+    </button>
+
+    <div class="container mx-auto px-6 mt-24">
+        <h1 class="text-4xl font-semibold text-center text-blue-800 mb-8">{{ student.first_name }} {{ student.last_name }}'s Volunteer Logs</h1>
 
         <div class="grid gap-8 mb-8">
-            <div class="col-span-1 bg-white p-6 rounded-lg shadow-md hover:shadow-xl transition duration-300  ">
-                <h3 class="text-xl font-semibold text-gray-800 mb-6">Student Information</h3>
+            <div class="col-span-1 bg-white p-6 rounded-lg shadow-lg hover:shadow-xl transition duration-300">
+                <h3 class="text-xl font-semibold text-blue-800 mb-6">Student Information</h3>
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                     <div class="space-y-2">
                         <p class="text-gray-600"><strong>ID:</strong> {{ student.id }}</p>
@@ -42,34 +65,26 @@
                 </div>
             </div>
         </div>
-        
-        <div class="mb-6 text-center">
-            <h2 class="text-xl font-semibold text-gray-700">Total Hours Worked: {{ total_hours }} hours</h2>
-        </div>
 
-        <div class="mb-6 text-center">
-            <a href="{% url 'student_logs' %}" class="text-white bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg">Back to Student List</a>
-        </div>
-
-        <div class="overflow-x-auto bg-white shadow-md rounded-lg">
+        <div class="overflow-x-auto bg-white shadow-lg rounded-lg mb-8">
             <table class="min-w-full">
-                <thead class="bg-gray-50">
+                <thead class="bg-blue-100">
                     <tr class="border-b">
-                        <th class="py-3 px-6 text-left text-lg font-semibold text-gray-700">Date</th>
-                        <th class="py-3 px-6 text-left text-lg font-semibold text-gray-700">Status</th>
-                        <th class="py-3 px-6 text-left text-lg font-semibold text-gray-700">Shift</th>
-                        <th class="py-3 px-6 text-left text-lg font-semibold text-gray-700">Hours Worked</th>
-                        <th class="py-3 px-6 text-left text-lg font-semibold text-gray-700">Notes</th>
+                        <th class="py-3 px-6 text-left text-lg font-semibold text-blue-700">Date</th>
+                        <th class="py-3 px-6 text-left text-lg font-semibold text-blue-700">Status</th>
+                        <th class="py-3 px-6 text-left text-lg font-semibold text-blue-700">Shift</th>
+                        <th class="py-3 px-6 text-left text-lg font-semibold text-blue-700">Hours Worked</th>
+                        <th class="py-3 px-6 text-left text-lg font-semibold text-blue-700">Notes</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for log in volunteer_logs %}
                         <tr class="hover-row border-b">
-                            <td class="py-4 px-6 text-gray-800">{{ log.date|date:"M d, Y" }}</td>
-                            <td class="py-4 px-6 text-gray-800">{{ log.status }}</td>
-                            <td class="py-4 px-6 text-gray-800">{{ log.start_time|time:"h:i a" }} - {{ log.end_time|time:"h:i a" }}</td>
-                            <td class="py-4 px-6 text-gray-800">{{ log.hours_worked }} hours</td>
-                            <td class="py-4 px-6 text-gray-800">{{ log.notes|default:"None" }}</td>
+                            <td class="py-4 px-6 text-blue-800">{{ log.date|date:"M d, Y" }}</td>
+                            <td class="py-4 px-6 text-blue-800">{{ log.status }}</td>
+                            <td class="py-4 px-6 text-blue-800">{{ log.start_time|time:"h:i a" }} - {{ log.end_time|time:"h:i a" }}</td>
+                            <td class="py-4 px-6 text-blue-800">{{ log.hours_worked }} hours</td>
+                            <td class="py-4 px-6 text-blue-800">{{ log.notes|default:"None" }}</td>
                         </tr>
                     {% endfor %}
                 </tbody>

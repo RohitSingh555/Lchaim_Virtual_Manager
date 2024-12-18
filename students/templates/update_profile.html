@@ -61,42 +61,40 @@
             display: flex;
             align-items: center;
         }
-        input[type="checkbox"] {
-            appearance: none;
+        /* Toggle switch styling */
+        .toggle-switch {
             width: 60px;
             height: 34px;
-            background-color: #ccc;
-            border-radius: 50px;
             position: relative;
+            display: inline-block;
             cursor: pointer;
-            transition: 0.4s;
+            border-radius: 30px;
+            background-color: #ccc;
+            transition: background-color 0.3s;
         }
-
-        input[type="checkbox"]:checked {
-            background-color: #7da6ff;
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
         }
-
-        input[type="checkbox"]::before {
-            content: "";
+        .toggle-switch .slider {
             position: absolute;
+            top: 4px;
+            left: 4px;
             width: 26px;
             height: 26px;
-            background-color: #fff;
             border-radius: 50%;
-            left: 4px;
-            top: 4px;
-            transition: 0.4s;
+            background-color: #fff;
+            transition: transform 0.3s;
         }
-
-        input[type="checkbox"]:checked::before {
+        .toggle-switch input:checked + .slider {
             transform: translateX(26px);
+            background-color: #7da6ff;
         }
-
         label {
             font-size: 1rem; 
             margin-bottom: 8px; 
         }
-
         .input-field,
         .textarea-field,
         .select-field {
@@ -106,7 +104,9 @@
 </head>
 <body class="bg-gray-100">
 
-    <div class="max-w-4xl mx-auto mt-10">
+    {% include 'navbar.html' %}
+
+    <div class="max-w-4xl mx-auto mt-24 mb-10">
         <div class="form-container">
             <h2 class="text-3xl font-semibold text-center mb-6 text-gray-800">Update Student Profile</h2>
             <form method="POST">
@@ -133,7 +133,10 @@
                 </div>
                 <div class="mb-6">
                     <label for="lchaim_training_completed" class="block text-sm font-medium text-gray-700">L'Chaim Training Completed</label>
-                    <input type="checkbox" name="lchaim_training_completed" class="w-16 h-8" value="{{ form.lchaim_training_completed.value }}">
+                    <label class="toggle-switch">
+                        <input type="checkbox" name="lchaim_training_completed" {% if form.lchaim_training_completed.value %}checked{% endif %}>
+                        <span class="slider"></span>
+                    </label>
                 </div>
                 <div class="mb-6">
                     <label for="school" class="block text-sm font-medium text-gray-700">School</label>
@@ -157,20 +160,29 @@
                     <label for="lchaim_orientation_date" class="block text-sm font-medium text-gray-700">L'Chaim Orientation Date</label>
                     <input type="date" name="lchaim_orientation_date" class="input-field w-full" value="{{ form.lchaim_orientation_date.value }}">
                 </div>
-                
+
                 <div class="mb-6">
                     <label class="block text-sm font-medium text-gray-700">Select Training/Document Verification</label>
                     <div class="checkbox-grid">
                         <div class="checkbox-container">
-                            <input type="checkbox" name="skills_book_completed" class="w-16 h-8" value="{{ form.skills_book_completed.value }}">
+                            <label class="toggle-switch">
+                                <input type="checkbox" name="skills_book_completed" {% if form.skills_book_completed.value %}checked{% endif %}>
+                                <span class="slider"></span>
+                            </label>
                             <label for="skills_book_completed" class="ml-2">Skills Book Completed</label>
                         </div>
                         <div class="checkbox-container">
-                            <input type="checkbox" name="police_check" class="w-16 h-8" value="{{ form.police_check.value }}">
+                            <label class="toggle-switch">
+                                <input type="checkbox" name="police_check" {% if form.police_check.value %}checked{% endif %}>
+                                <span class="slider"></span>
+                            </label>
                             <label for="police_check" class="ml-2">Police Check</label>
                         </div>
                         <div class="checkbox-container">
-                            <input type="checkbox" name="med_docs" class="w-16 h-8" value="{{ form.med_docs.value }}">
+                            <label class="toggle-switch">
+                                <input type="checkbox" name="med_docs" {% if form.med_docs.value %}checked{% endif %}>
+                                <span class="slider"></span>
+                            </label>
                             <label for="med_docs" class="ml-2">Medical Documents</label>
                         </div>
                     </div>

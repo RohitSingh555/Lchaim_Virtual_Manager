@@ -17,4 +17,5 @@ urlpatterns = [
     path('student/logs/', views.student_logs, name='student_logs'),
     path('student/calender/', views.calendar_student_logs, name='calendar_student_logs'),
     path('student/<int:student_id>/logs/', views.student_details, name='student_details'),
+    path('download-excel/<str:selected_date>/', views.download_excel, name='download_excel'),
 ]
