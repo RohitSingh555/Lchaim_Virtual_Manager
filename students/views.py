@@ -177,9 +177,9 @@ def student_attendance(request):
 def update_attendance(request, student_id, date):
     student = get_object_or_404(StudentProfile, id=student_id)
     today = timezone.now().date()
-   
+    print(date)
     log, created = VolunteerLog.objects.get_or_create(student=student, date=date)
-
+    print(log)
     if request.method == 'POST':
         status = request.POST.get('status')
         notes = request.POST.get('notes')
@@ -189,7 +189,7 @@ def update_attendance(request, student_id, date):
 
         if start_time and end_time:
             start_time = datetime.strptime(start_time, '%H:%M').time()
-            end_time = datetime.strptime(end_time, '%H:%M').time()
+            end_time = datetime.strptime(end_time, '%H:%M').time() 
             log.start_time = start_time
             log.end_time = end_time
 
@@ -198,7 +198,7 @@ def update_attendance(request, student_id, date):
 
         if hours_worked:
             log.hours_worked = float(hours_worked)
-
+        
         log.save()
 
         return JsonResponse({'success': True})
@@ -269,7 +269,7 @@ def calendar_student_logs(request):
     student_data = []
 
     for student in students:
-        volunteer_logs = VolunteerLog.objects.filter(student=student, date__range=[week_start_date, week_end_date])
+        volunteer_logs = VolunteerLog.objects.filter(student=student)
         total_hours = 0
         formatted_logs = []
 

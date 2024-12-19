@@ -119,84 +119,111 @@
     const studentLogs = document.getElementById("studentLogs");
     const logsContainer = document.getElementById("logsContainer");
     const Hiddenstudents = document.getElementById("hidden_student_data");
-
+  
     const student_data = document.getElementById("hidden_student_data").innerHTML;
     const cleanedData = student_data.replace(/Decimal\(([^)]+)\)/g, (match, p1) => p1);
     const students = JSON.parse(cleanedData);
-
+    console.log(students)
+    let currentDate = new Date();
+  
     function getStartOfWeek(date) {
       const day = date.getDay();
       const diff = date.getDate() - day;
-      return new Date(date.setDate(diff));
+      const startOfWeek = new Date(date);
+      startOfWeek.setDate(date.getDate() - day); // Move back to the start of the week (Sunday)
+      return startOfWeek;
     }
-
+  
     function renderWeeklyCalendar(date) {
+      // Get start of the current week (Sunday)
       const startOfWeek = getStartOfWeek(new Date(date));
       const endOfWeek = new Date(startOfWeek);
-      endOfWeek.setDate(startOfWeek.getDate() + 6);
-
+      endOfWeek.setDate(startOfWeek.getDate() + 6); // Get the end of the week (Saturday)
+  
+      // Update calendar title with the range of the week
       calendarTitle.textContent = `${startOfWeek.toLocaleDateString()} - ${endOfWeek.toLocaleDateString()}`;
-
-      weeklySlots.innerHTML = "";
-
+  
+      weeklySlots.innerHTML = ""; // Clear the previous week's slots
+  
+      // Loop through the days of the week
       for (let i = 0; i < 7; i++) {
         const day = new Date(startOfWeek);
         day.setDate(startOfWeek.getDate() + i);
-
+  
         const dayColumn = document.createElement("div");
         dayColumn.className = "flex flex-col h-full relative";
-
+  
+        // Create the day header with date
         const dayHeader = document.createElement("div");
         dayHeader.textContent = `${day.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })}`;
         dayHeader.className = "h-10 text-sm font-semibold flex items-center justify-center bg-blue-100 border-b border-blue-200";
         dayColumn.appendChild(dayHeader);
-
+  
+        let logsForDay = false;
+  
+        // Check if there are logs for this day
         students.forEach(student => {
           student.logs.forEach(log => {
             const logDate = new Date(log.date);
-            if (logDate.toISOString().split("T")[0] === day.toISOString().split("T")[0]) {
+            const logDateString = logDate.toISOString().split("T")[0]; // Get date in YYYY-MM-DD format
+            const currentDayString = day.toISOString().split("T")[0];
+  
+            if (logDateString === currentDayString) {
+              logsForDay = true;
               const userRow = document.createElement("div");
               userRow.className = "flex items-center justify-between border-b border-gray-200 px-4 py-2 text-sm";
-
+  
               const studentInfo = document.createElement("div");
               studentInfo.className = "flex items-center text-gray-700";
               studentInfo.textContent = `${student.name} (${log.hours_worked} hrs)`; 
               const timeInfo = document.createElement("div");
               timeInfo.className = "text-gray-500";
               timeInfo.textContent = `${log.start_time} - ${log.end_time}`; 
-
+  
               userRow.appendChild(studentInfo);
               userRow.appendChild(timeInfo);
-
+  
               dayColumn.appendChild(userRow);
             }
           });
         });
-
+  
+        // If no logs for this day, display "No data"
+        if (!logsForDay) {
+          const emptySlot = document.createElement("div");
+          emptySlot.className = "flex items-center justify-center text-gray-500 text-sm";
+          emptySlot.textContent = "No data";  // Placeholder text for no data
+          dayColumn.appendChild(emptySlot);
+        }
+  
+        // Append the day column to the calendar
         weeklySlots.appendChild(dayColumn);
       }
     }
-
+  
+    // "Previous Week" button functionality
     prevWeek.addEventListener("click", () => {
-      currentDate.setDate(currentDate.getDate() - 7);
-      renderWeeklyCalendar(currentDate);
+      currentDate.setDate(currentDate.getDate() - 7); // Move 7 days back to previous week
+      renderWeeklyCalendar(currentDate); // Re-render the calendar
     });
-
+  
+    // "Next Week" button functionality
     nextWeek.addEventListener("click", () => {
-      currentDate.setDate(currentDate.getDate() + 7);
-      renderWeeklyCalendar(currentDate);
+      currentDate.setDate(currentDate.getDate() + 7); // Move 7 days forward to next week
+      renderWeeklyCalendar(currentDate); // Re-render the calendar
     });
-
-    renderWeeklyCalendar(new Date());
-
+  
+    renderWeeklyCalendar(currentDate); // Initial rendering of the calendar
+  
+    // Date Modal and Report functionality
     function openDateModal() {
       document.getElementById("date-selector-modal").classList.remove("hidden");
     }
-
+  
     function closeDateModal() {
       document.getElementById("date-selector-modal").classList.add("hidden");
     }
-
+  
     function toggleDownloadButton() {
       const selectedDate = document.getElementById("report-date").value;
       const downloadBtn = document.getElementById("generate-report-btn");
@@ -206,7 +233,7 @@
         downloadBtn.disabled = true;
       }
     }
-
+  
     function downloadReport() {
       const selectedDate = document.getElementById("report-date").value;
       if (selectedDate) {
@@ -215,6 +242,7 @@
       }
     }
   </script>
+  
 </body>
 
 </html>
