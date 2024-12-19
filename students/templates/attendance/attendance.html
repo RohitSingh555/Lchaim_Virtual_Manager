@@ -35,8 +35,8 @@
                                 <i class="fas fa-sort"></i>
                             </button>
                         </th>
-                        <th class="px-6 py-3 text-left">From Time</th> <!-- Removed filter icon -->
-                        <th class="px-6 py-3 text-left">To Time</th> <!-- Removed filter icon -->
+                        <th class="px-6 py-3 text-left">From Time</th> 
+                        <th class="px-6 py-3 text-left">To Time</th> 
                         <th class="px-6 py-3 text-left">
                             Hours Worked
                             <button onclick="sortTable(4)" class="ml-2 text-white">
@@ -162,77 +162,100 @@ function toggleStatus(checkbox) {
         }
 
         function saveAttendance(input) {
-    const studentId = input.getAttribute('data-student-id');
+            const studentId = input.getAttribute('data-student-id');
 
-    // Select all necessary fields based on student ID
-    const fromTimeInput = document.querySelector(`input[data-student-id="${studentId}"].from-time`);
-    const toTimeInput = document.querySelector(`input[data-student-id="${studentId}"].to-time`);
-    const remarksField = document.querySelector(`textarea[data-student-id="${studentId}"]`);
-    const statusCheckbox = document.querySelector(`input[data-student-id="${studentId}"].status-toggle-toggle`);
-    const hoursWorkedSpan = document.querySelector(`.hours-worked[data-student-id="${studentId}"]`);
-    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-    let attendanceDate = document.getElementById('attendance-date').value;
-    
-    // Gather data
-    const newStatus = statusCheckbox.checked ? 'Present' : 'Absent';
-    const startTime = fromTimeInput.value;
-    const endTime = toTimeInput.value;
-    const remarks = remarksField.value;
-    const hoursWorked = hoursWorkedSpan.textContent || 0;
-    
-    if(!attendanceDate || attendanceDate ==""){
-        attendanceDate = new Date().toISOString().split('T')[0]
-    }
-    const formData = new FormData();
-    formData.append('status', newStatus);
-    formData.append('notes', remarks);
-    formData.append('start_time', startTime);
-    formData.append('end_time', endTime);
-    formData.append('hours_worked', hoursWorked);
-    formData.append('student_id', studentId);
-    formData.append('csrfmiddlewaretoken', csrfToken);
+            const fromTimeInput = document.querySelector(`input[data-student-id="${studentId}"].from-time`);
+            const toTimeInput = document.querySelector(`input[data-student-id="${studentId}"].to-time`);
+            const remarksField = document.querySelector(`textarea[data-student-id="${studentId}"]`);
+            const statusCheckbox = document.querySelector(`input[data-student-id="${studentId}"].status-toggle-toggle`);
+            const hoursWorkedSpan = document.querySelector(`.hours-worked[data-student-id="${studentId}"]`);
+            const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+            let attendanceDate = document.getElementById('attendance-date').value;
+            
+            const newStatus = statusCheckbox.checked ? 'Present' : 'Absent';
+            const startTime = fromTimeInput.value;
+            const endTime = toTimeInput.value;
+            const remarks = remarksField.value;
+            const hoursWorked = hoursWorkedSpan.textContent || 0;
+            
+            if(!attendanceDate || attendanceDate ==""){
+                attendanceDate = new Date().toISOString().split('T')[0]
+            }
+            const formData = new FormData();
+            formData.append('status', newStatus);
+            formData.append('notes', remarks);
+            formData.append('start_time', startTime);
+            formData.append('end_time', endTime);
+            formData.append('hours_worked', hoursWorked);
+            formData.append('student_id', studentId);
+            formData.append('csrfmiddlewaretoken', csrfToken);
 
-    console.log(newStatus)
-    fetch(`/attendance/update/${studentId}/${attendanceDate}/`, {
-        method: 'POST',
-        body: formData
-    })
-    .then(response => {
-        console.log(response)
-        response.json()})
-    .catch(error => {
-        console.error('Request failed:', error);
-    });
-}
+            console.log(newStatus)
+            fetch(`/attendance/update/${studentId}/${attendanceDate}/`, {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                console.log(response)
+                response.json()})
+            .catch(error => {
+                console.error('Request failed:', error);
+            });
+        }
 
 
         function updateDate(input) {
             const selectedDate = input.value;
             console.log("Selected date:", selectedDate);
+            localStorage.setItem('attendance-date', selectedDate);  
             fetchAttendanceData(selectedDate);
         }
 
         function fetchAttendanceData(date) {
-            fetch(`/attendance/?date=${date}`, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-            })
-                .then(response => response.text()) 
-                .then(html => {
-                    const container = document.querySelector('.container');
-                    container.innerHTML = html;
+    console.log(date);
+    fetch(`/attendance/?date=${date}`, {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+    })
+    .then(response => response.text())
+    .then(html => {
+        const container = document.querySelector('.container');
+        container.innerHTML = html;
 
-                    const dateInput = document.getElementById('attendance-date');
-                    if (dateInput.value !== date) {
-                        dateInput.value = date;
-                    }
-                })
-                .catch(error => {
-                    console.error('Failed to fetch attendance data:', error);
-                });
+        const checkboxes = document.querySelectorAll('input[type="checkbox"].status-toggle-toggle');
+        checkboxes.forEach(checkbox => {
+            const studentId = checkbox.getAttribute('data-student-id');
+            const statusText = document.querySelector(`.status-text[data-student-id="${studentId}"]`).textContent.trim();
+
+            const toggleSwitch = checkbox.closest('label').querySelector('.relative');
+            const dot = toggleSwitch.querySelector('.dot');
+            const toggleBackground = toggleSwitch.querySelector('div');
+            
+            if (statusText === 'Present') {
+                checkbox.checked = true;
+                dot.style.transform = 'translateX(24px)';
+                toggleBackground.style.backgroundColor = '#4CAF50'; 
+            } else {
+                checkbox.checked = false;
+                dot.style.transform = 'translateX(0)';
+                toggleBackground.style.backgroundColor = '#ccc'; 
+            }
+        });
+
+        const dateInput = document.getElementById('attendance-date');
+        if (dateInput.value !== date) {
+            dateInput.value = date;
         }
+
+        initializeAttendancePage();
+    })
+    .catch(error => {
+        console.error('Failed to fetch attendance data:', error);
+    });
+}
+
 
         let lastSortedColumn = -1;
         let ascending = true;
@@ -267,6 +290,20 @@ function toggleStatus(checkbox) {
         }
 
         window.onload = function () {
+           
+            let savedDate = localStorage.getItem('attendance-date');
+            const attendanceDateInput = document.getElementById('attendance-date');
+
+            if (savedDate) {
+                attendanceDateInput.value = savedDate;
+
+            } else {
+                const today = new Date().toISOString().split('T')[0]; 
+                attendanceDateInput.value = today;
+           
+
+            }
+            fetchAttendanceData(attendanceDateInput.value);
             const checkboxes = document.querySelectorAll('input[type="checkbox"].status-toggle-toggle');
             checkboxes.forEach(checkbox => {
                 const studentId = checkbox.getAttribute('data-student-id');
@@ -288,13 +325,14 @@ function toggleStatus(checkbox) {
                     toggleBackground.style.backgroundColor = '#ccc';
                 }
             });
+            initializeAttendancePage();
 
-            const attendanceDateInput = document.getElementById('attendance-date');
-            if (!attendanceDateInput.value) {
-                const today = new Date().toISOString().split('T')[0];  
-                attendanceDateInput.value = today;  
-            }
         };
+        window.addEventListener('beforeunload', function(event) {
+            if (window.performance && window.performance.navigation.type !== window.performance.navigation.TYPE_RELOAD) {
+                localStorage.removeItem('attendance-date');
+            }
+        });
     </script>
 </body>
 

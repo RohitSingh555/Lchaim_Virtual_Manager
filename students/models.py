@@ -2,29 +2,32 @@ from django.db import models
 from datetime import datetime, date
 
 class StudentProfile(models.Model):
+    class StatusChoices(models.TextChoices):
+        TRAINING = 'Training', 'Training'
+        GRADUATED = 'Graduated', 'Graduated'
+
     first_name = models.CharField(max_length=100)
     last_name = models.CharField(max_length=100)
     phone = models.CharField(max_length=15, default='0000000000')
     email = models.EmailField(unique=True)
-    school = models.CharField(max_length=100, choices=[
-        ('Toronto Business', 'Toronto Business'),
-        ('School A', 'School A'),
-        ('School B', 'School B'),
-        ('School C', 'School C'),
-        ('School D', 'School D'),
-    ])
+    school = models.CharField(max_length=100)
     lchaim_training_completed = models.BooleanField(default=False)
     police_check = models.BooleanField(default=False)
     med_docs = models.BooleanField(default=False)
-    hours_requested = models.PositiveIntegerField(null=True, blank=True)
+    hours_requested = models.IntegerField(null=True)
     hours_completed = models.PositiveIntegerField(default=0)
     shift_requested = models.CharField(max_length=10, choices=[
         ('Weekdays', 'Weekdays'),
         ('Weekends', 'Weekends'),
     ])
-    lchaim_orientation_date = models.DateField()
+    lchaim_orientation_date = models.DateField(null=True)
     skills_book_completed = models.BooleanField(default=False)
     comments = models.TextField(blank=True, null=True)
+    status = models.CharField(
+        max_length=10,
+        choices=StatusChoices.choices,
+        default=StatusChoices.TRAINING
+    )
 
     def __str__(self):
         return f"{self.first_name} {self.last_name}"

@@ -140,9 +140,9 @@
                 </div>
                 <div class="mb-6">
                     <label for="school" class="block text-sm font-medium text-gray-700">School</label>
-                    <select name="school" class="select-field w-full">
-                        <option value="{{ form.school.value }}">{{ form.school.value }}</option>
-                    </select>
+ 
+                    <input type="school" name="school" class="input-field w-full" value="{{ form.school.value }}">
+
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                     <div>
@@ -158,7 +158,7 @@
                 </div>
                 <div class="mb-6">
                     <label for="lchaim_orientation_date" class="block text-sm font-medium text-gray-700">L'Chaim Orientation Date</label>
-                    <input type="date" name="lchaim_orientation_date" class="input-field w-full" value="{{ form.lchaim_orientation_date.value }}">
+                    <input type="date" name="lchaim_orientation_date" class="input-field w-full" value="{{ form.lchaim_orientation_date.value }}" required>
                 </div>
 
                 <div class="mb-6">

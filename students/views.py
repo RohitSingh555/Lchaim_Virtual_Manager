@@ -67,10 +67,13 @@ def logout_view(request):
 
 def create_student_profile(request):
     if request.method == "POST":
+        print(request.POST)
         form = StudentProfileForm(request.POST)
         if form.is_valid():
             form.save()
             return redirect('student_profile_list')
+        else:
+            print(form.errors)
     else:
         form = StudentProfileForm()
     return render(request, 'create_profile.html', {'form': form})
@@ -108,14 +111,55 @@ def student_profile_list(request):
         'is_school_group': is_school_group,  # Pass the boolean flag
     })
 
+@login_required
+def student_graduated_list(request):
+    query = request.GET.get('q', '')
+    orientation_date = request.GET.get('orientation_date', '')
+
+    profiles = StudentProfile.objects.filter(status='Graduated')
+
+
+    if query:
+        profiles = profiles.filter(
+            first_name__icontains=query
+        ) | profiles.filter(
+            last_name__icontains=query
+        ) | profiles.filter(
+            email__icontains=query
+        )
+
+    if orientation_date:
+        profiles = profiles.filter(lchaim_orientation_date=orientation_date)
+
+    paginator = Paginator(profiles, 10) 
+    page_number = request.GET.get('page', 1)
+    page_obj = paginator.get_page(page_number)
+
+  
+    is_school_group = request.user.groups.filter(name='School').exists()
+
+    return render(request, 'graduated.html', {
+        'page_obj': page_obj,
+        'query': query,
+        'orientation_date': orientation_date,
+        'is_school_group': is_school_group,  
+    })
+
+
+
 @admin_required
 def update_student_profile(request, pk):
     profile = get_object_or_404(StudentProfile, pk=pk)
     if request.method == "POST":
+        print(request.POST)
         form = StudentProfileForm(request.POST, instance=profile)
+        
+
         if form.is_valid():
+            print(request.POST)
             form.save()
             return redirect('student_profile_list')
+
     else:
         form = StudentProfileForm(instance=profile)
     return render(request, 'update_profile.html', {'form': form})
@@ -154,7 +198,7 @@ def student_attendance(request):
     except ValueError:
         selected_date = timezone.now().date()
 
-    students = StudentProfile.objects.all()
+    students = StudentProfile.objects.filter(status='Training')
     student_logs = []
 
     for student in students:
@@ -240,13 +284,29 @@ def student_logs(request):
         for log in volunteer_logs:
             if log.status == 'Present':
                 total_hours += log.hours_worked if log.hours_worked else 7
+        
+
+        student.hours_completed = total_hours
+        student.save()
+        
+        hours_requested = student.hours_requested if hasattr(student, 'hours_requested') else 0
+        remaining_hours = hours_requested - total_hours
+
+
+        if total_hours >= hours_requested:
+            student.status = 'Graduated'
+            student.save()
+
         student_data.append({
             'student': student,
             'volunteer_logs': volunteer_logs,
-            'total_hours': total_hours
+            'total_hours': total_hours,
+            'hours_requested': student.hours_completed,
+            'remaining_hours': remaining_hours,
         })
 
     return render(request, 'student_logs.html', {'student_data': student_data, 'query': query})
+
 
 
 def get_start_of_week(date):

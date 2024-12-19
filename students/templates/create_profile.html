@@ -106,7 +106,7 @@
             background-color: #cbd5e0;
         }
 
-        .custom-control-input:checked ~ .custom-control-label::before {
+        .custom-control-input:checked~.custom-control-label::before {
             background-color: #3182ce;
         }
 
@@ -181,6 +181,18 @@
 
     <div class="form-container mt-20">
         <h2>Create Student Profile</h2>
+        {% if form.errors %}
+        <div class="alert alert-danger">
+            <strong>There were some errors with your submission:</strong>
+            <ul>
+                {% for field in form %}
+                {% if field.errors %}
+                <li>{{ field.label }}: {{ field.errors|join:", " }}</li>
+                {% endif %}
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
         <form method="post">
             {% csrf_token %}
             <div class="form-row">
