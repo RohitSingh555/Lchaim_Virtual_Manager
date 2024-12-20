@@ -17,6 +17,7 @@ import json
 from django.db.models import Q
 from django.core.paginator import Paginator
 from decimal import Decimal
+from django.db.models import Case, When, Value, IntegerField
 
 def admin_required(function):
     def wrap(request, *args, **kwargs):
@@ -277,6 +278,15 @@ def student_logs(request):
     else:
         students = StudentProfile.objects.all()
 
+    students = students.order_by(
+        Case(
+            When(status='Training', then=Value(0)),
+            default=Value(1),
+            output_field=IntegerField()
+        ),
+        'first_name'  # You can add secondary ordering if needed, e.g., by first name
+    )
+
     student_data = []
     for student in students:
         volunteer_logs = VolunteerLog.objects.filter(student=student)
@@ -292,17 +302,29 @@ def student_logs(request):
         hours_requested = student.hours_requested if hasattr(student, 'hours_requested') else 0
         remaining_hours = hours_requested - total_hours
 
+        progress_width = (total_hours / hours_requested) * 100 if hours_requested > 0 else 0
 
+        # Optionally, round the value
+        progress_width = round(progress_width, 2) 
         if total_hours >= hours_requested:
             student.status = 'Graduated'
             student.save()
+
+        if student.status == 'Graduated':
+            wfstatus = 'Inactive'  # If graduated, the wfstatus becomes Active
+        else:
+            wfstatus = 'Active' 
+
+        student.save()
 
         student_data.append({
             'student': student,
             'volunteer_logs': volunteer_logs,
             'total_hours': total_hours,
-            'hours_requested': student.hours_completed,
+            'hours_requested': student.hours_requested,
             'remaining_hours': remaining_hours,
+            'progress_width': progress_width,
+            'status' : wfstatus  
         })
 
     return render(request, 'student_logs.html', {'student_data': student_data, 'query': query})

@@ -193,7 +193,7 @@
             </ul>
         </div>
         {% endif %}
-        <form method="post">
+        <form method="post" enctype="multipart/form-data">
             {% csrf_token %}
             <div class="form-row">
                 <div class="form-group">
@@ -252,6 +252,10 @@
                 <div class="custom-switch">
                     {{ form.med_docs }}
                 </div>
+            </div>
+            <div class="form-group">
+                <label for="id_documents">Documents (Multiple Files)</label>
+                <input type="file" id="id_documents" name="documents" multiple class="form-control">
             </div>
             <div class="form-group">
                 <label for="id_comments">Comments</label>
