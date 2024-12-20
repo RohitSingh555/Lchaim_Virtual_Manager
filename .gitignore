@@ -2,3 +2,29 @@ placement_portal/__pycache__/
 students/__pycache__/
 students/migrations/__pycache__/
 /env
+/migrations
+*/migrations/
+# Python
+*.pyc
+*.pyo
+*.pyd
+__pycache__
+
+# Django migration files
+*/migrations/
+
+# Environment files
+.env
+*.env
+
+# Database
+db.sqlite3
+
+# VS Code
+.vscode/
+
+# PyCharm
+.idea/
+
+# Log files
+*.log

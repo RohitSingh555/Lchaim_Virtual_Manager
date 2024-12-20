@@ -1,4 +1,5 @@
 from datetime import datetime
+from django.core.mail import EmailMessage
 from django.utils import timezone
 from django.shortcuts import render, redirect, get_object_or_404
 import decimal
@@ -15,6 +16,7 @@ from django.contrib.auth import login, logout, authenticate
 from datetime import timedelta
 import json
 from django.db.models import Q
+from django.conf import settings
 from django.core.paginator import Paginator
 from decimal import Decimal
 from django.db.models import Case, When, Value, IntegerField
@@ -66,18 +68,100 @@ def logout_view(request):
     logout(request)
     return redirect('login')
 
+
 def create_student_profile(request):
     if request.method == "POST":
         print(request.POST)
         form = StudentProfileForm(request.POST)
         if form.is_valid():
-            form.save()
+            student = form.save()
+            send_student_creation_email(student)
             return redirect('student_profile_list')
         else:
             print(form.errors)
     else:
         form = StudentProfileForm()
     return render(request, 'create_profile.html', {'form': form})
+
+def send_student_creation_email(student):
+    subject_q = 'New Student Profile Created'
+    message = f"""
+    <html>
+    <head>
+        <style>
+            body {{
+                font-family: Arial, sans-serif;
+                background-color: #f4f4f4;
+                color: #333;
+                padding: 20px;
+            }}
+            h3 {{
+                color: #2c3e50;
+            }}
+            p {{
+                font-size: 16px;
+                line-height: 1.6;
+            }}
+            ul {{
+                list-style-type: none;
+                padding-left: 0;
+            }}
+            li {{
+                margin-bottom: 8px;
+            }}
+            b {{
+                color: #2980b9;
+            }}
+            .email-container {{
+                background-color: #ffffff;
+                padding: 20px;
+                border-radius: 8px;
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            }}
+            .footer {{
+                font-size: 14px;
+                color: #808080;
+                margin-top: 20px;
+            }}
+            .footer a {{
+                color: #2980b9;
+                text-decoration: none;
+            }}
+        </style>
+    </head>
+    <body>
+        <div class="email-container">
+            <h3>New Student Profile Created</h3>
+            <p>Dear Admin,</p>
+            <p>The following student profile has been created:</p>
+            <ul>
+                <li><b>First Name:</b> {student.first_name}</li>
+                <li><b>Last Name:</b> {student.last_name}</li>
+                <li><b>Email:</b> {student.email}</li>
+                <li><b>Phone:</b> {student.phone}</li>
+                <li><b>School:</b> {student.school}</li>
+                <li><b>Shift Requested:</b> {student.shift_requested}</li>
+                <li><b>Hours Requested:</b> {student.hours_requested}</li>
+                <li><b>Comments:</b> {student.comments}</li>
+            </ul>
+            <p>Warm Regards,<br/>L'chaim Virtual Manager</p>
+        </div>
+        <div class="footer">
+            <p>For any inquiries, please contact <a href="mailto:admin@lchaimretirement.ca">admin@lchaimretirement.ca</a></p>
+            <p>&copy; 2024 L'chaim Virtual Manager. All rights reserved.</p>
+        </div>
+    </body>
+    </html>
+    """
+
+    email = EmailMessage(
+        subject=subject_q,
+        body=message,
+        from_email=settings.DEFAULT_FROM_EMAIL,
+        to=[student.email],  
+    )
+    email.content_subtype = "html"  
+    email.send()
 
 @login_required
 def student_profile_list(request):
@@ -102,14 +186,13 @@ def student_profile_list(request):
     page_number = request.GET.get('page', 1)
     page_obj = paginator.get_page(page_number)
 
-    # Check if the user is part of the 'School' group
     is_school_group = request.user.groups.filter(name='School').exists()
 
     return render(request, 'student_profile_list.html', {
         'page_obj': page_obj,
         'query': query,
         'orientation_date': orientation_date,
-        'is_school_group': is_school_group,  # Pass the boolean flag
+        'is_school_group': is_school_group, 
     })
 
 @login_required
@@ -284,7 +367,7 @@ def student_logs(request):
             default=Value(1),
             output_field=IntegerField()
         ),
-        'first_name'  # You can add secondary ordering if needed, e.g., by first name
+        'first_name'  
     )
 
     student_data = []
@@ -304,14 +387,13 @@ def student_logs(request):
 
         progress_width = (total_hours / hours_requested) * 100 if hours_requested > 0 else 0
 
-        # Optionally, round the value
         progress_width = round(progress_width, 2) 
         if total_hours >= hours_requested:
             student.status = 'Graduated'
             student.save()
 
         if student.status == 'Graduated':
-            wfstatus = 'Inactive'  # If graduated, the wfstatus becomes Active
+            wfstatus = 'Inactive'  
         else:
             wfstatus = 'Active' 
 
@@ -328,8 +410,6 @@ def student_logs(request):
         })
 
     return render(request, 'student_logs.html', {'student_data': student_data, 'query': query})
-
-
 
 def get_start_of_week(date):
     """Get the start of the week (Monday)."""
@@ -428,7 +508,7 @@ def create_college(request):
         form = CollegeForm(request.POST)
         if form.is_valid():
             form.save()
-            return redirect('college_list')  
+            return redirect('student_profile_list')  
     else:
         form = CollegeForm()
 

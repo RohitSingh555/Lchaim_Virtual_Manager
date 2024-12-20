@@ -9,18 +9,21 @@ SHIFT_CHOICES = [
 ]
 
 class StudentProfileForm(forms.ModelForm):
-    shift_requested = forms.ChoiceField(choices=SHIFT_CHOICES)
+    shift_requested = forms.ChoiceField(choices=StudentProfile.SHIFT_CHOICES)  # Reference SHIFT_CHOICES
 
     class Meta:
         model = StudentProfile
         fields = [
-            'first_name', 'last_name', 'phone', 'email', 'lchaim_training_completed', 'school', 
-            'hours_requested', 'shift_requested','lchaim_orientation_date', 'skills_book_completed', 'police_check', 'med_docs','comments'
+            'first_name', 'last_name', 'phone', 'email', 'lchaim_training_completed',
+            'college',
+            'hours_requested', 'shift_requested', 'lchaim_orientation_date', 
+            'skills_book_completed', 'police_check', 'med_docs', 'comments'
         ]
         widgets = {
             'lchaim_orientation_date': forms.DateInput(attrs={'type': 'date'}),
             'comments': forms.Textarea(attrs={'rows': 4, 'cols': 40}),
         }
+
 
 class VolunteerLogForm(forms.ModelForm):
     class Meta:

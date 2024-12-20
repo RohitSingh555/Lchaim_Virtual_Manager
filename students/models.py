@@ -11,9 +11,10 @@ class College(models.Model):
         return self.name
 
 class StudentProfile(models.Model):
-    class StatusChoices(models.TextChoices):
-        TRAINING = 'Training', 'Training'
-        GRADUATED = 'Graduated', 'Graduated'
+    SHIFT_CHOICES = [
+        ('Weekdays', 'Weekdays'),
+        ('Weekends', 'Weekends'),
+    ]  # Define SHIFT_CHOICES at the class level
 
     first_name = models.CharField(max_length=100)
     last_name = models.CharField(max_length=100)
@@ -26,21 +27,22 @@ class StudentProfile(models.Model):
     med_docs = models.BooleanField(default=False)
     hours_requested = models.IntegerField(null=True)
     hours_completed = models.PositiveIntegerField(default=0)
-    shift_requested = models.CharField(max_length=10, choices=[
-        ('Weekdays', 'Weekdays'),
-        ('Weekends', 'Weekends'),
-    ])
+    shift_requested = models.CharField(max_length=10, choices=SHIFT_CHOICES)  # Use SHIFT_CHOICES here
     lchaim_orientation_date = models.DateField(null=True)
     skills_book_completed = models.BooleanField(default=False)
     comments = models.TextField(blank=True, null=True)
     status = models.CharField(
         max_length=10,
-        choices=StatusChoices.choices,
-        default=StatusChoices.TRAINING
+        choices=[
+            ('Training', 'Training'),
+            ('Graduated', 'Graduated'),
+        ],
+        default='Training'
     )
 
     def __str__(self):
         return f"{self.first_name} {self.last_name}"
+
 
 class VolunteerLog(models.Model):
     student = models.ForeignKey(StudentProfile, on_delete=models.CASCADE, related_name="volunteer_logs")

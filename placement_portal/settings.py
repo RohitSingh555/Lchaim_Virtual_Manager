@@ -89,32 +89,32 @@ WSGI_APPLICATION = 'placement_portal.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.sqlite3',
-#         'NAME': BASE_DIR / 'db.sqlite3',
-#     }
-#     # add db config
-#     # 'default': {
-#         #     'ENGINE': 'django.db.backends.postgresql',
-#         #     'NAME': 'inventory_db',
-#         #     'USER': 'root',
-#         #     'PASSWORD': 'smartvm',
-#         #     'HOST': '192.168.1.108',
-#         #     'PORT': '5432',
-#         # }
-# }
-
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'lchaimre_training',
-        'USER': 'lchaimre_lchaimre',
-        'PASSWORD': 'lchaimre@123',
-        'HOST': 'lchaimretirement.ca',  # Remove "https://"
-        'PORT': '3306',
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
+    # add db config
+    # 'default': {
+        #     'ENGINE': 'django.db.backends.postgresql',
+        #     'NAME': 'inventory_db',
+        #     'USER': 'root',
+        #     'PASSWORD': 'smartvm',
+        #     'HOST': '192.168.1.108',
+        #     'PORT': '5432',
+        # }
 }
+
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.mysql',
+#         'NAME': 'lchaimre_training',
+#         'USER': 'lchaimre_lchaimre',
+#         'PASSWORD': 'lchaimre@123',
+#         'HOST': 'lchaimretirement.ca',  # Remove "https://"
+#         'PORT': '3306',
+#     }
+# }
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
@@ -160,3 +160,14 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'students', 'static'),  # Static files path
 ]
+
+
+# settings.py
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'app.lchaimretirement.ca' 
+EMAIL_USE_TLS = True
+EMAIL_PORT = 587
+EMAIL_HOST_USER = 'lcahim@app.lchaimretirement.ca'
+EMAIL_HOST_PASSWORD = 'Rub2484@'
+DEFAULT_FROM_EMAIL = 'lcahim@app.lchaimretirement.ca'
