@@ -1,6 +1,9 @@
 from django.urls import path
 from . import views
 from django.contrib.auth.views import LogoutView
+from django.conf import settings
+from django.conf.urls.static import static
+
 
 urlpatterns = [
     path('create/', views.create_student_profile, name='create_student_profile'),
@@ -21,4 +24,9 @@ urlpatterns = [
     path('download-excel/<str:selected_date>/', views.download_excel, name='download_excel'),
     path('download-excel-user-wise/<str:id>/', views.download_excel_user_wise, name='download_excel_user_wise'),
     path('create_college/', views.create_college, name='create_college'),
+    path('students/<int:student_id>/files/', views.student_file_details, name='student_files'),
+    path('download/<int:file_id>/', views.download_file, name='download_file'),
+
 ]
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

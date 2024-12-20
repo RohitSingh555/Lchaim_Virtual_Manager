@@ -67,14 +67,11 @@ class VolunteerLog(models.Model):
 
 class StudentFile(models.Model):
     student = models.ForeignKey(StudentProfile, on_delete=models.CASCADE, related_name="files")
-    file_url = models.URLField()
-    created_by = models.CharField(max_length=100)
-    created_at = models.DateTimeField(auto_now_add=True)
-    file_type = models.CharField(max_length=50)
-    file_name = models.CharField(max_length=255)
+    file = models.FileField(upload_to="student_files/")
+    uploaded_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"File for {self.student.first_name} {self.student.last_name} - {self.file_name}"
+        return f"{self.file.name} uploaded for {self.student.first_name} {self.student.last_name}"
 
     class Meta:
-        ordering = ['created_at']
+        ordering = ['uploaded_at']

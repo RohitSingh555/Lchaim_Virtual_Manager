@@ -50,6 +50,34 @@
         .download-btn:hover {
             background-color: #2563EB;
         }
+        .file-card {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #fff;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .file-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+        }
+        .file-name {
+            font-size: 16px;
+            color: #333;
+        }
+        .download-link {
+            color: #1D4ED8;
+            font-weight: 500;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+        .download-link:hover {
+            color: #2563EB;
+        }
     </style>
 </head>
 <body class="bg-gray-50">
@@ -73,6 +101,8 @@
             <a href="{% url 'download_excel_user_wise' student.id %}" class="download-btn">
                 Download Volunteer Report
             </a>
+          
+            
         </div>
 
         <div class="grid gap-8 mb-8">
@@ -96,7 +126,18 @@
                 </div>
             </div>
         </div>
-
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% for file in student_files %}
+            <div class="file-card">
+                <span class="file-name">{{ file.file.name }}</span>  <!-- Adjust this slice value based on the file name length -->
+                <a href="{% url 'download_file' file.id %}" class="download-link">
+                    Download
+                </a>
+            </div>
+            {% empty %}
+            <p class="text-gray-600">No files available for download.</p>
+            {% endfor %}
+        </div>
         <div class="overflow-x-auto bg-white shadow-lg rounded-lg mb-8">
             <table class="min-w-full">
                 <thead class="bg-blue-100">

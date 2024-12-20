@@ -1,5 +1,5 @@
 from django import forms
-from .models import College, StudentProfile, VolunteerLog
+from .models import College, StudentFile, StudentProfile, VolunteerLog
 
 
 
@@ -37,3 +37,9 @@ class CollegeForm(forms.ModelForm):
         widgets = {
             'address': forms.Textarea(attrs={'rows': 3}),
         }
+
+class StudentFileForm(forms.ModelForm):
+    class Meta:
+        model = StudentFile
+        fields = ['file']
+       

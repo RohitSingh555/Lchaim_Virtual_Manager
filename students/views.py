@@ -1,14 +1,16 @@
 from datetime import datetime
 from django.core.mail import EmailMessage
+import os
+import re
 from django.utils import timezone
 from django.shortcuts import render, redirect, get_object_or_404
 import decimal
 from openpyxl import Workbook
-from django.http import HttpResponse
-from .models import StudentProfile, VolunteerLog
+from django.http import HttpResponse, FileResponse, Http404
+from .models import StudentFile, StudentProfile, VolunteerLog
 from django.db.models import Sum
 from django.http import JsonResponse
-from .forms import CollegeForm, StudentProfileForm, VolunteerLogForm
+from .forms import CollegeForm, StudentFileForm, StudentProfileForm, VolunteerLogForm
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -71,17 +73,20 @@ def logout_view(request):
 
 def create_student_profile(request):
     if request.method == "POST":
-        print(request.POST)
-        form = StudentProfileForm(request.POST)
-        if form.is_valid():
-            student = form.save()
-            send_student_creation_email(student)
-            return redirect('student_profile_list')
-        else:
-            print(form.errors)
+        profile_form = StudentProfileForm(request.POST, request.FILES)  # Pass request.FILES to handle uploaded files
+        if profile_form.is_valid():
+            student_profile = profile_form.save()
+            send_student_creation_email(student_profile)
+            print(request.FILES)
+            files = request.FILES.getlist('documents')  
+            for file in files:
+                StudentFile.objects.create(student=student_profile, file=file)
+
+            return redirect('student_profile_list') 
     else:
-        form = StudentProfileForm()
-    return render(request, 'create_profile.html', {'form': form})
+        profile_form = StudentProfileForm()
+
+    return render(request, 'create_profile.html', {'form': profile_form})
 
 def send_student_creation_email(student):
     subject_q = 'New Student Profile Created'
@@ -230,22 +235,32 @@ def student_graduated_list(request):
     })
 
 
-
 @admin_required
 def update_student_profile(request, pk):
     profile = get_object_or_404(StudentProfile, pk=pk)
+
     if request.method == "POST":
-        print(request.POST)
-        form = StudentProfileForm(request.POST, instance=profile)
-        
+        print("Form data:", request.POST)  
+        print("File data:", request.FILES)  
+
+        # Include request.FILES for file handling
+        form = StudentProfileForm(request.POST, request.FILES, instance=profile)
 
         if form.is_valid():
-            print(request.POST)
-            form.save()
+            student_profile = form.save()
+
+            # Handle multiple files
+            if 'documents' in request.FILES:
+                files = request.FILES.getlist('documents')  # Ensure correct field name
+                for file in files:
+                    StudentFile.objects.create(student=student_profile, file=file)
+
+            # Redirect to the profile list page
             return redirect('student_profile_list')
 
     else:
         form = StudentProfileForm(instance=profile)
+
     return render(request, 'update_profile.html', {'form': form})
 
 @admin_required
@@ -274,6 +289,7 @@ def log_volunteer_hours(request, pk):
     return render(request, 'log_volunteer_hours.html', {'form': form, 'student': student})
 
 
+
 @admin_required
 def student_attendance(request):
     date_str = request.GET.get('date') or timezone.now().strftime('%Y-%m-%d')
@@ -287,8 +303,24 @@ def student_attendance(request):
 
     for student in students:
         log, created = VolunteerLog.objects.get_or_create(student=student, date=selected_date)
+        
+        # Handle hours worked formatting
+        hours_worked = log.hours_worked  # assuming this is a decimal value
+        if hours_worked is not None:
+            hours = int(hours_worked)  # Integer part is the hours
+            minutes = round((hours_worked - hours) * 60)  # Fractional part converted to minutes
+
+            # Format as HH:MM
+            log.hours_worked = f"{hours}:{minutes:02}"  # Format minutes as two digits
+        else:
+            log.hours_worked = "00:00"  # Default if no hours worked
+
+        # Append student and their log
         student_logs.append({'student': student, 'log': log})
-        print(students, log)
+
+    # Print the students and their logs for debugging
+    print(student_logs)  # This will show the students and the corresponding logs
+
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest':  
         return render(request, 'attendance/attendance_partial.html', {
             'students': student_logs,
@@ -337,17 +369,27 @@ def update_attendance(request, student_id, date):
 def student_details(request, student_id):
     student = get_object_or_404(StudentProfile, id=student_id)
     volunteer_logs = VolunteerLog.objects.filter(student=student)
+    student_files = StudentFile.objects.filter(student=student)
+    
+    filename_pattern = re.compile(r'([^/]+)$')
+    
+    # Process the file names using regex
+    for file in student_files:
+        match = filename_pattern.search(file.file.name)
+        if match:
+            print(match.group(0))
+            file.file = match.group(0)  
     
     total_hours = 0
     for log in volunteer_logs:
         if log.status == 'Present':
-            if log.status == 'Present':
-                total_hours += log.hours_worked if log.hours_worked else 7
+            total_hours += log.hours_worked if log.hours_worked else 7
     
     return render(request, 'student_details.html', {
         'student': student,
         'volunteer_logs': volunteer_logs,
-        'total_hours': total_hours
+        'total_hours': total_hours,
+        'student_files': student_files
     })
 
 @admin_required
@@ -584,3 +626,24 @@ def create_college(request):
         form = CollegeForm()
 
     return render(request, 'create_college.html', {'form': form})
+
+@admin_required
+def student_file_details(request, student_id):
+    student = get_object_or_404(StudentProfile, id=student_id)
+    file_logs = StudentFile.objects.filter(student=student)  
+    
+    return render(request, 'studentfile.html', {
+        'student': student,
+        'file_logs': file_logs,  
+    })
+
+def download_file(request, file_id):
+    try:
+        file_log = StudentFile.objects.get(id=file_id)
+        file_path = file_log.file.path 
+
+        response = FileResponse(open(file_path, 'rb'), as_attachment=True)
+        response['Content-Disposition'] = f'attachment; filename="{file_log.file.name}"'
+        return response
+    except StudentFile.DoesNotExist:
+        raise Http404("File not found.")

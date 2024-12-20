@@ -7,6 +7,9 @@
     <title>Volunteer Attendance</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.0.4/dist/tailwind.min.css" rel="stylesheet">
     <meta name="csrf-token" content="{{ csrf_token }}">
+    <script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
+    <script src="https://weareoutman.github.io/clockpicker/dist/jquery-clockpicker.min.js"></script>
+    <link rel="stylesheet" href="https://weareoutman.github.io/clockpicker/dist/jquery-clockpicker.min.css">
 </head>
 
 <body class="bg-gray-100 font-sans">
@@ -58,16 +61,14 @@
                             </span>
                         </td>
                         <td class="px-6 py-3">
-                            <input type="time" class="from-time w-full p-2 border border-gray-300 rounded-md"
-                                data-student-id="{{ student_log.student.id }}"
-                                value="{{ student_log.log.start_time|time:'H:i' }}"
-                                onchange="calculateAndSaveHours(this)">
+                            <input type="text" name="time" class="from-time clockpicker w-full p-2 border border-gray-300 rounded-md"
+                                data-student-id="{{ student_log.student.id }}" placeholder="click to see magic"
+                                value="{{ student_log.log.start_time|time:'H:i' }}" onchange="calculateAndSaveHours(this)">
                         </td>
                         <td class="px-6 py-3">
-                            <input type="time" class="to-time w-full p-2 border border-gray-300 rounded-md"
-                                data-student-id="{{ student_log.student.id }}"
-                                value="{{ student_log.log.end_time|time:'H:i' }}"
-                                onchange="calculateAndSaveHours(this)">
+                            <input type="text" name="time" class="to-time clockpicker w-full p-2 border border-gray-300 rounded-md"
+                                data-student-id="{{ student_log.student.id }}" placeholder="click to see magic"
+                                value="{{ student_log.log.end_time|time:'H:i' }}" onchange="calculateAndSaveHours(this)">
                         </td>
                         <td class="px-6 py-3 text-center">
                             <span class="hours-worked text-lg font-semibold"
@@ -100,8 +101,68 @@
     </div>
 
     <script>
+        function initializeClockPicker() {
+            $('input[name="time"]').clockpicker({
+                placement: 'bottom',
+                align: 'left',
+                autoclose: true,
+                default: 'now',
+                donetext: 'Select',
+                init: function() { 
+                    console.log("Clockpicker initiated");
+                },
+                beforeShow: function() {
+                    console.log("before show");
+                },
+                afterShow: function() {
+                    console.log("after show");
+                },
+                beforeHide: function() {
+                    console.log("before hide");
+                },
+                afterHide: function() {
+                    console.log("after hide");
+                },
+                beforeHourSelect: function() {
+                    console.log("before hour selected");
+                },
+                afterHourSelect: function() {
+                    console.log("after hour selected");
+                },
+                beforeDone: function() {
+                    console.log("before done");
+                },
+                afterDone: function() {
+                    console.log("after done");
+                }
+            });
+        }
 
-function toggleStatus(checkbox) {
+        function initializeEventListeners() {
+            $(document).on('click', '.status-toggle-toggle', toggleStatus);
+            // Other event listeners...
+        }
+
+        $(document).ready(function() {
+    // Initialize clock picker
+    initializeClockPicker();
+
+    // Check localStorage for stored date
+    const storedDate = localStorage.getItem('attendance-date');
+    const today = new Date().toISOString().split('T')[0];  // Get the current date
+
+    // Use stored date if available, otherwise use current date
+    const attendanceDate = storedDate ? storedDate : today;
+    $('#attendance-date').val(attendanceDate);  // Set the value of the date input
+
+    // Fetch attendance data for the determined date
+    fetchAttendanceData(attendanceDate);
+    
+    initializeEventListeners();
+});
+
+
+        function toggleStatus(checkbox) {
             const studentId = checkbox.getAttribute('data-student-id');
             const statusText = document.querySelector(`.status-text[data-student-id="${studentId}"]`);
             const toggleSwitch = checkbox.closest('label').querySelector('.relative');
@@ -131,39 +192,45 @@ function toggleStatus(checkbox) {
             saveAttendance(checkbox);
         }
 
-        function calculateAndSaveHours(input) {
-            const studentId = input.getAttribute('data-student-id');
-            const fromTimeInput = document.querySelector(`input[data-student-id="${studentId}"].from-time`);
-            const toTimeInput = document.querySelector(`input[data-student-id="${studentId}"].to-time`);
-            const hoursWorkedSpan = document.querySelector(`.hours-worked[data-student-id="${studentId}"]`);
+    function calculateAndSaveHours(input) {
+    console.log(input);
+    const studentId = input.getAttribute('data-student-id');
+    const fromTimeInput = document.querySelector(`input[data-student-id="${studentId}"].from-time`);
+    const toTimeInput = document.querySelector(`input[data-student-id="${studentId}"].to-time`);
+    const hoursWorkedSpan = document.querySelector(`.hours-worked[data-student-id="${studentId}"]`);
 
-            if (!fromTimeInput || !toTimeInput || !hoursWorkedSpan) {
-                console.error('Missing time input or hours element for student ID:', studentId);
-                return;
-            }
+    if (!fromTimeInput || !toTimeInput || !hoursWorkedSpan) {
+        console.error('Missing time input or hours element for student ID:', studentId);
+        return;
+    }
 
-            const fromTime = fromTimeInput.value;
-            const toTime = toTimeInput.value;
+    const fromTime = fromTimeInput.value;
+    const toTime = toTimeInput.value;
+    console.log(fromTime);  // From Time
+    console.log(toTime);    // To Time
 
-            if (fromTime && toTime) {
-                const fromDateTime = new Date(`1970-01-01T${fromTime}:00`);
-                const toDateTime = new Date(`1970-01-01T${toTime}:00`);
+    if (fromTime && toTime) {
+        const fromDateTime = new Date(`1970-01-01T${fromTime}:00`);
+        const toDateTime = new Date(`1970-01-01T${toTime}:00`);
 
-                const durationInMs = toDateTime - fromDateTime;
-                if (durationInMs < 0) {
-                    console.error('End time cannot be before start time');
-                    return;
-                }
+        // Calculate the time difference
+        const durationInMs = toDateTime - fromDateTime;  // in milliseconds
+        const durationInHours = Math.abs(durationInMs / 1000 / 3600);  // Convert to hours
 
-                const hoursWorked = (durationInMs / 1000) / 3600;
-                hoursWorkedSpan.textContent = hoursWorked.toFixed(2);
-                saveAttendance(fromTimeInput, toTimeInput, hoursWorked);
-            }
-        }
+        // Format and display the result
+        hoursWorkedSpan.textContent = durationInHours;  // Show 2 decimal places
+        console.log(durationInHours);
+        saveAttendance(fromTimeInput, toTimeInput, durationInHours);
+        location.reload();
+    }
+}
+
+
+
+
 
         function saveAttendance(input) {
             const studentId = input.getAttribute('data-student-id');
-
             const fromTimeInput = document.querySelector(`input[data-student-id="${studentId}"].from-time`);
             const toTimeInput = document.querySelector(`input[data-student-id="${studentId}"].to-time`);
             const remarksField = document.querySelector(`textarea[data-student-id="${studentId}"]`);
@@ -171,15 +238,15 @@ function toggleStatus(checkbox) {
             const hoursWorkedSpan = document.querySelector(`.hours-worked[data-student-id="${studentId}"]`);
             const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
             let attendanceDate = document.getElementById('attendance-date').value;
-            
+
             const newStatus = statusCheckbox.checked ? 'Present' : 'Absent';
             const startTime = fromTimeInput.value;
             const endTime = toTimeInput.value;
             const remarks = remarksField.value;
             const hoursWorked = hoursWorkedSpan.textContent || 0;
-            
-            if(!attendanceDate || attendanceDate ==""){
-                attendanceDate = new Date().toISOString().split('T')[0]
+
+            if (!attendanceDate || attendanceDate === "") {
+                attendanceDate = new Date().toISOString().split('T')[0];
             }
             const formData = new FormData();
             formData.append('status', newStatus);
@@ -190,19 +257,15 @@ function toggleStatus(checkbox) {
             formData.append('student_id', studentId);
             formData.append('csrfmiddlewaretoken', csrfToken);
 
-            console.log(newStatus)
             fetch(`/attendance/update/${studentId}/${attendanceDate}/`, {
                 method: 'POST',
                 body: formData
             })
-            .then(response => {
-                console.log(response)
-                response.json()})
+            .then(response => response.json())
             .catch(error => {
                 console.error('Request failed:', error);
             });
         }
-
 
         function updateDate(input) {
             const selectedDate = input.value;
@@ -212,50 +275,49 @@ function toggleStatus(checkbox) {
         }
 
         function fetchAttendanceData(date) {
-    console.log(date);
-    fetch(`/attendance/?date=${date}`, {
-        method: 'GET',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-    })
-    .then(response => response.text())
-    .then(html => {
-        const container = document.querySelector('.container');
-        container.innerHTML = html;
+            console.log(date);
+            fetch(`/attendance/?date=${date}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            })
+            .then(response => response.text())
+            .then(html => {
+                const container = document.querySelector('.container');
+                container.innerHTML = html;
 
-        const checkboxes = document.querySelectorAll('input[type="checkbox"].status-toggle-toggle');
-        checkboxes.forEach(checkbox => {
-            const studentId = checkbox.getAttribute('data-student-id');
-            const statusText = document.querySelector(`.status-text[data-student-id="${studentId}"]`).textContent.trim();
+                const checkboxes = document.querySelectorAll('input[type="checkbox"].status-toggle-toggle');
+                checkboxes.forEach(checkbox => {
+                    const studentId = checkbox.getAttribute('data-student-id');
+                    const statusText = document.querySelector(`.status-text[data-student-id="${studentId}"]`).textContent.trim();
 
-            const toggleSwitch = checkbox.closest('label').querySelector('.relative');
-            const dot = toggleSwitch.querySelector('.dot');
-            const toggleBackground = toggleSwitch.querySelector('div');
-            
-            if (statusText === 'Present') {
-                checkbox.checked = true;
-                dot.style.transform = 'translateX(24px)';
-                toggleBackground.style.backgroundColor = '#4CAF50'; 
-            } else {
-                checkbox.checked = false;
-                dot.style.transform = 'translateX(0)';
-                toggleBackground.style.backgroundColor = '#ccc'; 
-            }
-        });
+                    const toggleSwitch = checkbox.closest('label').querySelector('.relative');
+                    const dot = toggleSwitch.querySelector('.dot');
+                    const toggleBackground = toggleSwitch.querySelector('div');
+                    
+                    if (statusText === 'Present') {
+                        checkbox.checked = true;
+                        dot.style.transform = 'translateX(24px)';
+                        toggleBackground.style.backgroundColor = '#4CAF50'; 
+                    } else {
+                        checkbox.checked = false;
+                        dot.style.transform = 'translateX(0)';
+                        toggleBackground.style.backgroundColor = '#ccc'; 
+                    }
+                });
 
-        const dateInput = document.getElementById('attendance-date');
-        if (dateInput.value !== date) {
-            dateInput.value = date;
+                const dateInput = document.getElementById('attendance-date');
+                if (dateInput.value !== date) {
+                    dateInput.value = date;
+                }
+
+                initializeAttendancePage();
+            })
+            .catch(error => {
+                console.error('Failed to fetch attendance data:', error);
+            });
         }
-
-        initializeAttendancePage();
-    })
-    .catch(error => {
-        console.error('Failed to fetch attendance data:', error);
-    });
-}
-
 
         let lastSortedColumn = -1;
         let ascending = true;
@@ -267,72 +329,27 @@ function toggleStatus(checkbox) {
             const rowsSorted = rows.sort((rowA, rowB) => {
                 const cellA = rowA.cells[columnIndex].textContent.trim();
                 const cellB = rowB.cells[columnIndex].textContent.trim();
-
-                if (cellA === "" || cellB === "") return 0;
-
-                if (!isNaN(cellA) && !isNaN(cellB)) {
-                    return ascending
-                        ? parseFloat(cellA) - parseFloat(cellB)
-                        : parseFloat(cellB) - parseFloat(cellA);
+                if (lastSortedColumn === columnIndex) {
+                    ascending = !ascending;
                 }
-
-                return ascending
-                    ? cellA.localeCompare(cellB)
-                    : cellB.localeCompare(cellA);
+                lastSortedColumn = columnIndex;
+                if (columnIndex === 1 || columnIndex === 4) { // Numeric or status columns
+                    const a = parseFloat(cellA);
+                    const b = parseFloat(cellB);
+                    return ascending ? a - b : b - a;
+                }
+                return ascending ? cellA.localeCompare(cellB) : cellB.localeCompare(cellA);
             });
 
             rowsSorted.forEach(row => table.appendChild(row));
-
-            ascending = !ascending;
-            const icon = header.querySelector("i");
-            icon.classList.toggle("fa-sort-asc", ascending);
-            icon.classList.toggle("fa-sort-desc", !ascending);
         }
 
-        window.onload = function () {
-           
-            let savedDate = localStorage.getItem('attendance-date');
-            const attendanceDateInput = document.getElementById('attendance-date');
+        function initializeAttendancePage() {
+            // Initialize clock picker for time input fields
+            initializeClockPicker();
 
-            if (savedDate) {
-                attendanceDateInput.value = savedDate;
-
-            } else {
-                const today = new Date().toISOString().split('T')[0]; 
-                attendanceDateInput.value = today;
-           
-
-            }
-            fetchAttendanceData(attendanceDateInput.value);
-            const checkboxes = document.querySelectorAll('input[type="checkbox"].status-toggle-toggle');
-            checkboxes.forEach(checkbox => {
-                const studentId = checkbox.getAttribute('data-student-id');
-                const status = document.querySelector(`.status-text[data-student-id="${studentId}"]`).textContent.trim();
-
-                if (status === 'Present') {
-                    checkbox.checked = true;
-                    const toggleSwitch = checkbox.closest('label').querySelector('.relative');
-                    const dot = toggleSwitch.querySelector('.dot');
-                    const toggleBackground = toggleSwitch.querySelector('div');
-                    dot.style.transform = 'translateX(24px)';
-                    toggleBackground.style.backgroundColor = '#4CAF50';
-                } else {
-                    checkbox.checked = false;
-                    const toggleSwitch = checkbox.closest('label').querySelector('.relative');
-                    const dot = toggleSwitch.querySelector('.dot');
-                    const toggleBackground = toggleSwitch.querySelector('div');
-                    dot.style.transform = 'translateX(0)';
-                    toggleBackground.style.backgroundColor = '#ccc';
-                }
-            });
-            initializeAttendancePage();
-
-        };
-        window.addEventListener('beforeunload', function(event) {
-            if (window.performance && window.performance.navigation.type !== window.performance.navigation.TYPE_RELOAD) {
-                localStorage.removeItem('attendance-date');
-            }
-        });
+            // Add additional event listeners if needed
+        }
     </script>
 </body>
 
