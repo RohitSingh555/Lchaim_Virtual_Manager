@@ -503,6 +503,77 @@ def download_excel(request, selected_date):
     wb.save(response)
     return response
 
+
+
+def download_excel_user_wise(request, id):
+    student_data = []
+    students = StudentProfile.objects.filter(id=id)
+    
+    for student in students:
+        total_hours = 0  
+        
+        # Fetch volunteer logs for the student
+        volunteer_logs = VolunteerLog.objects.filter(student=student, status='Present')
+        
+        for log in volunteer_logs:
+            # Add hours worked to the total, or default to 7 if not specified
+            total_hours += log.hours_worked if log.hours_worked else 7
+
+        # Calculate remaining hours based on requested hours
+        hours_requested = student.hours_requested if hasattr(student, 'hours_requested') else 0
+        remaining_hours = hours_requested - total_hours
+        
+        for log in volunteer_logs:
+            student_data.append({
+                'Student Name': f"{student.first_name} {student.last_name}",
+                'Email': student.email,
+                'Phone': student.phone,
+                'School': student.school,
+                'Date of Attendance': log.date,
+                'Start Time': log.start_time,
+                'End Time': log.end_time,
+                'Attendance': log.status,
+                'Notes': log.notes if log.notes else 'N/A',
+                'Completed Hours': log.hours_worked if log.hours_worked is not None else 'N/A',
+                'Remaining Hours': remaining_hours,
+                'Status': student.status,
+            })
+
+    # Check if data was found
+    if not student_data:
+        return HttpResponse("No attendance data found for the selected student.", status=404)
+
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Attendance"
+
+    headers = ['Student Name', 'Email', 'Phone', 'School', 'Date of Attendance', 'Start Time', 'End Time', 'Attendance', 'Notes', 'Completed Hours', 'Remaining Hours', 'Status']
+    ws.append(headers)
+
+    for entry in student_data:
+        ws.append([
+            entry['Student Name'],
+            entry['Email'],
+            entry['Phone'],
+            entry['School'],
+            entry['Date of Attendance'],
+            entry['Start Time'],
+            entry['End Time'],
+            entry['Attendance'],
+            entry['Notes'],
+            entry['Completed Hours'],
+            entry['Remaining Hours'],
+            entry['Status'],
+        ])
+
+    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response['Content-Disposition'] = f'attachment; filename={student.first_name}_{student.last_name}_report.xlsx'
+
+    wb.save(response)
+    return response
+
+
+
 def create_college(request):
     if request.method == 'POST':
         form = CollegeForm(request.POST)

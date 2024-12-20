@@ -30,6 +30,26 @@
             transform: scale(1.1);
             color: #2563EB; /* Lighter blue on hover */
         }
+        .header-container {
+            position: relative;
+            text-align: center;
+        }
+        .download-btn {
+            position: absolute;
+            top: 50%;
+            right: 0;
+            transform: translateY(-50%);
+            background-color: #3B82F6;
+            padding: 12px 24px;
+            color: white;
+            font-size: 16px;
+            font-weight: 600;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .download-btn:hover {
+            background-color: #2563EB;
+        }
     </style>
 </head>
 <body class="bg-gray-50">
@@ -37,12 +57,23 @@
     {% include 'navbar.html' %}
 
     <!-- Back Button -->
-    <button onclick="window.history.back()" class="back-button mt-20">
-        <i class="fas fa-arrow-left"></i> 
-    </button>
+    
 
     <div class="container mx-auto px-6 mt-24">
-        <h1 class="text-4xl font-semibold text-center text-blue-800 mb-8">{{ student.first_name }} {{ student.last_name }}'s Volunteer Logs</h1>
+        <!-- Header Section with Title and Download Button -->
+       
+        <div class="header-container mb-8">
+            <button onclick="window.history.back()" class="back-button">
+                <i class="fas fa-arrow-left"></i> 
+            </button>
+            <h1 class="text-4xl font-semibold text-blue-800">
+                {{ student.first_name }} {{ student.last_name }}'s Volunteer Logs
+            </h1>
+            <!-- Download Report Button -->
+            <a href="{% url 'download_excel_user_wise' student.id %}" class="download-btn">
+                Download Volunteer Report
+            </a>
+        </div>
 
         <div class="grid gap-8 mb-8">
             <div class="col-span-1 bg-white p-6 rounded-lg shadow-lg hover:shadow-xl transition duration-300">
