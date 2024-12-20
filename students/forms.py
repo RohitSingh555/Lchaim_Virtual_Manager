@@ -1,5 +1,5 @@
 from django import forms
-from .models import StudentProfile, VolunteerLog
+from .models import College, StudentProfile, VolunteerLog
 
 
 
@@ -26,3 +26,11 @@ class VolunteerLogForm(forms.ModelForm):
     class Meta:
         model = VolunteerLog
         fields = ['student', 'date', 'start_time', 'end_time', 'status', 'notes']
+        
+class CollegeForm(forms.ModelForm):
+    class Meta:
+        model = College
+        fields = ['name', 'address', 'contact_number', 'website']
+        widgets = {
+            'address': forms.Textarea(attrs={'rows': 3}),
+        }
