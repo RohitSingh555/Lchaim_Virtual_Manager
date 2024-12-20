@@ -1,0 +1,114 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create College - Lchaim Virtual Manager</title>
+    <meta name="csrf-token" content="{{ csrf_token }}">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .form-container {
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            background-color: #ffffff;
+            border-radius: 12px;
+            padding: 30px;
+        }
+        .btn-custom {
+            width: 100%;
+            padding: 12px;
+            font-size: 16px;
+        }
+        .input-field {
+            border: 1px solid #d1d5db; 
+            border-radius: 8px;
+            padding: 12px;
+            background-color: #f9fafb;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+        .input-field:focus {
+            outline: none;
+            border-color: #4f81e4; 
+            box-shadow: 0 0 0 3px rgba(79, 129, 228, 0.2);
+        }
+        .select-field {
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            padding: 12px;
+            background-color: #f9fafb;
+            font-size: 16px;
+        }
+        .textarea-field {
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            padding: 12px;
+            background-color: #f9fafb;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            min-height: 120px;
+        }
+        .textarea-field:focus {
+            outline: none;
+            border-color: #4f81e4;
+            box-shadow: 0 0 0 3px rgba(79, 129, 228, 0.2);
+        }
+        label {
+            font-size: 1rem;
+            margin-bottom: 8px;
+        }
+        .input-field,
+        .textarea-field,
+        .select-field {
+            margin-top: 6px;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-100">
+
+    {% include 'navbar.html' %}
+
+    <div class="max-w-4xl mx-auto mt-24 mb-10">
+        <div class="form-container">
+            <h2 class="text-3xl font-semibold text-center mb-6 text-gray-800">Create College</h2>
+            <form method="POST" class="space-y-6">
+                {% csrf_token %}
+
+                <div class="mb-6">
+                    <label for="id_name" class="block text-sm font-medium text-gray-700">College Name</label>
+                    <input type="text" name="name" class="input-field w-full" value="{{ form.name.value }}">
+                </div>
+
+                <div class="mb-6">
+                    <label for="id_address" class="block text-sm font-medium text-gray-700">Address</label>
+                    <input type="text" name="address" class="input-field w-full" value="{{ form.address.value }}">
+                </div>
+
+                <div class="mb-6">
+                    <label for="id_contact_number" class="block text-sm font-medium text-gray-700">Contact Number</label>
+                    <input type="tel" name="contact_number" class="input-field w-full" value="{{ form.contact_number.value }}">
+                </div>
+
+                <div class="mb-6">
+                    <label for="id_website" class="block text-sm font-medium text-gray-700">Website</label>
+                    <input type="url" name="website" class="input-field w-full" value="{{ form.website.value }}">
+                </div>
+
+                <div>
+                    <button type="submit" class="btn-custom bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50">
+                        Create College
+                    </button>
+                </div>
+            </form>
+
+            <div class="mt-6 text-center">
+                <a href="{% url 'student_profile_list' %}" class="inline-block bg-gray-300 text-gray-800 rounded-lg py-2 px-6 hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500">
+                    Back to Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>

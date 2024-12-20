@@ -7,7 +7,7 @@ from django.http import HttpResponse
 from .models import StudentProfile, VolunteerLog
 from django.db.models import Sum
 from django.http import JsonResponse
-from .forms import StudentProfileForm, VolunteerLogForm
+from .forms import CollegeForm, StudentProfileForm, VolunteerLogForm
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -492,3 +492,15 @@ def download_excel_user_wise(request, id):
     wb.save(response)
     return response
 
+
+
+def create_college(request):
+    if request.method == 'POST':
+        form = CollegeForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('college_list')  
+    else:
+        form = CollegeForm()
+
+    return render(request, 'create_college.html', {'form': form})

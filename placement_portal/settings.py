@@ -89,22 +89,32 @@ WSGI_APPLICATION = 'placement_portal.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
+#     }
+#     # add db config
+#     # 'default': {
+#         #     'ENGINE': 'django.db.backends.postgresql',
+#         #     'NAME': 'inventory_db',
+#         #     'USER': 'root',
+#         #     'PASSWORD': 'smartvm',
+#         #     'HOST': '192.168.1.108',
+#         #     'PORT': '5432',
+#         # }
+# }
+
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'lchaimre_training',
+        'USER': 'lchaimre_lchaimre',
+        'PASSWORD': 'lchaimre@123',
+        'HOST': 'lchaimretirement.ca',  # Remove "https://"
+        'PORT': '3306',
     }
-    # add db config
-    # 'default': {
-        #     'ENGINE': 'django.db.backends.postgresql',
-        #     'NAME': 'inventory_db',
-        #     'USER': 'root',
-        #     'PASSWORD': 'smartvm',
-        #     'HOST': '192.168.1.108',
-        #     'PORT': '5432',
-        # }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators

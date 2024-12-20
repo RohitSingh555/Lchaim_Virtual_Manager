@@ -1,6 +1,15 @@
 from django.db import models
 from datetime import datetime, date
 
+class College(models.Model):
+    name = models.CharField(max_length=255)
+    address = models.CharField(max_length=255, blank=True, null=True)
+    contact_number = models.CharField(max_length=15, blank=True, null=True)
+    website = models.URLField(blank=True, null=True)
+
+    def __str__(self):
+        return self.name
+
 class StudentProfile(models.Model):
     class StatusChoices(models.TextChoices):
         TRAINING = 'Training', 'Training'
@@ -11,6 +20,7 @@ class StudentProfile(models.Model):
     phone = models.CharField(max_length=15, default='0000000000')
     email = models.EmailField(unique=True)
     school = models.CharField(max_length=100)
+    college = models.ForeignKey(College, on_delete=models.SET_NULL, null=True, blank=True)
     lchaim_training_completed = models.BooleanField(default=False)
     police_check = models.BooleanField(default=False)
     med_docs = models.BooleanField(default=False)
@@ -52,3 +62,17 @@ class VolunteerLog(models.Model):
 
     class Meta:
         ordering = ['date']
+
+class StudentFile(models.Model):
+    student = models.ForeignKey(StudentProfile, on_delete=models.CASCADE, related_name="files")
+    file_url = models.URLField()
+    created_by = models.CharField(max_length=100)
+    created_at = models.DateTimeField(auto_now_add=True)
+    file_type = models.CharField(max_length=50)
+    file_name = models.CharField(max_length=255)
+
+    def __str__(self):
+        return f"File for {self.student.first_name} {self.student.last_name} - {self.file_name}"
+
+    class Meta:
+        ordering = ['created_at']
