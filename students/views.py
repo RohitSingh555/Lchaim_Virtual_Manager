@@ -333,13 +333,15 @@ def student_attendance(request):
         })
 
 
-@admin_required
+from datetime import datetime
+
 def update_attendance(request, student_id, date):
     student = get_object_or_404(StudentProfile, id=student_id)
     today = timezone.now().date()
     print(date)
     log, created = VolunteerLog.objects.get_or_create(student=student, date=date)
     print(log)
+    
     if request.method == 'POST':
         status = request.POST.get('status')
         notes = request.POST.get('notes')
@@ -347,6 +349,7 @@ def update_attendance(request, student_id, date):
         end_time = request.POST.get('end_time')
         hours_worked = request.POST.get('hours_worked')
 
+        # Parse start and end times if provided
         if start_time and end_time:
             start_time = datetime.strptime(start_time, '%H:%M').time()
             end_time = datetime.strptime(end_time, '%H:%M').time() 
@@ -355,15 +358,25 @@ def update_attendance(request, student_id, date):
 
         log.status = status
         log.notes = notes
+        print(hours_worked)
 
+        # Check if hours_worked is in HH:MM format (string)
         if hours_worked:
-            log.hours_worked = float(hours_worked)
+            if isinstance(hours_worked, str) and ':' in hours_worked:
+                # Extract hours and minutes from the string (e.g., "02:30")
+                hours, minutes = map(int, hours_worked.split(':'))
+                total_hours = hours + minutes / 60.0  # Convert to decimal hours
+                log.hours_worked = total_hours
+            else:
+                # Assuming hours_worked is a float, directly save it
+                log.hours_worked = float(hours_worked)
         
         log.save()
 
         return JsonResponse({'success': True})
 
     return JsonResponse({'success': False})
+
 
 @admin_required
 def student_details(request, student_id):
