@@ -13,6 +13,7 @@ from django.http import JsonResponse
 from .forms import CollegeForm, StudentFileForm, StudentProfileForm, VolunteerLogForm
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib import messages
+import requests
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import login, logout, authenticate
 from datetime import timedelta
@@ -72,11 +73,14 @@ def logout_view(request):
 
 
 def create_student_profile(request):
+    pdf_links = [
+    "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf"
+]
     if request.method == "POST":
         profile_form = StudentProfileForm(request.POST, request.FILES)  # Pass request.FILES to handle uploaded files
         if profile_form.is_valid():
             student_profile = profile_form.save()
-            send_student_creation_email(student_profile)
+            send_student_creation_email(student_profile, pdf_urls=pdf_links)
             print(request.FILES)
             files = request.FILES.getlist('documents')  
             for file in files:
@@ -88,7 +92,7 @@ def create_student_profile(request):
 
     return render(request, 'create_profile.html', {'form': profile_form})
 
-def send_student_creation_email(student):
+def send_student_creation_email(student, pdf_urls=None):
     subject_q = 'New Student Profile Created'
     message = f"""
     <html>
@@ -123,37 +127,18 @@ def send_student_creation_email(student):
                 border-radius: 8px;
                 box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
             }}
-            .footer {{
-                font-size: 14px;
-                color: #808080;
-                margin-top: 20px;
-            }}
-            .footer a {{
-                color: #2980b9;
-                text-decoration: none;
-            }}
         </style>
     </head>
     <body>
         <div class="email-container">
             <h3>New Student Profile Created</h3>
-            <p>Dear Admin,</p>
-            <p>The following student profile has been created:</p>
-            <ul>
-                <li><b>First Name:</b> {student.first_name}</li>
-                <li><b>Last Name:</b> {student.last_name}</li>
-                <li><b>Email:</b> {student.email}</li>
-                <li><b>Phone:</b> {student.phone}</li>
-                <li><b>School:</b> {student.school}</li>
-                <li><b>Shift Requested:</b> {student.shift_requested}</li>
-                <li><b>Hours Requested:</b> {student.hours_requested}</li>
-                <li><b>Comments:</b> {student.comments}</li>
-            </ul>
-            <p>Warm Regards,<br/>L'chaim Virtual Manager</p>
-        </div>
-        <div class="footer">
-            <p>For any inquiries, please contact <a href="mailto:admin@lchaimretirement.ca">admin@lchaimretirement.ca</a></p>
-            <p>&copy; 2024 L'chaim Virtual Manager. All rights reserved.</p>
+            <p>Dear Students,</p>
+            <p>Welcome to L'chaim! Before you begin your placement, you must be aware of the most 
+important policies at L'chaim. Please read the attached training documents and confirm that you 
+have read and understood them.
+Wishing you the best learning experience and good luck!
+Kind regards,
+Judy</p>
         </div>
     </body>
     </html>
@@ -165,7 +150,18 @@ def send_student_creation_email(student):
         from_email=settings.DEFAULT_FROM_EMAIL,
         to=[student.email],  
     )
-    email.content_subtype = "html"  
+    email.content_subtype = "html"
+
+    if pdf_urls:
+        for url in pdf_urls:
+            try:
+                response = requests.get(url)
+                response.raise_for_status()  # Check if the request was successful
+                file_name = url.split("/")[-1]  # Extract the file name from the URL
+                email.attach(file_name, response.content, 'application/pdf')
+            except requests.RequestException as e:
+                print(f"Failed to download file from {url}: {e}")
+
     email.send()
 
 @login_required

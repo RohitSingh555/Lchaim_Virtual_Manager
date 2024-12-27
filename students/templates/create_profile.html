@@ -16,7 +16,7 @@
             padding: 0;
             box-sizing: border-box;
         }
-
+    
         body {
             background: #f4f9fd;
             font-family: 'Poppins', sans-serif;
@@ -26,7 +26,7 @@
             min-height: 100vh;
             padding-top: 70px;
         }
-
+    
         .form-container {
             background: #ffffff;
             padding: 2rem;
@@ -37,12 +37,12 @@
             margin-bottom: 30px;
             transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
-
+    
         .form-container:hover {
             transform: translateY(-5px);
             box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
         }
-
+    
         .form-container h2 {
             font-size: 2rem;
             margin-bottom: 1.5rem;
@@ -51,11 +51,11 @@
             text-align: center;
             text-transform: uppercase;
         }
-
+    
         .form-group {
             margin-bottom: 1.2rem;
         }
-
+    
         .form-group label {
             font-size: 1rem;
             color: #333;
@@ -63,7 +63,7 @@
             display: block;
             margin-bottom: 0.5rem;
         }
-
+    
         .form-group input,
         .form-group select,
         .form-group textarea {
@@ -75,7 +75,7 @@
             background: #f9f9f9;
             transition: all 0.3s ease;
         }
-
+    
         .form-group input:focus,
         .form-group select:focus,
         .form-group textarea:focus {
@@ -83,37 +83,47 @@
             background: #ffffff;
             outline: none;
         }
-
+    
         .form-row {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 15px;
             margin-bottom: 1.2rem;
         }
-
+    
         .form-group textarea {
             resize: vertical;
             min-height: 100px;
         }
-
-        /* Custom Toggle Switch */
-        .form-group .custom-control {
-            display: inline-block;
-            width: 100%;
-        }
-
-        .custom-control-label::before {
-            background-color: #cbd5e0;
-        }
-
-        .custom-control-input:checked~.custom-control-label::before {
-            background-color: #3182ce;
-        }
-
-        .custom-switch {
+    
+        .button-container {
             display: flex;
-            align-items: center;
-            gap: 15px;
+            justify-content: center;
+            margin-top: 1.2rem;
+        }
+    
+        button[type="submit"] {
+            background: #3182ce;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            font-size: 1rem;
+            border-radius: 8px;
+            width: 50%;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.3s ease;
+        }
+    
+        button[type="submit"]:hover {
+            background: #2c5282;
+            transform: scale(1.05);
+        }
+    
+        .footer-text {
+            text-align: center;
+            font-size: 0.9rem;
+            color: #777;
+            margin-top: 2rem;
         }
 
         .custom-switch input[type="checkbox"] {
@@ -143,35 +153,55 @@
             border-radius: 50%;
             transition: 0.3s;
         }
-
-        .button-container {
-            display: flex;
-            justify-content: center;
-            margin-top: 1.2rem;
+    
+        /* Responsive Design for Mobile */
+        @media screen and (max-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+    
+            .form-container {
+                padding: 1.5rem;
+            }
+    
+            .form-container h2 {
+                font-size: 1.5rem;
+            }
+            .custom-switch input[type="checkbox"] {
+            width: 2.5rem;
+            height: 1.5rem;
+            border-radius: 1rem;
+            background-color: #e2e8f0;
+            transition: 0.3s;
         }
 
-        button[type="submit"] {
-            background: #3182ce;
-            color: white;
-            border: none;
-            padding: 0.75rem 1.5rem;
-            font-size: 1rem;
-            border-radius: 8px;
-            width: 50%;
-            cursor: pointer;
-            transition: background-color 0.3s ease, transform 0.3s ease;
+        .custom-switch input[type="checkbox"]:checked {
+            background-color: #3182ce;
         }
 
-        button[type="submit"]:hover {
-            background: #2c5282;
-            transform: scale(1.05);
+        .custom-switch input[type="checkbox"]:checked:before {
+            transform: translateX(1rem);
         }
 
-        .footer-text {
-            text-align: center;
-            font-size: 0.9rem;
-            color: #777;
-            margin-top: 2rem;
+        .custom-switch input[type="checkbox"]:before {
+            content: '';
+            position: absolute;
+            top: 0.125rem;
+            left: 0.125rem;
+            width: 1.25rem;
+            height: 1.25rem;
+            background-color: white;
+            border-radius: 50%;
+            transition: 0.3s;
+        }
+    
+            .button-container button {
+                width: 100%;
+            }
+    
+            body {
+                padding: 1rem;
+            }
         }
     </style>
 </head>

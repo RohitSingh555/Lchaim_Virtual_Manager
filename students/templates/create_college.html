@@ -77,23 +77,40 @@
 
                 <div class="mb-6">
                     <label for="id_name" class="block text-sm font-medium text-gray-700">College Name</label>
-                    <input type="text" name="name" class="input-field w-full" value="{{ form.name.value }}">
+                    <input 
+                        type="text" 
+                        name="name" 
+                        class="input-field w-full" 
+                        placeholder="Enter the college name">
                 </div>
-
+                
                 <div class="mb-6">
                     <label for="id_address" class="block text-sm font-medium text-gray-700">Address</label>
-                    <input type="text" name="address" class="input-field w-full" value="{{ form.address.value }}">
+                    <input 
+                        type="text" 
+                        name="address" 
+                        class="input-field w-full" 
+                        placeholder="Enter the college address">
                 </div>
-
+                
                 <div class="mb-6">
                     <label for="id_contact_number" class="block text-sm font-medium text-gray-700">Contact Number</label>
-                    <input type="tel" name="contact_number" class="input-field w-full" value="{{ form.contact_number.value }}">
+                    <input 
+                        type="tel" 
+                        name="contact_number" 
+                        class="input-field w-full" 
+                        placeholder="Enter a contact number">
                 </div>
-
+                
                 <div class="mb-6">
                     <label for="id_website" class="block text-sm font-medium text-gray-700">Website</label>
-                    <input type="url" name="website" class="input-field w-full" value="{{ form.website.value }}">
+                    <input 
+                        type="url" 
+                        name="website" 
+                        class="input-field w-full" 
+                        placeholder="Enter the college website URL">
                 </div>
+                
 
                 <div>
                     <button type="submit" class="btn-custom bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50">
