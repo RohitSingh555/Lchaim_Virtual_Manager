@@ -37,8 +37,7 @@
             </a>
         </div>
 
-        <div class="flex items-center space-x-4">
-        
+        <div class="hidden lg:flex items-center space-x-4">
             <span class="text-blue-900">{{ user.username }}</span>
             <div class="relative">
                 {% if user.is_superuser %}
@@ -46,11 +45,6 @@
                 {% else %}
                 <img src="https://imgs.search.brave.com/4dZymj9_G3yyq_rtQBB3436cJcDYW3nWByX4-l_re3s/rs:fit:500:0:0:0/g:ce/aHR0cHM6Ly9pLnBp/bmltZy5jb20vb3Jp/Z2luYWxzL2FmL2Y5/LzVkL2FmZjk1ZGMx/MjVhMzg1ZDBkNmM1/YzVlNDdiNjliMzdh/LmpwZw" alt="School Avatar" class="w-10 h-10 rounded-full cursor-pointer">
                 {% endif %}
-                
-                <div class="absolute right-0 mt-2 py-2 bg-white shadow-xl w-40 rounded-md hidden" id="userDropdown">
-                    <a href="#" class="block px-4 py-2 text-sm text-gray-700">View Profile</a>
-                    <a href="{% url 'logout' %}" class="text-red-500 hover:text-red-700 px-4 py-2">Logout</a>
-                </div>
             </div>
         </div>
 
@@ -75,6 +69,17 @@
         <a href="{% url 'calendar_student_logs' %}" class="block py-2 text-blue-900 hover:bg-gray-200 transition duration-300 flex items-center space-x-2">
             <i class="fas fa-calendar"></i> <span>Calendar</span>
         </a>
+
+        <!-- Add Profile and Logout to Mobile Menu -->
+        <div class="flex items-center space-x-4 mt-4">
+            <span class="text-blue-900">{{ user.username }}</span>
+            {% if user.is_superuser %}
+            <img src="https://imgs.search.brave.com/NC51VdJXCpWmrErvqbLS_f4HHRojgDZTWB6Bi_doPWA/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9pbWcu/ZnJlZXBpay5jb20v/ZnJlZS1waG90by9w/b3J0cmFpdC1zZW5p/b3ItZmVtYWxlLXBy/b2Zlc3Nvci1lZHVj/YXRpb24tZGF5XzIz/LTIxNTA5ODAwODgu/anBnP3NlbXQ9YWlz/X2h5YnJpZA" alt="Admin Avatar" class="w-10 h-10 rounded-full cursor-pointer">
+            {% else %}
+            <img src="https://imgs.search.brave.com/4dZymj9_G3yyq_rtQBB3436cJcDYW3nWByX4-l_re3s/rs:fit:500:0:0:0/g:ce/aHR0cHM6Ly9pLnBp/bmltZy5jb20vb3Jp/Z2luYWxzL2FmL2Y5/LzVkL2FmZjk1ZGMx/MjVhMzg1ZDBkNmM1/YzVlNDdiNjliMzdh/LmpwZw" alt="School Avatar" class="w-10 h-10 rounded-full cursor-pointer">
+            {% endif %}
+            <a href="{% url 'logout' %}" class="block text-red-500 hover:text-red-700 px-4 py-2">Logout</a>
+        </div>
     </div>
 </div>
 
@@ -84,13 +89,6 @@
 
     toggleMenu.addEventListener('click', () => {
         mobileMenu.classList.toggle('hidden');
-    });
-
-    const userDropdown = document.getElementById('userDropdown');
-    const profilePic = document.querySelector('.relative');
-
-    profilePic.addEventListener('click', () => {
-        userDropdown.classList.toggle('hidden');
     });
 </script>
 

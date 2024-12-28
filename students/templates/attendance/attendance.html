@@ -62,12 +62,12 @@
                         </td>
                         <td class="px-6 py-3">
                             <input type="text" name="time" class="from-time clockpicker w-full p-2 border border-gray-300 rounded-md"
-                                data-student-id="{{ student_log.student.id }}" placeholder="click to see magic"
+                                data-student-id="{{ student_log.student.id }}" placeholder="Select a time"
                                 value="{{ student_log.log.start_time|time:'H:i' }}" onchange="calculateAndSaveHours(this)">
                         </td>
                         <td class="px-6 py-3">
                             <input type="text" name="time" class="to-time clockpicker w-full p-2 border border-gray-300 rounded-md"
-                                data-student-id="{{ student_log.student.id }}" placeholder="click to see magic"
+                                data-student-id="{{ student_log.student.id }}" placeholder="Select a time"
                                 value="{{ student_log.log.end_time|time:'H:i' }}" onchange="calculateAndSaveHours(this)">
                         </td>
                         <td class="px-6 py-3 text-center">

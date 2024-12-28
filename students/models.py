@@ -1,5 +1,6 @@
 from django.db import models
-from datetime import datetime, date
+from datetime import datetime, date, timedelta
+
 
 class College(models.Model):
     name = models.CharField(max_length=255)
@@ -10,15 +11,32 @@ class College(models.Model):
     def __str__(self):
         return self.name
 
+
+class Shift(models.Model):
+    SHIFT_TYPES = [
+        ('Morning', 'Morning (7 AM - 3 PM)'),
+        ('Afternoon', 'Afternoon (3 PM - 11 PM)'),
+        ('Night', 'Night (11 PM - 7 AM)'),
+    ]
+
+    type = models.CharField(max_length=10, choices=SHIFT_TYPES, unique=True)
+    start_time = models.TimeField()
+    end_time = models.TimeField()
+    max_students = models.PositiveIntegerField()
+
+    def __str__(self):
+        return f"{self.type} ({self.start_time} - {self.end_time})"
+
+
 class StudentProfile(models.Model):
     SHIFT_CHOICES = [
         ('Weekdays', 'Weekdays'),
         ('Weekends', 'Weekends'),
-    ]  # Define SHIFT_CHOICES at the class level
+    ]
 
     first_name = models.CharField(max_length=100)
     last_name = models.CharField(max_length=100)
-    phone = models.CharField(max_length=15, default='0000000000')
+    phone = models.CharField(max_length=15, default='')
     email = models.EmailField(unique=True)
     school = models.CharField(max_length=100)
     college = models.ForeignKey(College, on_delete=models.SET_NULL, null=True, blank=True)
@@ -27,28 +45,34 @@ class StudentProfile(models.Model):
     med_docs = models.BooleanField(default=False)
     hours_requested = models.IntegerField(null=True)
     hours_completed = models.PositiveIntegerField(default=0)
-    shift_requested = models.CharField(max_length=10, choices=SHIFT_CHOICES)  # Use SHIFT_CHOICES here
+    shift_requested = models.CharField(max_length=10, choices=SHIFT_CHOICES)
+    assigned_shift = models.ForeignKey(Shift, on_delete=models.SET_NULL, null=True, blank=True, related_name="students")
+    start_date = models.DateField(null=True)
+    end_date = models.DateField(null=True)
     lchaim_orientation_date = models.DateField(null=True)
     skills_book_completed = models.BooleanField(default=False)
     comments = models.TextField(blank=True, null=True)
     status = models.CharField(
         max_length=10,
-        choices=[
-            ('Training', 'Training'),
-            ('Graduated', 'Graduated'),
-        ],
+        choices=[('Training', 'Training'), ('Graduated', 'Graduated')],
         default='Training'
     )
 
     def __str__(self):
         return f"{self.first_name} {self.last_name}"
 
+    def calculate_end_date(self):
+        if self.start_date and self.hours_requested:
+            total_days = (self.hours_requested // 8) + 1 
+            self.end_date = self.start_date + timedelta(days=total_days)
+
 
 class VolunteerLog(models.Model):
     student = models.ForeignKey(StudentProfile, on_delete=models.CASCADE, related_name="volunteer_logs")
     date = models.DateField()
-    start_time = models.TimeField(null=True, blank=True)  
-    end_time = models.TimeField(null=True, blank=True)  
+    shift = models.ForeignKey(Shift, on_delete=models.SET_NULL, null=True, blank=True)
+    start_time = models.TimeField(null=True, blank=True)
+    end_time = models.TimeField(null=True, blank=True)
     hours_worked = models.DecimalField(max_digits=5, decimal_places=2, null=True)
     status = models.CharField(max_length=10, choices=[('Present', 'Present'), ('Absent', 'Absent')], default='Absent')
     notes = models.TextField(blank=True, null=True)
@@ -56,14 +80,9 @@ class VolunteerLog(models.Model):
     def __str__(self):
         return f"Log for {self.student} on {self.date}"
 
-    def save(self, *args, **kwargs):
-        if self.start_time and self.end_time:
-            duration = datetime.combine(date.today(), self.end_time) - datetime.combine(date.today(), self.start_time)
-            self.hours_worked = duration.total_seconds() / 3600
-        super().save(*args, **kwargs)
-
     class Meta:
         ordering = ['date']
+
 
 class StudentFile(models.Model):
     student = models.ForeignKey(StudentProfile, on_delete=models.CASCADE, related_name="files")

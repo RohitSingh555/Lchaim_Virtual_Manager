@@ -27,6 +27,7 @@ urlpatterns = [
     path('students/<int:student_id>/files/', views.student_file_details, name='student_files'),
     path('download/<int:file_id>/', views.download_file, name='download_file'),
 
+    path('api/shift-availability/', views.shift_availability_api, name='shift_availability_api'),
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

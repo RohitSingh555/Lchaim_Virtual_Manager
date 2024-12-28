@@ -1,28 +1,30 @@
-from datetime import datetime
-from django.core.mail import EmailMessage
+from datetime import datetime, timedelta
+import decimal
+import json
 import os
 import re
-from django.utils import timezone
-from django.shortcuts import render, redirect, get_object_or_404
-import decimal
-from openpyxl import Workbook
-from django.http import HttpResponse, FileResponse, Http404
-from .models import StudentFile, StudentProfile, VolunteerLog
-from django.db.models import Sum
-from django.http import JsonResponse
-from .forms import CollegeForm, StudentFileForm, StudentProfileForm, VolunteerLogForm
-from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
-from django.contrib import messages
-import requests
-from django.contrib.auth.decorators import login_required
-from django.contrib.auth import login, logout, authenticate
-from datetime import timedelta
-import json
-from django.db.models import Q
+import threading
+
+# Django Imports
 from django.conf import settings
+from django.contrib import messages
+from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
+from django.core.files.storage import FileSystemStorage
+from django.core.mail import EmailMessage
 from django.core.paginator import Paginator
-from decimal import Decimal
-from django.db.models import Case, When, Value, IntegerField
+from django.db.models import Case, When, Count, Min, Q, Sum, Value, IntegerField
+from django.http import HttpResponse, FileResponse, Http404, JsonResponse
+from django.shortcuts import render, redirect, get_object_or_404
+from django.utils import timezone
+
+import requests
+from openpyxl import Workbook
+
+from .forms import CollegeForm, StudentFileForm, StudentProfileForm, VolunteerLogForm
+from .models import Shift, StudentFile, StudentProfile, VolunteerLog
+
 
 def admin_required(function):
     def wrap(request, *args, **kwargs):
@@ -71,28 +73,112 @@ def logout_view(request):
     logout(request)
     return redirect('login')
 
+def shift_availability_api(request):
+    availability = get_shift_availability()
+    return JsonResponse(availability)
+
+def get_shift_availability():
+    max_students_per_shift = {
+        'Morning': 25,
+        'Afternoon': 25,
+        'Night': 10,
+    }
+    shift_data = (
+        StudentProfile.objects.values('assigned_shift__type')
+        .annotate(
+            student_count=Count('id'),
+            earliest_end_date=Min('end_date'),
+        )
+        .order_by('assigned_shift__type')
+    )
+
+    availability = {}
+    for shift in Shift.SHIFT_TYPES:  
+        shift_type = shift[0]  
+        max_allowed = max_students_per_shift.get(shift_type, 0)
+
+        shift_info = next((data for data in shift_data if data['assigned_shift__type'] == shift_type), None)
+        student_count = shift_info['student_count'] if shift_info else 0
+        earliest_end_date = shift_info['earliest_end_date'] if shift_info else None
+
+        spots_available = max_allowed - student_count
+
+        next_available_date = None
+        if earliest_end_date:
+            next_available_date = earliest_end_date + timedelta(days=1)
+
+        availability[shift_type] = {
+            'current_count': student_count,
+            'max_allowed': max_allowed,
+            'spots_available': max(0, spots_available),  
+            'is_open': spots_available > 0,
+            'next_available_date': next_available_date,  
+        }
+
+    return availability
 
 def create_student_profile(request):
-    pdf_links = [
-    "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf"
-]
     if request.method == "POST":
-        profile_form = StudentProfileForm(request.POST, request.FILES)  # Pass request.FILES to handle uploaded files
+        profile_form = StudentProfileForm(request.POST, request.FILES)
         if profile_form.is_valid():
             student_profile = profile_form.save()
-            send_student_creation_email(student_profile, pdf_urls=pdf_links)
-            print(request.FILES)
-            files = request.FILES.getlist('documents')  
-            for file in files:
-                StudentFile.objects.create(student=student_profile, file=file)
 
-            return redirect('student_profile_list') 
+            shift_type = request.POST.get('shift_timing') 
+            try:
+                assigned_shift = Shift.objects.get(type__icontains=shift_type)
+                student_profile.assigned_shift = assigned_shift
+                student_profile.save()
+            except Shift.DoesNotExist:
+                messages.error(request, "The specified shift type does not exist.")
+                return render(request, 'create_profile.html', {'form': profile_form})
+
+            if student_profile.lchaim_orientation_date and student_profile.hours_requested:
+                requested_hours = student_profile.hours_requested
+                start_date = student_profile.lchaim_orientation_date
+                
+                days_required = (requested_hours // 8) + (1 if requested_hours % 8 != 0 else 0)
+                current_date = start_date
+                working_days = 0
+
+                while working_days < days_required:
+                    if current_date.weekday() != 6:
+                        working_days += 1
+                    current_date += timedelta(days=1)
+
+                end_date = current_date - timedelta(days=1)
+                student_profile.end_date = end_date
+                student_profile.save()
+
+                start_time = assigned_shift.start_time
+                end_time = assigned_shift.end_time
+
+                current_date = start_date
+                while current_date <= end_date:
+                    if current_date.weekday() != 6: 
+                        VolunteerLog.objects.create(
+                            student=student_profile, 
+                            date=current_date,
+                            shift=assigned_shift,
+                            start_time=start_time,
+                            end_time=end_time,
+                            hours_worked=9,  
+                            status='Absent' 
+                        )
+                    current_date += timedelta(days=1)
+
+
+            threading.Thread(target=send_student_creation_email, args=(student_profile,)).start()
+
+            messages.success(request, "Student profile created successfully, and volunteer logs have been generated!")
+            return redirect('student_profile_list')
+        else:
+            messages.error(request, "There were errors in the form. Please correct them.")
     else:
         profile_form = StudentProfileForm()
 
     return render(request, 'create_profile.html', {'form': profile_form})
 
-def send_student_creation_email(student, pdf_urls=None):
+def send_student_creation_email(student):
     subject_q = 'New Student Profile Created'
     message = f"""
     <html>
@@ -131,14 +217,15 @@ def send_student_creation_email(student, pdf_urls=None):
     </head>
     <body>
         <div class="email-container">
-            <h3>New Student Profile Created</h3>
-            <p>Dear Students,</p>
+            <p>Dear Student,</p>
             <p>Welcome to L'chaim! Before you begin your placement, you must be aware of the most 
-important policies at L'chaim. Please read the attached training documents and confirm that you 
-have read and understood them.
-Wishing you the best learning experience and good luck!
-Kind regards,
-Judy</p>
+            important policies at L'chaim. Please read the attached training documents and confirm that you 
+            have read and understood them.
+            Wishing you the best learning experience and good luck!
+            <br>
+            Kind regards,
+            <br>
+            Judy</p>
         </div>
     </body>
     </html>
@@ -152,15 +239,19 @@ Judy</p>
     )
     email.content_subtype = "html"
 
-    if pdf_urls:
-        for url in pdf_urls:
-            try:
-                response = requests.get(url)
-                response.raise_for_status()  # Check if the request was successful
-                file_name = url.split("/")[-1]  # Extract the file name from the URL
-                email.attach(file_name, response.content, 'application/pdf')
-            except requests.RequestException as e:
-                print(f"Failed to download file from {url}: {e}")
+    attachments_folder = os.path.join(settings.BASE_DIR, 'attachments')
+
+    if os.path.exists(attachments_folder):
+        for file_name in os.listdir(attachments_folder):
+            if file_name.endswith('.pdf'):
+                file_path = os.path.join(attachments_folder, file_name)
+                if os.path.exists(file_path):
+                    with open(file_path, 'rb') as file:
+                        email.attach(file_name, file.read(), 'application/pdf')
+                else:
+                    print(f"File {file_name} not found in attachments folder.")
+    else:
+        print(f"Attachments folder not found at {attachments_folder}.")
 
     email.send()
 
@@ -239,19 +330,16 @@ def update_student_profile(request, pk):
         print("Form data:", request.POST)  
         print("File data:", request.FILES)  
 
-        # Include request.FILES for file handling
         form = StudentProfileForm(request.POST, request.FILES, instance=profile)
 
         if form.is_valid():
             student_profile = form.save()
 
-            # Handle multiple files
             if 'documents' in request.FILES:
-                files = request.FILES.getlist('documents')  # Ensure correct field name
+                files = request.FILES.getlist('documents')  
                 for file in files:
                     StudentFile.objects.create(student=student_profile, file=file)
 
-            # Redirect to the profile list page
             return redirect('student_profile_list')
 
     else:
@@ -264,8 +352,7 @@ def delete_student_profile(request, pk):
     profile = get_object_or_404(StudentProfile, pk=pk)
     if request.method == "POST":
         profile.delete()
-        return redirect('student_profile_list')
-    return render(request, 'delete_profile.html', {'profile': profile})
+    return redirect('student_profile_list')
 
 @admin_required
 def log_volunteer_hours(request, pk):
@@ -284,8 +371,6 @@ def log_volunteer_hours(request, pk):
         form = VolunteerLogForm()
     return render(request, 'log_volunteer_hours.html', {'form': form, 'student': student})
 
-
-
 @admin_required
 def student_attendance(request):
     date_str = request.GET.get('date') or timezone.now().strftime('%Y-%m-%d')
@@ -300,36 +385,27 @@ def student_attendance(request):
     for student in students:
         log, created = VolunteerLog.objects.get_or_create(student=student, date=selected_date)
         
-        # Handle hours worked formatting
-        hours_worked = log.hours_worked  # assuming this is a decimal value
+        hours_worked = log.hours_worked 
         if hours_worked is not None:
-            hours = int(hours_worked)  # Integer part is the hours
-            minutes = round((hours_worked - hours) * 60)  # Fractional part converted to minutes
+            hours = int(hours_worked) 
+            minutes = round((hours_worked - hours) * 60) 
 
-            # Format as HH:MM
-            log.hours_worked = f"{hours}:{minutes:02}"  # Format minutes as two digits
+            log.hours_worked = f"{hours}:{minutes:02}" 
         else:
-            log.hours_worked = "00:00"  # Default if no hours worked
+            log.hours_worked = "00:00" 
 
-        # Append student and their log
         student_logs.append({'student': student, 'log': log})
-
-    # Print the students and their logs for debugging
-    print(student_logs)  # This will show the students and the corresponding logs
 
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest':  
         return render(request, 'attendance/attendance_partial.html', {
             'students': student_logs,
             'selected_date': selected_date,
         })
-    else:  # Full page load
+    else: 
         return render(request, 'attendance/attendance.html', {
             'students': student_logs,
             'selected_date': selected_date,
         })
-
-
-from datetime import datetime
 
 def update_attendance(request, student_id, date):
     student = get_object_or_404(StudentProfile, id=student_id)
@@ -345,7 +421,6 @@ def update_attendance(request, student_id, date):
         end_time = request.POST.get('end_time')
         hours_worked = request.POST.get('hours_worked')
 
-        # Parse start and end times if provided
         if start_time and end_time:
             start_time = datetime.strptime(start_time, '%H:%M').time()
             end_time = datetime.strptime(end_time, '%H:%M').time() 
@@ -356,15 +431,12 @@ def update_attendance(request, student_id, date):
         log.notes = notes
         print(hours_worked)
 
-        # Check if hours_worked is in HH:MM format (string)
         if hours_worked:
             if isinstance(hours_worked, str) and ':' in hours_worked:
-                # Extract hours and minutes from the string (e.g., "02:30")
                 hours, minutes = map(int, hours_worked.split(':'))
-                total_hours = hours + minutes / 60.0  # Convert to decimal hours
+                total_hours = hours + minutes / 60.0  
                 log.hours_worked = total_hours
             else:
-                # Assuming hours_worked is a float, directly save it
                 log.hours_worked = float(hours_worked)
         
         log.save()
@@ -429,10 +501,11 @@ def student_logs(request):
             if log.status == 'Present':
                 total_hours += log.hours_worked if log.hours_worked else 7
         
-
+        total_hours = max(0, total_hours)
+        
         student.hours_completed = total_hours
         student.save()
-        
+
         hours_requested = student.hours_requested if hasattr(student, 'hours_requested') else 0
         remaining_hours = hours_requested - total_hours
 
@@ -563,14 +636,11 @@ def download_excel_user_wise(request, id):
     for student in students:
         total_hours = 0  
         
-        # Fetch volunteer logs for the student
         volunteer_logs = VolunteerLog.objects.filter(student=student, status='Present')
         
         for log in volunteer_logs:
-            # Add hours worked to the total, or default to 7 if not specified
             total_hours += log.hours_worked if log.hours_worked else 7
 
-        # Calculate remaining hours based on requested hours
         hours_requested = student.hours_requested if hasattr(student, 'hours_requested') else 0
         remaining_hours = hours_requested - total_hours
         
@@ -590,7 +660,6 @@ def download_excel_user_wise(request, id):
                 'Status': student.status,
             })
 
-    # Check if data was found
     if not student_data:
         return HttpResponse("No attendance data found for the selected student.", status=404)
 
@@ -623,8 +692,7 @@ def download_excel_user_wise(request, id):
     wb.save(response)
     return response
 
-
-
+@admin_required
 def create_college(request):
     if request.method == 'POST':
         form = CollegeForm(request.POST)

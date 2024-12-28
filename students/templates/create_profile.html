@@ -211,6 +211,21 @@
 
     <div class="form-container mt-20">
         <h2>Create Student Profile</h2>
+        <div class="bg-white rounded-lg border border-gray-300 mb-4 p-2">
+            <h3 class="text-sm font-medium text-gray-600 mb-2 flex items-center">
+                <span class="mr-1 text-blue-500">📊</span> Shift Availability
+            </h3>
+            <div class="transition-all duration-300">
+                <button id="toggleDropdown" class="w-full py-1 px-3 border border-gray-300 text-gray-700 rounded-md text-left focus:outline-none focus:ring-2 focus:ring-blue-400 hover:bg-gray-100 mb-2 text-xs flex items-center justify-between">
+                    View Shift Availability
+                    <span id="dropdownIcon" class="ml-2">&#9660;</span>
+                </button>         
+        
+                <ul id="shift-availability" class="max-h-0 overflow-hidden transition-max-height duration-500 ease-in-out text-sm">
+                </ul>
+            </div>
+        </div>
+        
         {% if form.errors %}
         <div class="alert alert-danger">
             <strong>There were some errors with your submission:</strong>
@@ -251,6 +266,28 @@
                 <label for="id_shift_requested">Shift Requested</label>
                 {{ form.shift_requested }}
             </div>
+            <div class="form-group">
+                <label for="id_shift_timing">Shift Timing</label>
+                <select id="id_shift_timing" name="shift_timing" class="form-control" onchange="updateShiftTimes()">
+                    <option value="">-- Select Shift --</option>
+                    <option value="Morning">Morning (7 AM - 3 PM)</option>
+                    <option value="Afternoon">Afternoon (3 PM - 11 PM)</option>
+                    <option value="Night">Night (11 PM - 7 AM)</option>
+                </select>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="id_start_time">Shift Start Time</label>
+                    <input type="time" id="id_start_time" name="start_time" class="form-control" readonly>
+                </div>
+                <div class="form-group">
+                    <label for="id_end_time">Shift End Time</label>
+                    <input type="time" id="id_end_time" name="end_time" class="form-control" readonly>
+                </div>
+            </div>
+            
+            
             <div class="form-group">
                 <label for="id_hours_requested">Hours Requested</label>
                 {{ form.hours_requested }}
@@ -296,12 +333,109 @@
                 <button type="submit">Submit</button>
             </div>
         </form>
+        
         <div class="footer-text">
-            <p>&copy; 2024 Your Company. All Rights Reserved.</p>
+            <p>&copy; 2024 L'chaim. All Rights Reserved.</p>
         </div>
     </div>
+<script>
+    function updateShiftTimes() {
+        const shiftDropdown = document.getElementById('id_shift_timing');
+        const startTimeInput = document.getElementById('id_start_time');
+        const endTimeInput = document.getElementById('id_end_time');
+        
+        const shiftTimes = {
+            'Morning': { start: '07:00', end: '15:00' },
+            'Afternoon': { start: '15:00', end: '23:00' },
+            'Night': { start: '23:00', end: '07:00' }
+        };
 
-    <!-- Bootstrap JS (Optional) -->
+        const selectedShift = shiftDropdown.value;
+
+        if (shiftTimes[selectedShift]) {
+            startTimeInput.value = shiftTimes[selectedShift].start;
+            endTimeInput.value = shiftTimes[selectedShift].end;
+        } else {
+            startTimeInput.value = '';
+            endTimeInput.value = '';
+        }
+    }
+    </script>
+    <script>
+       document.addEventListener('DOMContentLoaded', function () {
+    const toggleDropdownButton = document.getElementById('toggleDropdown');
+    const shiftContainer = document.getElementById('shift-availability');
+    const dropdownIcon = document.getElementById('dropdownIcon');
+
+    toggleDropdownButton.addEventListener('click', function() {
+        const isExpanded = shiftContainer.classList.contains('max-h-0');
+        
+        if (isExpanded) {
+            shiftContainer.classList.remove('max-h-0');
+            shiftContainer.classList.add('max-h-[300px]'); 
+            dropdownIcon.innerHTML = '&#9650;'; 
+        } else {
+            shiftContainer.classList.remove('max-h-[300px]');
+            shiftContainer.classList.add('max-h-0');
+            dropdownIcon.innerHTML = '&#9660;'; 
+        }
+    });
+
+    fetch('/api/shift-availability/')
+        .then(response => response.json())
+        .then(data => {
+            shiftContainer.innerHTML = '';  
+
+            for (const [shiftType, details] of Object.entries(data)) {
+                const listItem = document.createElement('li');
+                listItem.classList.add('my-2');
+
+                const shiftDiv = document.createElement('div');
+                shiftDiv.classList.add('p-2', 'bg-white', 'rounded-md'); 
+
+                const shiftTitle = document.createElement('h4');
+                shiftTitle.classList.add('text-sm', 'font-semibold', 'text-gray-800');
+                shiftTitle.innerText = `${shiftType} Shift`;
+
+                const progressContainer = document.createElement('div');
+                progressContainer.classList.add('mt-1');
+
+                const spotsFilled = details.max_allowed - details.spots_available;
+
+                const progressLabel = document.createElement('p');
+                progressLabel.classList.add('text-xs', 'font-medium', 'text-gray-500');
+                progressLabel.innerText = `${spotsFilled} spot${spotsFilled !== 1 ? 's' : ''} filled out of ${details.max_allowed}`;
+
+                const progressBarContainer = document.createElement('div');
+                progressBarContainer.classList.add('relative', 'w-full', 'h-1', 'bg-gray-200', 'rounded-full');
+
+                const progressBar = document.createElement('div');
+                const progress = Math.round((spotsFilled / details.max_allowed) * 100);
+                progressBar.style.width = `${progress}%`;
+                progressBar.classList.add('absolute', 'h-full', 'bg-blue-500', 'rounded-full');  
+
+                progressBarContainer.appendChild(progressBar);
+                progressContainer.appendChild(progressLabel);
+                progressContainer.appendChild(progressBarContainer);
+
+                shiftDiv.appendChild(shiftTitle);
+                shiftDiv.appendChild(progressContainer);
+
+                if (details.next_available_date) {
+                    const nextAvailableText = document.createElement('p');
+                    nextAvailableText.classList.add('mt-2', 'text-xs', 'font-medium', 'text-gray-700');
+                    nextAvailableText.innerHTML = `Earliest available spot (For new batch): <strong class="text-blue-500">${details.next_available_date}</strong>`;
+                    shiftDiv.appendChild(nextAvailableText);
+                }
+
+                listItem.appendChild(shiftDiv);
+                shiftContainer.appendChild(listItem);
+            }
+        })
+        .catch(error => console.error('Error fetching shift availability:', error));
+});
+
+    </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 
