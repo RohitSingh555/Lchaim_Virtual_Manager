@@ -7,202 +7,299 @@
     <title>Update Student Profile</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        .form-container {
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-            background-color: #ffffff;
-            border-radius: 12px;
-            padding: 30px;
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
-        .btn-custom {
-            width: 100%;
-            padding: 12px;
-            font-size: 16px;
-        }
-        .input-field {
-            border: 1px solid #d1d5db; 
-            border-radius: 8px;
-            padding: 12px;
-            background-color: #f9fafb;
-            font-size: 16px;
-            transition: all 0.3s ease;
-        }
-        .input-field:focus {
-            outline: none;
-            border-color: #4f81e4; 
-            box-shadow: 0 0 0 3px rgba(79, 129, 228, 0.2);
-        }
-        .textarea-field {
-            border: 1px solid #d1d5db;
-            border-radius: 8px;
-            padding: 12px;
-            background-color: #f9fafb;
-            font-size: 16px;
-            transition: all 0.3s ease;
-            min-height: 120px;
-        }
-        .textarea-field:focus {
-            outline: none;
-            border-color: #4f81e4;
-            box-shadow: 0 0 0 3px rgba(79, 129, 228, 0.2);
-        }
-        .select-field {
-            border: 1px solid #d1d5db;
-            border-radius: 8px;
-            padding: 12px;
-            background-color: #f9fafb;
-            font-size: 16px;
-        }
-        .checkbox-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 16px;
-        }
-        .checkbox-container {
+    
+        body {
+            background: #f4f9fd;
+            font-family: 'Poppins', sans-serif;
             display: flex;
-            align-items: center;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            padding-top: 70px;
         }
-        /* Toggle switch styling */
-        .toggle-switch {
-            width: 60px;
-            height: 34px;
-            position: relative;
-            display: inline-block;
+    
+        .form-container {
+            background: #ffffff;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 800px;
+            margin-bottom: 30px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+    
+        .form-container:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+        }
+    
+        .form-container h2 {
+            font-size: 2rem;
+            margin-bottom: 1.5rem;
+            color: #1a202c;
+            font-weight: 600;
+            text-align: center;
+            text-transform: uppercase;
+        }
+    
+        .form-group {
+            margin-bottom: 1.2rem;
+        }
+    
+        .form-group label {
+            font-size: 1rem;
+            color: #333;
+            font-weight: 500;
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+    
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            font-size: 1rem;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+            background: #f9f9f9;
+            transition: all 0.3s ease;
+        }
+    
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            border-color: #3182ce;
+            background: #ffffff;
+            outline: none;
+        }
+    
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 1.2rem;
+        }
+    
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+    
+        .button-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 1.2rem;
+        }
+    
+        button[type="submit"] {
+            background: #3182ce;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            font-size: 1rem;
+            border-radius: 8px;
+            width: 50%;
             cursor: pointer;
-            border-radius: 30px;
-            background-color: #ccc;
-            transition: background-color 0.3s;
+            transition: background-color 0.3s ease, transform 0.3s ease;
         }
-        .toggle-switch input {
-            opacity: 0;
-            width: 0;
-            height: 0;
+    
+        button[type="submit"]:hover {
+            background: #2c5282;
+            transform: scale(1.05);
         }
-        .toggle-switch .slider {
+    
+        .footer-text {
+            text-align: center;
+            font-size: 0.9rem;
+            color: #777;
+            margin-top: 2rem;
+        }
+
+        .custom-switch input[type="checkbox"] {
+            width: 2.5rem;
+            height: 1.5rem;
+            border-radius: 1rem;
+            background-color: #e2e8f0;
+            transition: 0.3s;
+        }
+
+        .custom-switch input[type="checkbox"]:checked {
+            background-color: #3182ce;
+        }
+
+        .custom-switch input[type="checkbox"]:checked:before {
+            transform: translateX(1rem);
+        }
+
+        .custom-switch input[type="checkbox"]:before {
+            content: '';
             position: absolute;
-            top: 4px;
-            left: 4px;
-            width: 26px;
-            height: 26px;
+            top: 0.125rem;
+            left: 0.125rem;
+            width: 1.25rem;
+            height: 1.25rem;
+            background-color: white;
             border-radius: 50%;
-            background-color: #fff;
-            transition: transform 0.3s;
+            transition: 0.3s;
         }
-        .toggle-switch input:checked + .slider {
-            transform: translateX(26px);
-            background-color: #7da6ff;
+    
+        /* Responsive Design for Mobile */
+        @media screen and (max-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+    
+            .form-container {
+                padding: 1.5rem;
+            }
+    
+            .form-container h2 {
+                font-size: 1.5rem;
+            }
+            .custom-switch input[type="checkbox"] {
+            width: 2.5rem;
+            height: 1.5rem;
+            border-radius: 1rem;
+            background-color: #e2e8f0;
+            transition: 0.3s;
         }
-        label {
-            font-size: 1rem; 
-            margin-bottom: 8px; 
+
+        .custom-switch input[type="checkbox"]:checked {
+            background-color: #3182ce;
         }
-        .input-field,
-        .textarea-field,
-        .select-field {
-            margin-top: 6px; 
+
+        .custom-switch input[type="checkbox"]:checked:before {
+            transform: translateX(1rem);
+        }
+
+        .custom-switch input[type="checkbox"]:before {
+            content: '';
+            position: absolute;
+            top: 0.125rem;
+            left: 0.125rem;
+            width: 1.25rem;
+            height: 1.25rem;
+            background-color: white;
+            border-radius: 50%;
+            transition: 0.3s;
+        }
+    
+            .button-container button {
+                width: 100%;
+            }
+    
+            body {
+                padding: 1rem;
+            }
         }
     </style>
 </head>
 <body class="bg-gray-100">
 
     {% include 'navbar.html' %}
-
-    <div class="max-w-4xl mx-auto mt-24 mb-10">
-        <div class="form-container">
-            <h2 class="text-3xl font-semibold text-center mb-6 text-gray-800">Update Student Profile</h2>
-            <form method="POST" enctype="multipart/form-data">
+        <div class="form-container mt-20">
+            <h2>Update Student Profile</h2>
+            <form method="post" enctype="multipart/form-data">
                 {% csrf_token %}
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                    <div>
-                        <label for="first_name" class="block text-sm font-medium text-gray-700">First Name</label>
-                        <input type="text" name="first_name" class="input-field w-full" value="{{ form.first_name.value }}">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="id_first_name">First Name</label>
+                        {{ form.first_name }}
                     </div>
-                    <div>
-                        <label for="last_name" class="block text-sm font-medium text-gray-700">Last Name</label>
-                        <input type="text" name="last_name" class="input-field w-full" value="{{ form.last_name.value }}">
-                    </div>
-                </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                    <div>
-                        <label for="phone" class="block text-sm font-medium text-gray-700">Phone Number</label>
-                        <input type="tel" name="phone" class="input-field w-full" value="{{ form.phone.value }}">
-                    </div>
-                    <div>
-                        <label for="email" class="block text-sm font-medium text-gray-700">Email Address</label>
-                        <input type="email" name="email" class="input-field w-full" value="{{ form.email.value }}">
+                    <div class="form-group">
+                        <label for="id_last_name">Last Name</label>
+                        {{ form.last_name }}
                     </div>
                 </div>
-                <div class="mb-6">
-                    <label for="lchaim_training_completed" class="block text-sm font-medium text-gray-700">L'Chaim Training Completed</label>
-                    <label class="toggle-switch">
-                        <input type="checkbox" name="lchaim_training_completed" {% if form.lchaim_training_completed.value %}checked{% endif %}>
-                        <span class="slider"></span>
-                    </label>
+                <div class="form-group">
+                    <label for="id_email">Email</label>
+                    {{ form.email }}
                 </div>
-                <div class="mb-6">
-                    <label for="school" class="block text-sm font-medium text-gray-700">School</label>
- 
-                    <input type="school" name="school" class="input-field w-full" value="{{ form.school.value }}">
-
+                <div class="form-group">
+                    <label for="id_phone">Phone</label>
+                    {{ form.phone }}
                 </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                    <div>
-                        <label for="hours_requested" class="block text-sm font-medium text-gray-700">Hours Requested</label>
-                        <input type="number" name="hours_requested" class="input-field w-full" value="{{ form.hours_requested.value }}">
+                <div class="form-group">
+                    <label for="id_college">College</label>
+                    {{ form.college }}
+                </div>            
+                <div class="form-group">
+                    <label for="id_shift_requested">Shift Requested</label>
+                    {{ form.shift_requested }}
+                </div>
+                
+                <div class="form-group">
+                    <label for="id_hours_requested">Hours Requested</label>
+                    {{ form.hours_requested }}
+                </div>
+                
+                <div class="form-group">
+                    <label for="id_lchaim_orientation_date">Lchaim Orientation Date</label>
+                    {{ form.lchaim_orientation_date }}
+                </div>
+                <div class="form-group">
+                    <label for="id_shift_timing">Shift Timing</label>
+                    <select id="id_shift_timing" name="shift_timing" class="form-control" onchange="updateShiftTimes()">
+                        <option value="">-- Select Shift --</option>
+                        <option value="Morning">Morning (7 AM - 3 PM)</option>
+                        <option value="Afternoon">Afternoon (3 PM - 11 PM)</option>
+                        <option value="Night">Night (11 PM - 7 AM)</option>
+                    </select>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="id_start_time">Shift Start Time</label>
+                        <input type="time" id="id_start_time" name="start_time" class="form-control" readonly>
                     </div>
-                    <div>
-                        <label for="shift_requested" class="block text-sm font-medium text-gray-700">Shift Requested</label>
-                        <select name="shift_requested" class="select-field w-full">
-                            <option value="{{ form.shift_requested.value }}">{{ form.shift_requested.value }}</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="mb-6">
-                    <label for="lchaim_orientation_date" class="block text-sm font-medium text-gray-700">L'Chaim Orientation Date</label>
-                    <input type="date" name="lchaim_orientation_date" class="input-field w-full" value="{{ form.lchaim_orientation_date.value }}" required>
-                </div>
-
-                <div class="mb-6">
-                    <label class="block text-sm font-medium text-gray-700">Select Training/Document Verification</label>
-                    <div class="checkbox-grid">
-                        <div class="checkbox-container">
-                            <label class="toggle-switch">
-                                <input type="checkbox" name="skills_book_completed" {% if form.skills_book_completed.value %}checked{% endif %}>
-                                <span class="slider"></span>
-                            </label>
-                            <label for="skills_book_completed" class="ml-2">Skills Book Completed</label>
-                        </div>
-                        <div class="checkbox-container">
-                            <label class="toggle-switch">
-                                <input type="checkbox" name="police_check" {% if form.police_check.value %}checked{% endif %}>
-                                <span class="slider"></span>
-                            </label>
-                            <label for="police_check" class="ml-2">Police Check</label>
-                        </div>
-                        <div class="checkbox-container">
-                            <label class="toggle-switch">
-                                <input type="checkbox" name="med_docs" {% if form.med_docs.value %}checked{% endif %}>
-                                <span class="slider"></span>
-                            </label>
-                            <label for="med_docs" class="ml-2">Medical Documents</label>
-                        </div>
+                    <div class="form-group">
+                        <label for="id_end_time">Shift End Time</label>
+                        <input type="time" id="id_end_time" name="end_time" class="form-control" readonly>
                     </div>
                 </div>
-                <div class="mb-6">
-                    <label for="id_documents" class="block text-sm font-medium text-gray-700">Upload documents:</label>
-                    <input type="file" name="documents" id="id_documents" multiple>
+                
+                <div class="form-group">
+                    <label for="id_lchaim_training_completed">Lchaim Training Completed</label>
+                    <div class="custom-switch">
+                        {{ form.lchaim_training_completed }}
+                    </div>
                 </div>
-                <div class="mb-6">
-                    <label for="comments" class="block text-sm font-medium text-gray-700">Additional Comments</label>
-                    <textarea name="comments" class="textarea-field w-full">{{ form.comments.value }}</textarea>
+                <div class="form-group">
+                    <label for="id_skills_book_completed">Skills Book Completed</label>
+                    <div class="custom-switch">
+                        {{ form.skills_book_completed }}
+                    </div>
                 </div>
-                <div class="mb-6">
-                    <label class="inline-flex items-center">
-                        <input type="checkbox" class="form-checkbox h-5 w-5 text-blue-600" required>
-                        <span class="ml-2 text-sm text-gray-700">I agree to the terms and conditions</span>
-                    </label>
+                <div class="form-group">
+                    <label for="id_police_check">Police Check</label>
+                    <div class="custom-switch">
+                        {{ form.police_check }}
+                    </div>
                 </div>
-                <div>
-                    <button type="submit" class="btn-custom bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50">Update Profile</button>
+                <div class="form-group">
+                    <label for="id_med_docs">Medical Documents</label>
+                    <div class="custom-switch">
+                        {{ form.med_docs }}
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="id_documents">Documents (Multiple Files)</label>
+                    <input type="file" id="id_documents" name="documents" multiple class="form-control">
+                </div>
+                <div class="form-group">
+                    <label for="id_comments">Comments</label>
+                    {{ form.comments }}
+                </div>
+    
+                <div class="button-container">
+                    <button type="submit">Submit</button>
                 </div>
             </form>
 
@@ -210,7 +307,144 @@
                 <a href="{% url 'student_profile_list' %}" class="inline-block bg-gray-300 text-gray-800 rounded-lg py-2 px-6 hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500">Back to Dashboard</a>
             </div>
         </div>
-    </div>
-
-</body>
-</html>
+    <script>
+        function updateShiftTimes() {
+            const shiftDropdown = document.getElementById('id_shift_timing');
+            const startTimeInput = document.getElementById('id_start_time');
+            const endTimeInput = document.getElementById('id_end_time');
+            
+            const shiftTimes = {
+                'Morning': { start: '07:00', end: '15:00' },
+                'Afternoon': { start: '15:00', end: '23:00' },
+                'Night': { start: '23:00', end: '07:00' }
+            };
+    
+            const selectedShift = shiftDropdown.value;
+    
+            if (shiftTimes[selectedShift]) {
+                startTimeInput.value = shiftTimes[selectedShift].start;
+                endTimeInput.value = shiftTimes[selectedShift].end;
+            } else {
+                startTimeInput.value = '';
+                endTimeInput.value = '';
+            }
+        }
+        </script>
+        <script>
+           document.addEventListener('DOMContentLoaded', function () {
+        const toggleDropdownButton = document.getElementById('toggleDropdown');
+        const shiftContainer = document.getElementById('shift-availability');
+        const dropdownIcon = document.getElementById('dropdownIcon');
+    
+        toggleDropdownButton.addEventListener('click', function() {
+            const isExpanded = shiftContainer.classList.contains('max-h-0');
+            
+            if (isExpanded) {
+                shiftContainer.classList.remove('max-h-0');
+                shiftContainer.classList.add('max-h-[300px]'); 
+                dropdownIcon.innerHTML = '&#9650;'; 
+            } else {
+                shiftContainer.classList.remove('max-h-[300px]');
+                shiftContainer.classList.add('max-h-0');
+                dropdownIcon.innerHTML = '&#9660;'; 
+            }
+        });
+    
+        fetch('/api/shift-availability/')
+            .then(response => response.json())
+            .then(data => {
+                shiftContainer.innerHTML = '';  
+    
+                for (const [shiftType, details] of Object.entries(data)) {
+                    const listItem = document.createElement('li');
+                    listItem.classList.add('my-2');
+    
+                    const shiftDiv = document.createElement('div');
+                    shiftDiv.classList.add('p-2', 'bg-white', 'rounded-md'); 
+    
+                    const shiftTitle = document.createElement('h4');
+                    shiftTitle.classList.add('text-sm', 'font-semibold', 'text-gray-800');
+                    shiftTitle.innerText = `${shiftType} Shift`;
+    
+                    const progressContainer = document.createElement('div');
+                    progressContainer.classList.add('mt-1');
+    
+                    const spotsFilled = details.max_allowed - details.spots_available;
+    
+                    const progressLabel = document.createElement('p');
+                    progressLabel.classList.add('text-xs', 'font-medium', 'text-gray-500');
+                    progressLabel.innerText = `${spotsFilled} spot${spotsFilled !== 1 ? 's' : ''} filled out of ${details.max_allowed}`;
+    
+                    const progressBarContainer = document.createElement('div');
+                    progressBarContainer.classList.add('relative', 'w-full', 'h-1', 'bg-gray-200', 'rounded-full');
+    
+                    const progressBar = document.createElement('div');
+                    const progress = Math.round((spotsFilled / details.max_allowed) * 100);
+                    progressBar.style.width = `${progress}%`;
+                    progressBar.classList.add('absolute', 'h-full', 'bg-blue-500', 'rounded-full');  
+    
+                    progressBarContainer.appendChild(progressBar);
+                    progressContainer.appendChild(progressLabel);
+                    progressContainer.appendChild(progressBarContainer);
+    
+                    shiftDiv.appendChild(shiftTitle);
+                    shiftDiv.appendChild(progressContainer);
+    
+                    if (details.next_available_date) {
+                        const nextAvailableText = document.createElement('p');
+                        nextAvailableText.classList.add('mt-2', 'text-xs', 'font-medium', 'text-gray-700');
+                        nextAvailableText.innerHTML = `Earliest available spot (For new batch): <strong class="text-blue-500">${details.next_available_date}</strong>`;
+                        shiftDiv.appendChild(nextAvailableText);
+                    }
+    
+                    listItem.appendChild(shiftDiv);
+                    shiftContainer.appendChild(listItem);
+                }
+            })
+            .catch(error => console.error('Error fetching shift availability:', error));
+    });
+    
+        </script>
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                const shiftDropdown = document.getElementById('id_shift_timing');
+                const orientationDateInput = document.getElementById('id_lchaim_orientation_date');
+                
+                orientationDateInput.addEventListener('change', function () {
+                    const selectedDate = orientationDateInput.value;
+                    
+                    if (selectedDate) {
+                        fetch('/api/shift-availability/')
+                            .then(response => response.json())
+                            .then(data => {
+                                const shiftOptions = shiftDropdown.querySelectorAll('option');
+                                
+                                shiftOptions.forEach(option => {
+                                    const shiftType = option.value;
+                                    if (data[shiftType]) {
+                                        const availableSpots = data[shiftType].spots_available;
+                                        
+                                        if (availableSpots <= 0) {
+                                            option.disabled = true; 
+                                        } else {
+                                            option.disabled = false;  
+                                        }
+                                    }
+                                });
+                            })
+                            .catch(error => console.error('Error fetching shift availability:', error));
+                    } else {
+                        // Reset dropdown options if orientation date is cleared
+                        shiftDropdown.querySelectorAll('option').forEach(option => {
+                            option.disabled = false;
+                        });
+                    }
+                });
+            });
+        </script>
+        
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    </body>
+    
+    </html>
+    

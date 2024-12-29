@@ -4,7 +4,9 @@ import json
 import os
 import re
 import threading
-
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
 # Django Imports
 from django.conf import settings
 from django.contrib import messages
@@ -23,7 +25,7 @@ import requests
 from openpyxl import Workbook
 
 from .forms import CollegeForm, StudentFileForm, StudentProfileForm, VolunteerLogForm
-from .models import Shift, StudentFile, StudentProfile, VolunteerLog
+from .models import College, Shift, StudentFile, StudentProfile, VolunteerLog
 
 
 def admin_required(function):
@@ -123,7 +125,10 @@ def create_student_profile(request):
         if profile_form.is_valid():
             student_profile = profile_form.save()
 
-            shift_type = request.POST.get('shift_timing') 
+            shift_type = request.POST.get('shift_timing')
+            college_request_id = request.POST.get('college')
+            college = College.objects.get(id=college_request_id)
+            student_profile.school = college.name
             try:
                 assigned_shift = Shift.objects.get(type__icontains=shift_type)
                 student_profile.assigned_shift = assigned_shift
@@ -136,12 +141,13 @@ def create_student_profile(request):
                 requested_hours = student_profile.hours_requested
                 start_date = student_profile.lchaim_orientation_date
                 
-                days_required = (requested_hours // 8) + (1 if requested_hours % 8 != 0 else 0)
+                days_required = (requested_hours // 9) + (1 if requested_hours % 9 != 0 else 0)
                 current_date = start_date
                 working_days = 0
 
                 while working_days < days_required:
-                    if current_date.weekday() != 6:
+                    if (student_profile.shift_requested == 'Weekdays' and current_date.weekday() < 5) or \
+                       (student_profile.shift_requested == 'Weekends' and current_date.weekday() >= 5):
                         working_days += 1
                     current_date += timedelta(days=1)
 
@@ -154,18 +160,18 @@ def create_student_profile(request):
 
                 current_date = start_date
                 while current_date <= end_date:
-                    if current_date.weekday() != 6: 
+                    if (student_profile.shift_requested == 'Weekdays' and current_date.weekday() < 5) or \
+                       (student_profile.shift_requested == 'Weekends' and current_date.weekday() >= 5):
                         VolunteerLog.objects.create(
-                            student=student_profile, 
+                            student=student_profile,
                             date=current_date,
                             shift=assigned_shift,
                             start_time=start_time,
                             end_time=end_time,
-                            hours_worked=9,  
-                            status='Absent' 
+                            hours_worked=8,
+                            status='Present'
                         )
                     current_date += timedelta(days=1)
-
 
             threading.Thread(target=send_student_creation_email, args=(student_profile,)).start()
 
@@ -177,6 +183,7 @@ def create_student_profile(request):
         profile_form = StudentProfileForm()
 
     return render(request, 'create_profile.html', {'form': profile_form})
+
 
 def send_student_creation_email(student):
     subject_q = 'New Student Profile Created'
@@ -221,11 +228,9 @@ def send_student_creation_email(student):
             <p>Welcome to L'chaim! Before you begin your placement, you must be aware of the most 
             important policies at L'chaim. Please read the attached training documents and confirm that you 
             have read and understood them.
-            Wishing you the best learning experience and good luck!
-            <br>
-            Kind regards,
-            <br>
-            Judy</p>
+            Wishing you the best learning experience and good luck!</p>
+            <p>Kind regards,</p>
+            <p>Judy</p>
         </div>
     </body>
     </html>
@@ -321,28 +326,91 @@ def student_graduated_list(request):
         'is_school_group': is_school_group,  
     })
 
-
 @admin_required
 def update_student_profile(request, pk):
     profile = get_object_or_404(StudentProfile, pk=pk)
 
     if request.method == "POST":
-        print("Form data:", request.POST)  
-        print("File data:", request.FILES)  
+        print("Form data:", request.POST)
+        print("File data:", request.FILES)
 
         form = StudentProfileForm(request.POST, request.FILES, instance=profile)
 
-        if form.is_valid():
-            student_profile = form.save()
+        try:
+            if form.is_valid():
+                print("Form is valid.")  # Debugging
+                student_profile = form.save()
 
-            if 'documents' in request.FILES:
-                files = request.FILES.getlist('documents')  
-                for file in files:
-                    StudentFile.objects.create(student=student_profile, file=file)
+                # Handle uploaded files
+                if 'documents' in request.FILES:
+                    files = request.FILES.getlist('documents')
+                    for file in files:
+                        StudentFile.objects.create(student=student_profile, file=file)
 
-            return redirect('student_profile_list')
+                if 'hours_requested' in form.changed_data or \
+                   'shift_requested' in form.changed_data or \
+                   'lchaim_orientation_date' in form.changed_data:
+                    print("Relevant fields have changed.") 
+
+                    requested_hours = student_profile.hours_requested
+                    start_date = student_profile.lchaim_orientation_date
+
+                    if requested_hours and start_date:
+                        days_required = (requested_hours // 9) + (1 if requested_hours % 9 != 0 else 0)
+                        current_date = start_date
+                        working_days = 0
+
+                        while working_days < days_required:
+                            if (student_profile.shift_requested == 'Weekdays' and current_date.weekday() < 5) or \
+                               (student_profile.shift_requested == 'Weekends' and current_date.weekday() >= 5):
+                                working_days += 1
+                            current_date += timedelta(days=1)
+
+                        new_end_date = current_date - timedelta(days=1)
+                        student_profile.end_date = new_end_date
+                        student_profile.save()
+
+                        VolunteerLog.objects.filter(student=student_profile, date__gt=new_end_date).delete()
+
+                        assigned_shift = student_profile.assigned_shift
+                        start_time = assigned_shift.start_time
+                        end_time = assigned_shift.end_time
+
+                        current_date = start_date
+                        while current_date <= new_end_date:
+                            if (student_profile.shift_requested == 'Weekdays' and current_date.weekday() < 5) or \
+                               (student_profile.shift_requested == 'Weekends' and current_date.weekday() >= 5):
+                                log, created = VolunteerLog.objects.get_or_create(
+                                    student=student_profile,
+                                    date=current_date,
+                                    defaults={
+                                        'shift': assigned_shift,
+                                        'start_time': start_time,
+                                        'end_time': end_time,
+                                        'hours_worked': 8,
+                                        'status': 'Present'
+                                    }
+                                )
+                                if not created:
+                                    log.shift = assigned_shift
+                                    log.start_time = start_time
+                                    log.end_time = end_time
+                                    log.hours_worked = 8
+                                    log.status = 'Present'
+                                    log.save()
+
+                            current_date += timedelta(days=1)
+
+                print("Profile and volunteer logs updated successfully.") 
+                return redirect('student_profile_list')
+            else:
+                print("Form is invalid:", form.errors) 
+
+        except Exception as e:
+            print("Error occurred:", e)  
 
     else:
+        print("GET request - rendering form.")
         form = StudentProfileForm(instance=profile)
 
     return render(request, 'update_profile.html', {'form': form})
@@ -384,7 +452,6 @@ def student_attendance(request):
 
     for student in students:
         log, created = VolunteerLog.objects.get_or_create(student=student, date=selected_date)
-        
         hours_worked = log.hours_worked 
         if hours_worked is not None:
             hours = int(hours_worked) 
@@ -473,6 +540,7 @@ def student_details(request, student_id):
         'student_files': student_files
     })
 
+from django.utils.timezone import now
 @admin_required
 def student_logs(request):
     query = request.GET.get('q', '').strip()
@@ -495,13 +563,18 @@ def student_logs(request):
 
     student_data = []
     for student in students:
-        volunteer_logs = VolunteerLog.objects.filter(student=student)
+        today = now().date()
+        volunteer_logs = VolunteerLog.objects.filter(student=student, date__lte=today).order_by('date')
+
         total_hours = 0
+        latest_date = None
+
         for log in volunteer_logs:
             if log.status == 'Present':
-                total_hours += log.hours_worked if log.hours_worked else 7
+                total_hours += log.hours_worked if log.hours_worked else 8
+            latest_date = log.date if not latest_date or log.date > latest_date else latest_date
         
-        total_hours = max(0, total_hours)
+        total_hours = max(0, total_hours) 
         
         student.hours_completed = total_hours
         student.save()
@@ -510,18 +583,12 @@ def student_logs(request):
         remaining_hours = hours_requested - total_hours
 
         progress_width = (total_hours / hours_requested) * 100 if hours_requested > 0 else 0
-
-        progress_width = round(progress_width, 2) 
-        if total_hours >= hours_requested:
-            student.status = 'Graduated'
-            student.save()
+        progress_width = round(progress_width, 2)  
 
         if student.status == 'Graduated':
             wfstatus = 'Inactive'  
         else:
-            wfstatus = 'Active' 
-
-        student.save()
+            wfstatus = 'Active'  
 
         student_data.append({
             'student': student,
@@ -530,7 +597,8 @@ def student_logs(request):
             'hours_requested': student.hours_requested,
             'remaining_hours': remaining_hours,
             'progress_width': progress_width,
-            'status' : wfstatus  
+            'latest_date': latest_date,
+            'status': wfstatus  
         })
 
     return render(request, 'student_logs.html', {'student_data': student_data, 'query': query})
@@ -568,6 +636,7 @@ def calendar_student_logs(request):
 
                 formatted_logs.append({
                     'date': log.date.isoformat(),
+                    'status': log.status,
                     'start_time': log.start_time.strftime('%H:%M') if log.start_time else None,
                     'end_time': log.end_time.strftime('%H:%M') if log.end_time else None,
                     'hours_worked': float(log.hours_worked) if isinstance(log.hours_worked, decimal.Decimal) else log.hours_worked,
@@ -576,13 +645,13 @@ def calendar_student_logs(request):
 
         student_data.append({
             'id': student.id,
+            'phone': student.phone,
             'name': f"{student.first_name} {student.last_name}",
             'logs': formatted_logs,
             'total_hours': float(total_hours) if isinstance(total_hours, decimal.Decimal) else total_hours
         })
 
     student_data_json = json.dumps(student_data)
-
     return render(request, 'calendar.html', {
         'student_data': student_data_json,
         'week_start_date': week_start_date,
@@ -724,3 +793,19 @@ def download_file(request, file_id):
         return response
     except StudentFile.DoesNotExist:
         raise Http404("File not found.")
+    
+class MarkGraduateAPIView(APIView):
+    def patch(self, request, pk):
+        student = get_object_or_404(StudentProfile, pk=pk)
+
+        if student.status == 'Graduated':
+            return Response({"detail": "Student is already graduated."}, status=status.HTTP_400_BAD_REQUEST)
+
+        student.status = 'Graduated'
+        student.save()
+
+        return Response({
+            "detail": f"Student {student.first_name} {student.last_name} has been marked as graduated.",
+            "id": student.id,
+            "status": student.status
+        }, status=status.HTTP_200_OK)

@@ -19,7 +19,7 @@ urlpatterns = [
     path('auth/logout/', views.logout_view, name='logout'),
 
     path('student/logs/', views.student_logs, name='student_logs'),
-    path('student/calender/', views.calendar_student_logs, name='calendar_student_logs'),
+    path('student/calendar/', views.calendar_student_logs, name='calendar_student_logs'),
     path('student/<int:student_id>/logs/', views.student_details, name='student_details'),
     path('download-excel/<str:selected_date>/', views.download_excel, name='download_excel'),
     path('download-excel-user-wise/<str:id>/', views.download_excel_user_wise, name='download_excel_user_wise'),
@@ -28,6 +28,7 @@ urlpatterns = [
     path('download/<int:file_id>/', views.download_file, name='download_file'),
 
     path('api/shift-availability/', views.shift_availability_api, name='shift_availability_api'),
+    path('api/students/<int:pk>/mark-graduate/', views.MarkGraduateAPIView.as_view(), name='mark-graduate'),
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -8,7 +8,6 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/tooltip.js/1.3.3/tooltip.min.js"></script>
   <style>
-    /* Custom CSS for hover effects and styling */
     .btn-blue {
       background-color: #3498db;
       color: white;
@@ -67,23 +66,213 @@
     .text-blue {
       color: #3498db;
     }
+
+    /* Navbar Styles */
+    .navbar {
+      background-color: #1f2937;
+      padding: 16px 32px;
+      color: white;
+      font-size: 1.125rem;
+    }
+
+    .navbar a {
+      text-decoration: none;
+      color: white;
+      margin-right: 20px;
+      font-weight: 500;
+    }
+
+    .navbar a:hover {
+      text-decoration: underline;
+    }
+
+    .navbar .logo {
+      font-size: 1.5rem;
+      font-weight: 700;
+    }
+
+    .calendar-container {
+      display: flex;
+      flex-direction: column;
+      margin-top: 80px;
+      padding-left: 4rem;
+      padding-right: 4rem;
+    }
+
+    .calendar-header {
+      display: flex;
+      padding:20px;
+      justify-content: space-between;
+      align-items: center;
+      background-color: #fff;
+      border-bottom: 2px solid #e2e8f0;
+      z-index: 10;
+    }
+
+    .calendar-title {
+      font-size: 1.5rem;
+      font-weight: 600;
+    }
+
+    .calendar-slots {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      grid-gap: 1px;
+      width: 100%;
+      flex-grow: 1;
+      overflow-y: auto;
+    }
+
+    .day-column {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+
+    .day-header {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background-color: #f3f4f6;
+      padding: 5px;
+      font-size: 0.875rem;
+      font-weight: 600;
+      border-bottom: 2px solid #e2e8f0;
+    }
+
+    .day-content {
+      padding: 8px;
+      overflow-y: auto;
+      flex-grow: 1;
+      background-color: #fff;
+    }
+    .status-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      margin-right: 8px;
+    }
+
+    .status-green {
+      background-color: #4caf50; /* Green */
+    }
+
+    .status-red {
+      background-color: #f44336; /* Red */
+    }
+
+    .log-item {
+  display: flex;
+  cursor: pointer;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px;
+  font-weight: 500;
+  font-size: 0.875rem;
+  border-radius: 8px;
+  margin-bottom: 8px;
+  flex-direction: column;
+  transition: background-color 0.3s ease, transform 0.3s ease;
+  background-color: #ffffff;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.log-item:hover {
+  background-color: #f1f5f9;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.log-item > div:first-child {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #2d3748; /* Dark text */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.log-item > div:nth-child(2) {
+  font-size: 0.875rem;
+  color: #4a5568; /* Subtle gray */
+  font-weight: 400;
+  text-align: right;
+  padding-left: 12px;
+  white-space: nowrap;
+}
+
+@media (max-width: 768px) {
+  .log-item {
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: flex-start;
+  }
+
+  .log-item > div:first-child {
+    margin-bottom: 4px;
+  }
+
+  .log-item > div:nth-child(2) {
+    margin-top: 4px;
+  }
+}
+
+
+    .no-data {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100%;
+      color: #6b7280;
+      font-size: 0.875rem;
+    }
+
+    /* Make everything responsive */
+    @media (max-width: 768px) {
+      .calendar-title {
+        font-size: 1.25rem;
+      }
+
+      .calendar-slots {
+        grid-template-columns: repeat(7, 1fr);
+      }
+    }
+
+    @media (max-width: 480px) {
+      .calendar-header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .calendar-slots {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .calendar-title {
+        font-size: 1.125rem;
+      }
+
+      .day-header {
+        font-size: 0.75rem;
+      }
+    }
   </style>
 </head>
 
-{% include 'navbar.html' %}
+<body class="bg-gray-50 font-sans text-gray-800">
 
-<body class="bg-gray-50 font-sans text-gray-800 p-6 mt-20">
-  <div class="container mx-auto mt-24">
-    <div class="flex items-center justify-between mb-6">
-      <button id="prevWeek" class="text-gray-600 bg-gray-200 hover:bg-gray-300 px-4 py-2 rounded-lg shadow-md hover:shadow-lg transition duration-300">Previous Week</button>
-      <h1 id="calendarTitle" class="text-2xl font-semibold text-gray-800"></h1>
-      <button id="nextWeek" class="text-gray-600 bg-gray-200 hover:bg-gray-300 px-4 py-2 rounded-lg shadow-md hover:shadow-lg transition duration-300">Next Week</button>
-    </div>
-    
-    <div class="flex overflow-x-auto bg-white shadow-xl rounded-lg">
-      <div id="weeklySlots" class="grid grid-cols-7 flex-1 divide-x divide-gray-200"></div>
-    </div>
+  <!-- Navbar -->
+  {% include 'navbar.html' %}
 
+  <div class="calendar-container mx-auto">
+    <div class="calendar-header">
+      <button id="prevWeek" class="text-white bg-blue-300 hover:bg-blue-600 px-4 py-2 rounded-lg shadow-md transition duration-300">Previous Week</button>
+      <h1 id="calendarTitle" class="calendar-title"></h1>
+      <button id="nextWeek" class="text-white bg-blue-300 hover:bg-blue-600 px-4 py-2 rounded-lg shadow-md transition duration-300">Next Week</button>
+    </div>
+    <div class="px-4 pt-4">
+      <div class="calendar-slots" id="weeklySlots"></div>
+    </div>
     <div id="studentLogs" class="mt-10 hidden">
       <h2 class="text-xl font-semibold text-gray-800 mb-4">Student Logs</h2>
       <div id="logsContainer" class="bg-white shadow-xl p-6 rounded-lg"></div>
@@ -96,7 +285,6 @@
     {% endif %}
   </div>
 
-  <!-- Date Selector Modal -->
   <div id="date-selector-modal" class="fixed inset-0 bg-gray-500 bg-opacity-50 flex items-center justify-center hidden modal-overlay">
     <div class="modal-content p-8 w-96 rounded-lg shadow-xl">
       <h2 class="text-xl font-semibold text-center mb-4">Select Date for Report</h2>
@@ -106,7 +294,6 @@
     </div>
   </div>
 
-  <!-- Download Report Button -->
   <div class="mt-6 text-center">
     <button id="downloadReportBtn" class="btn-blue" onclick="openDateModal()">Download Date-Specific Report</button>
   </div>
@@ -119,111 +306,129 @@
     const studentLogs = document.getElementById("studentLogs");
     const logsContainer = document.getElementById("logsContainer");
     const Hiddenstudents = document.getElementById("hidden_student_data");
-  
+
     const student_data = document.getElementById("hidden_student_data").innerHTML;
     const cleanedData = student_data.replace(/Decimal\(([^)]+)\)/g, (match, p1) => p1);
     const students = JSON.parse(cleanedData);
-    console.log(students)
+
     let currentDate = new Date();
-  
-    function getStartOfWeek(date) {
-      const day = date.getDay();
-      const diff = date.getDate() - day;
-      const startOfWeek = new Date(date);
-      startOfWeek.setDate(date.getDate() - day); // Move back to the start of the week (Sunday)
-      return startOfWeek;
-    }
-  
+
     function renderWeeklyCalendar(date) {
-      // Get start of the current week (Sunday)
       const startOfWeek = getStartOfWeek(new Date(date));
       const endOfWeek = new Date(startOfWeek);
-      endOfWeek.setDate(startOfWeek.getDate() + 6); // Get the end of the week (Saturday)
-  
-      // Update calendar title with the range of the week
-      calendarTitle.textContent = `${startOfWeek.toLocaleDateString()} - ${endOfWeek.toLocaleDateString()}`;
-  
-      weeklySlots.innerHTML = ""; // Clear the previous week's slots
-  
-      // Loop through the days of the week
+      endOfWeek.setDate(startOfWeek.getDate() + 6);
+      calendarTitle.textContent = `${formatDate(startOfWeek)} - ${formatDate(endOfWeek)}`;
+
+      weeklySlots.innerHTML = "";
       for (let i = 0; i < 7; i++) {
         const day = new Date(startOfWeek);
         day.setDate(startOfWeek.getDate() + i);
-  
+
         const dayColumn = document.createElement("div");
-        dayColumn.className = "flex flex-col h-full relative";
-  
-        // Create the day header with date
+        dayColumn.className = "day-column";
+
         const dayHeader = document.createElement("div");
-        dayHeader.textContent = `${day.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })}`;
-        dayHeader.className = "h-10 text-sm font-semibold flex items-center justify-center bg-blue-100 border-b border-blue-200";
+        dayHeader.textContent = `${formatDate(day)}`;
+        dayHeader.className = "day-header";
         dayColumn.appendChild(dayHeader);
-  
+
         let logsForDay = false;
-  
-        // Check if there are logs for this day
+
         students.forEach(student => {
           student.logs.forEach(log => {
             const logDate = new Date(log.date);
-            const logDateString = logDate.toISOString().split("T")[0]; // Get date in YYYY-MM-DD format
+            const logDateString = logDate.toISOString().split("T")[0];
             const currentDayString = day.toISOString().split("T")[0];
-  
+
             if (logDateString === currentDayString) {
               logsForDay = true;
               const userRow = document.createElement("div");
-              userRow.className = "flex items-center justify-between border-b border-gray-200 px-4 py-2 text-sm";
-  
+              userRow.className = "log-item";
+
               const studentInfo = document.createElement("div");
               studentInfo.className = "flex items-center text-gray-700";
-              studentInfo.textContent = `${student.name} (${log.hours_worked} hrs)`; 
+              
+              // Adding red/green dot
+              const statusDot = document.createElement("span");
+              statusDot.className = "status-dot " + (log.status === "Present" ? "status-green" : "status-red");
+              studentInfo.appendChild(statusDot);
+
+              // Adding student name and hours
+              const studentName = document.createElement("span");
+              studentName.textContent = `${student.name} (${log.hours_worked} hrs)`;
+              studentInfo.appendChild(studentName);
+
+              // Adding student name and hours
+              const studentPhoneNumber = document.createElement("div");
+              studentPhoneNumber.className = `phone-number text-gray-500`;
+              studentPhoneNumber.textContent = `📞 - ${student.phone}`;
+              
+
               const timeInfo = document.createElement("div");
               timeInfo.className = "text-gray-500";
-              timeInfo.textContent = `${log.start_time} - ${log.end_time}`; 
-  
+              timeInfo.textContent = `${log.start_time} - ${log.end_time}`;
+
               userRow.appendChild(studentInfo);
+              userRow.appendChild(studentPhoneNumber);
               userRow.appendChild(timeInfo);
-  
+
+              // Adding a link to the student's log details page
+              const studentLink = document.createElement("a");
+              studentLink.href = `/student/${student.id}/logs/`;  // Dynamic link
+              studentLink.className = "text-blue-500 hover:text-blue-700 ";
+              studentLink.textContent = "View Logs";
+              userRow.appendChild(studentLink);
+
               dayColumn.appendChild(userRow);
             }
           });
         });
-  
-        // If no logs for this day, display "No data"
+
         if (!logsForDay) {
           const emptySlot = document.createElement("div");
-          emptySlot.className = "flex items-center justify-center text-gray-500 text-sm";
-          emptySlot.textContent = "No data";  // Placeholder text for no data
+          emptySlot.className = "no-data";
+          emptySlot.textContent = "No data";
           dayColumn.appendChild(emptySlot);
         }
-  
-        // Append the day column to the calendar
+
         weeklySlots.appendChild(dayColumn);
       }
     }
-  
-    // "Previous Week" button functionality
+
+    function formatDate(date) {
+      const options = { weekday: 'short', month: 'short', day: 'numeric' };
+      return new Date(date).toLocaleDateString("en-US", options);
+    }
+
+    function getStartOfWeek(date) {
+      const day = date.getUTCDay();
+      const diff = day === 0 ? -6 : 1 - day;
+      const startOfWeek = new Date(date);
+      startOfWeek.setUTCDate(date.getUTCDate() + diff);
+      startOfWeek.setUTCHours(0, 0, 0, 0);
+      return startOfWeek;
+    }
+
     prevWeek.addEventListener("click", () => {
-      currentDate.setDate(currentDate.getDate() - 7); // Move 7 days back to previous week
-      renderWeeklyCalendar(currentDate); // Re-render the calendar
+      currentDate.setDate(currentDate.getDate() - 7);
+      renderWeeklyCalendar(currentDate);
     });
-  
-    // "Next Week" button functionality
+
     nextWeek.addEventListener("click", () => {
-      currentDate.setDate(currentDate.getDate() + 7); // Move 7 days forward to next week
-      renderWeeklyCalendar(currentDate); // Re-render the calendar
+      currentDate.setDate(currentDate.getDate() + 7);
+      renderWeeklyCalendar(currentDate);
     });
-  
-    renderWeeklyCalendar(currentDate); // Initial rendering of the calendar
-  
-    // Date Modal and Report functionality
+
+    renderWeeklyCalendar(currentDate);
+
     function openDateModal() {
       document.getElementById("date-selector-modal").classList.remove("hidden");
     }
-  
+
     function closeDateModal() {
       document.getElementById("date-selector-modal").classList.add("hidden");
     }
-  
+
     function toggleDownloadButton() {
       const selectedDate = document.getElementById("report-date").value;
       const downloadBtn = document.getElementById("generate-report-btn");
@@ -233,7 +438,7 @@
         downloadBtn.disabled = true;
       }
     }
-  
+
     function downloadReport() {
       const selectedDate = document.getElementById("report-date").value;
       if (selectedDate) {
@@ -242,7 +447,7 @@
       }
     }
   </script>
-  
+
 </body>
 
 </html>
