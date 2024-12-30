@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 import decimal
 import json
 import os
@@ -137,11 +137,16 @@ def create_student_profile(request):
                 messages.error(request, "The specified shift type does not exist.")
                 return render(request, 'create_profile.html', {'form': profile_form})
 
-            if student_profile.lchaim_orientation_date and student_profile.hours_requested:
+            if student_profile.start_date and student_profile.hours_requested:
                 requested_hours = student_profile.hours_requested
-                start_date = student_profile.lchaim_orientation_date
-                
-                days_required = (requested_hours // 9) + (1 if requested_hours % 9 != 0 else 0)
+                start_date = student_profile.start_date
+                start_time = assigned_shift.start_time
+                end_time = assigned_shift.end_time
+
+                shift_total_time = (datetime.combine(date.min, end_time) - datetime.combine(date.min, start_time)).seconds / 3600
+
+                days_required = (requested_hours // shift_total_time) + (1 if requested_hours % shift_total_time != 0 else 0)
+
                 current_date = start_date
                 working_days = 0
 
@@ -155,9 +160,6 @@ def create_student_profile(request):
                 student_profile.end_date = end_date
                 student_profile.save()
 
-                start_time = assigned_shift.start_time
-                end_time = assigned_shift.end_time
-
                 current_date = start_date
                 while current_date <= end_date:
                     if (student_profile.shift_requested == 'Weekdays' and current_date.weekday() < 5) or \
@@ -168,7 +170,7 @@ def create_student_profile(request):
                             shift=assigned_shift,
                             start_time=start_time,
                             end_time=end_time,
-                            hours_worked=8,
+                            hours_worked=shift_total_time,
                             status='Present'
                         )
                     current_date += timedelta(days=1)

@@ -17,9 +17,11 @@ class Shift(models.Model):
         ('Morning', 'Morning (7 AM - 3 PM)'),
         ('Afternoon', 'Afternoon (3 PM - 11 PM)'),
         ('Night', 'Night (11 PM - 7 AM)'),
+        ('WeekendDay', 'Weekend Day (7 AM - 7 PM)'),
+        ('WeekendNight', 'Weekend Night (7 PM - 7 AM)'),
     ]
 
-    type = models.CharField(max_length=10, choices=SHIFT_TYPES, unique=True)
+    type = models.CharField(max_length=12, choices=SHIFT_TYPES, unique=True)
     start_time = models.TimeField()
     end_time = models.TimeField()
     max_students = models.PositiveIntegerField()

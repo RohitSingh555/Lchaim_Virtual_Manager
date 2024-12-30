@@ -9,13 +9,13 @@ SHIFT_CHOICES = [
 ]
 
 class StudentProfileForm(forms.ModelForm):
-    shift_timing = forms.ChoiceField(choices=[('Morning', 'Morning'), ('Afternoon', 'Afternoon'), ('Night', 'Night')], label="Shift Timing")
+    shift_timing = forms.ChoiceField(choices=[('Morning', 'Morning'), ('Afternoon', 'Afternoon'), ('Night', 'Night'),('WeekendNight','WeekendNight'),('WeekendDay',"WeekendDay")], label="Shift Timing")
 
     class Meta:
         model = StudentProfile
         fields = [
             'first_name', 'last_name', 'phone', 'email', 'lchaim_training_completed',
-            'college',
+            'college','start_date',
             'hours_requested', 'shift_requested', 'shift_timing', 'lchaim_orientation_date', 
             'skills_book_completed', 'police_check', 'med_docs', 'comments'
         ]

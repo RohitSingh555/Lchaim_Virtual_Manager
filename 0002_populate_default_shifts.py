@@ -4,27 +4,23 @@ from django.db import migrations
 
 def create_default_shifts(apps, schema_editor):
     Shift = apps.get_model('students', 'Shift')
-    if not Shift.objects.filter(type='Morning').exists():
-        Shift.objects.create(
-            type='Morning',
-            start_time='07:00',
-            end_time='15:00',
-            max_students=5
-        )
-    if not Shift.objects.filter(type='Afternoon').exists():
-        Shift.objects.create(
-            type='Afternoon',
-            start_time='15:00',
-            end_time='23:00',
-            max_students=5
-        )
-    if not Shift.objects.filter(type='Night').exists():
-        Shift.objects.create(
-            type='Night',
-            start_time='23:00',
-            end_time='07:00',
-            max_students=5
-        )
+    
+    default_shifts = [
+        {'type': 'Morning', 'start_time': '07:00', 'end_time': '15:00', 'max_students': 5},
+        {'type': 'Afternoon', 'start_time': '15:00', 'end_time': '23:00', 'max_students': 5},
+        {'type': 'Night', 'start_time': '23:00', 'end_time': '07:00', 'max_students': 5},
+        {'type': 'WeekendDay', 'start_time': '07:00', 'end_time': '19:00', 'max_students': 5},
+        {'type': 'WeekendNight', 'start_time': '19:00', 'end_time': '07:00', 'max_students': 5},
+    ]
+    
+    for shift in default_shifts:
+        if not Shift.objects.filter(type=shift['type']).exists():
+            Shift.objects.create(
+                type=shift['type'],
+                start_time=shift['start_time'],
+                end_time=shift['end_time'],
+                max_students=shift['max_students']
+            )
 
 class Migration(migrations.Migration):
 
