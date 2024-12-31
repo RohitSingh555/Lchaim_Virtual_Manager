@@ -527,7 +527,63 @@
             });
         });
     </script>
-    
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const startDateInput = document.getElementById('id_start_date');
+            const shiftRequestedInput = document.getElementById('id_shift_requested');
+            const hoursRequestedInput = document.getElementById('id_hours_requested');
+            const shiftTimingDropdown = document.getElementById('id_shift_timing');
+            const endDateOutput = document.createElement('p');
+            endDateOutput.id = 'endDateEstimate';
+            endDateOutput.style.marginTop = '10px';
+            endDateOutput.style.color = 'blue';
+            startDateInput.parentNode.appendChild(endDateOutput);
+        
+            const shiftDurations = {
+                Morning: 8,
+                Afternoon: 8,
+                Night: 8
+            };
+        
+            function calculateEndDate() {
+                const startDate = new Date(startDateInput.value);
+                const hoursRequested = parseFloat(hoursRequestedInput.value);
+                const shiftRequested = shiftRequestedInput.value;
+                const selectedShift = shiftTimingDropdown.value;
+                const shiftDuration = shiftDurations[selectedShift];
+        
+                if (!startDate || !hoursRequested || !shiftRequested || !selectedShift || !shiftDuration) {
+                    endDateOutput.textContent = "Please fill out all fields to calculate the end date.";
+                    return;
+                }
+        
+                const daysRequired = Math.ceil(hoursRequested / shiftDuration);
+                let currentDate = new Date(startDate);
+                let workingDays = 0;
+        
+                while (workingDays < daysRequired) {
+                    const isWeekday = currentDate.getDay() >= 1 && currentDate.getDay() <= 5;
+                    const isWeekend = currentDate.getDay() === 0 || currentDate.getDay() === 6;
+        
+                    if ((shiftRequested === 'Weekdays' && isWeekday) || (shiftRequested === 'Weekends' && isWeekend)) {
+                        workingDays++;
+                    }
+        
+                    if (workingDays < daysRequired) {
+                        currentDate.setDate(currentDate.getDate() + 1);
+                    }
+                }
+        
+                const endDate = currentDate.toISOString().split('T')[0];
+                endDateOutput.textContent = `Estimated End Date: ${endDate}`;
+            }
+        
+            [startDateInput, shiftRequestedInput, hoursRequestedInput, shiftTimingDropdown].forEach(input => {
+                input.addEventListener('change', calculateEndDate);
+            });
+        });
+        
+    </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 
