@@ -16,7 +16,7 @@
             padding: 0;
             box-sizing: border-box;
         }
-    
+
         body {
             background: #f4f9fd;
             font-family: 'Poppins', sans-serif;
@@ -26,7 +26,7 @@
             min-height: 100vh;
             padding-top: 70px;
         }
-    
+
         .form-container {
             background: #ffffff;
             padding: 2rem;
@@ -37,12 +37,12 @@
             margin-bottom: 30px;
             transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
-    
+
         .form-container:hover {
             transform: translateY(-5px);
             box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
         }
-    
+
         .form-container h2 {
             font-size: 2rem;
             margin-bottom: 1.5rem;
@@ -51,11 +51,11 @@
             text-align: center;
             text-transform: uppercase;
         }
-    
+
         .form-group {
             margin-bottom: 1.2rem;
         }
-    
+
         .form-group label {
             font-size: 1rem;
             color: #333;
@@ -63,7 +63,7 @@
             display: block;
             margin-bottom: 0.5rem;
         }
-    
+
         .form-group input,
         .form-group select,
         .form-group textarea {
@@ -75,7 +75,7 @@
             background: #f9f9f9;
             transition: all 0.3s ease;
         }
-    
+
         .form-group input:focus,
         .form-group select:focus,
         .form-group textarea:focus {
@@ -83,25 +83,25 @@
             background: #ffffff;
             outline: none;
         }
-    
+
         .form-row {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 15px;
             margin-bottom: 1.2rem;
         }
-    
+
         .form-group textarea {
             resize: vertical;
             min-height: 100px;
         }
-    
+
         .button-container {
             display: flex;
             justify-content: center;
             margin-top: 1.2rem;
         }
-    
+
         button[type="submit"] {
             background: #3182ce;
             color: white;
@@ -113,12 +113,12 @@
             cursor: pointer;
             transition: background-color 0.3s ease, transform 0.3s ease;
         }
-    
+
         button[type="submit"]:hover {
             background: #2c5282;
             transform: scale(1.05);
         }
-    
+
         .footer-text {
             text-align: center;
             font-size: 0.9rem;
@@ -153,76 +153,105 @@
             border-radius: 50%;
             transition: 0.3s;
         }
-    
-        /* Responsive Design for Mobile */
+
         @media screen and (max-width: 768px) {
             .form-row {
                 grid-template-columns: 1fr;
             }
-    
+
             .form-container {
                 padding: 1.5rem;
             }
-    
+
             .form-container h2 {
                 font-size: 1.5rem;
             }
-            .custom-switch input[type="checkbox"] {
-            width: 2.5rem;
-            height: 1.5rem;
-            border-radius: 1rem;
-            background-color: #e2e8f0;
-            transition: 0.3s;
-        }
 
-        .custom-switch input[type="checkbox"]:checked {
-            background-color: #3182ce;
-        }
-
-        .custom-switch input[type="checkbox"]:checked:before {
-            transform: translateX(1rem);
-        }
-
-        .custom-switch input[type="checkbox"]:before {
-            content: '';
-            position: absolute;
-            top: 0.125rem;
-            left: 0.125rem;
-            width: 1.25rem;
-            height: 1.25rem;
-            background-color: white;
-            border-radius: 50%;
-            transition: 0.3s;
-        }
-    
             .button-container button {
                 width: 100%;
             }
-    
+
             body {
                 padding: 1rem;
             }
         }
+
+.shift-notification-card {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    width: 300px;
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    padding: 15px;
+    display: none; 
+    z-index: 9999;
+    opacity: 0;
+    transition: opacity 0.5s ease;
+}
+
+.shift-notification-card.active {
+    opacity: 1;
+    display: block;
+}
+
+.shift-notification-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.notification-title {
+    font-weight: bold;
+    font-size: 16px;
+}
+
+.close-btn {
+    background: transparent;
+    border: none;
+    font-size: 18px;
+    cursor: pointer;
+    color: #333;
+}
+
+.shift-notification-content {
+    font-size: 14px;
+}
+
+.available {
+    background-color: #28a745;
+    color: white;
+}
+
+.not-available {
+    background-color: #dc3545;
+    color: white;
+}
+
     </style>
 </head>
 
 <body>
     {% include 'navbar.html' %}
 
+    <div id="shift-availability-card" class="shift-notification-card">
+        <div class="shift-notification-header">
+            <span class="notification-title">Shift Availability</span>
+            <button class="close-btn" id="close-btn">×</button>
+        </div>
+        <div class="shift-notification-content">
+            <p><strong>Shift Type:</strong> <span id="shift-type"></span></p>
+            <p><strong>Requested Hours:</strong> <span id="requested-hours"></span> hrs</p>
+            <p><strong>Start Date:</strong> <span id="start-date"></span></p>
+            <p><strong>End Date:</strong> <span id="end-date"></span></p>
+        </div>
+    </div>
+
     <div class="form-container mt-20">
         <h2>Create Student Profile</h2>
-        <div class="shift-availability-class bg-white rounded-lg border border-gray-300 mb-4 p-2">
-            <h3 class="text-sm font-medium text-gray-600 mb-2 flex items-center">
-                <span class="mr-1 text-blue-500">📊</span> Shift Availability
-            </h3>
-            <div class="transition-all duration-300">
-                <button id="toggleDropdown" class="w-full py-1 px-3 border border-gray-300 text-gray-700 rounded-md text-left focus:outline-none focus:ring-2 focus:ring-blue-400 hover:bg-gray-100 mb-2 text-xs flex items-center justify-between">
-                    View Shift Availability
-                    <span id="dropdownIcon" class="ml-2">&#9660;</span>
-                </button>         
-                <ul id="shift-availability" class="max-h-0 overflow-hidden transition-max-height duration-500 ease-in-out text-sm"></ul>
-            </div>
-        </div>
+        
         
         {% if form.errors %}
         <div class="alert alert-danger">
@@ -271,7 +300,6 @@
                     <option value="Weekends">Weekends</option>
                 </select>
             </div>
-            
             
             <div class="form-group">
                 <label for="id_hours_requested">Hours Requested</label>
@@ -329,24 +357,33 @@
             </div>
             <div class="form-group">
                 <label for="id_documents">Documents (Multiple Files)</label>
-                <input type="file" id="id_documents" name="documents" multiple class="form-control">
+                <input type="file" id="id_documents" name="documents" multiple class="form-control" />
             </div>
-            <div class="form-group">
-                <label for="id_comments">Comments</label>
-                {{ form.comments }}
-            </div>
-
             <div class="button-container">
-                <button type="submit">Submit</button>
+                <button type="submit" class="btn btn-primary">Submit</button>
             </div>
         </form>
-        
-        <div class="footer-text">
-            <p>&copy; 2024 L'chaim. All Rights Reserved.</p>
-        </div>
     </div>
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const toggleButton = document.getElementById("toggleDropdown");
+            const shiftAvailability = document.getElementById("shift-availability");
+            const dropdownIcon = document.getElementById("dropdownIcon");
+            
+            toggleButton.addEventListener("click", function () {
+                if (shiftAvailability.style.maxHeight) {
+                    shiftAvailability.style.maxHeight = null;
+                    dropdownIcon.innerHTML = "&#9660;";
+                } else {
+                    shiftAvailability.style.maxHeight = shiftAvailability.scrollHeight + "px";
+                    dropdownIcon.innerHTML = "&#9650;";
+                }
+            });
+        });
+    </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
     const shiftRequestedDropdown = document.getElementById('id_shift_requested');
     const shiftTimingDropdown = document.getElementById('id_shift_timing');
 
@@ -363,9 +400,9 @@
     };
 
     function updateShiftOptions() {
-        const selectedShiftType = shiftRequestedDropdown.value; // 'weekday' or 'weekend'
+        const selectedShiftType = shiftRequestedDropdown.value; 
 
-        shiftTimingDropdown.innerHTML = ''; // Clear previous options
+        shiftTimingDropdown.innerHTML = '';
 
         if (shiftTimes[selectedShiftType]) {
             const shifts = shiftTimes[selectedShiftType];
@@ -396,139 +433,126 @@
 
     </script>
     <script>
-       document.addEventListener('DOMContentLoaded', function () {
-    const toggleDropdownButton = document.getElementById('toggleDropdown');
-    const shiftContainer = document.getElementById('shift-availability');
-    const dropdownIcon = document.getElementById('dropdownIcon');
-    const startDateInput = document.getElementById('id_start_date');
-
-    function fetchAndDisplayShiftAvailability(startDate) {
-    if (!startDate) return;
-
-    fetch(`/api/shift-availability/?start_date=${startDate}`)
-        .then(response => response.json())
-        .then(data => {
-            shiftContainer.innerHTML = ''; // Clear previous entries
-            let availabilityFound = false;
-
-            for (const [shiftType, details] of Object.entries(data)) {
-                if (details.spots_available <= 0) {
-                    availabilityFound = true;
-
-                    const listItem = document.createElement('li');
-                    listItem.classList.add('my-2');
-
-                    const shiftDiv = document.createElement('div');
-                    shiftDiv.classList.add('p-2', 'bg-white', 'rounded-md');
-
-                    const shiftTitle = document.createElement('h4');
-                    shiftTitle.classList.add('text-sm', 'font-semibold', 'text-gray-800');
-                    shiftTitle.innerText = `${shiftType} Shift`;
-
-                    const progressContainer = document.createElement('div');
-                    progressContainer.classList.add('mt-1');
-
-                    const spotsFilled = details.max_allowed - details.spots_available;
-
-                    const progressLabel = document.createElement('p');
-                    progressLabel.classList.add('text-xs', 'font-medium', 'text-gray-500');
-                    progressLabel.innerText = `${spotsFilled} spot${spotsFilled !== 1 ? 's' : ''} filled out of ${details.max_allowed}`;
-
-                    const progressBarContainer = document.createElement('div');
-                    progressBarContainer.classList.add('relative', 'w-full', 'h-1', 'bg-gray-200', 'rounded-full');
-
-                    const progressBar = document.createElement('div');
-                    const progress = Math.round((spotsFilled / details.max_allowed) * 100);
-                    progressBar.style.width = `${progress}%`;
-                    progressBar.classList.add('absolute', 'h-full', 'bg-blue-500', 'rounded-full');
-
-                    progressBarContainer.appendChild(progressBar);
-                    progressContainer.appendChild(progressLabel);
-                    progressContainer.appendChild(progressBarContainer);
-
-                    shiftDiv.appendChild(shiftTitle);
-                    shiftDiv.appendChild(progressContainer);
-
-                    if (details.next_available_date) {
-                        const nextAvailableText = document.createElement('p');
-                        nextAvailableText.classList.add('mt-2', 'text-xs', 'font-medium', 'text-gray-700');
-                        nextAvailableText.innerHTML = `Earliest available spot (For new batch): <strong class="text-blue-500">${details.next_available_date}</strong>`;
-                        shiftDiv.appendChild(nextAvailableText);
-                    }
-
-                    listItem.appendChild(shiftDiv);
-                    shiftContainer.appendChild(listItem);
-                }
-            }
-
-            if (!availabilityFound) {
-                shiftContainer.innerHTML = '<p class="text-green-500 text-sm">Slots are available! You can proceed with your booking.</p>';
-            }
-        })
-        .catch(error => console.error('Error fetching shift availability:', error));
-}
-
-
-    startDateInput.addEventListener('change', function () {
-        const startDate = startDateInput.value;
-        fetchAndDisplayShiftAvailability(startDate);
-    });
-
-    toggleDropdownButton.addEventListener('click', function () {
-        const isExpanded = shiftContainer.classList.contains('max-h-0');
-
-        if (isExpanded) {
-            shiftContainer.classList.remove('max-h-0');
-            shiftContainer.classList.add('max-h-[300px]');
-            dropdownIcon.innerHTML = '&#9650;';
-        } else {
-            shiftContainer.classList.remove('max-h-[300px]');
-            shiftContainer.classList.add('max-h-0');
-            dropdownIcon.innerHTML = '&#9660;';
-        }
-    });
-});
-
-    </script>
-    <script>
         document.addEventListener('DOMContentLoaded', function () {
-            const shiftDropdown = document.getElementById('id_shift_timing');
-            const orientationDateInput = document.getElementById('id_lchaim_orientation_date');
+            const shiftRequestedDropdown = document.getElementById('id_shift_requested'); 
+            const shiftTimingDropdown = document.getElementById('id_shift_timing'); 
+            const startDateInput = document.getElementById('id_start_date');
+            const hoursRequestedInput = document.getElementById('id_hours_requested');
             
-            orientationDateInput.addEventListener('change', function () {
-                const selectedDate = orientationDateInput.value;
-                
-                if (selectedDate) {
-                    fetch('/api/shift-availability/')
-                        .then(response => response.json())
-                        .then(data => {
-                            const shiftOptions = shiftDropdown.querySelectorAll('option');
-                            
-                            shiftOptions.forEach(option => {
-                                const shiftType = option.value;
-                                if (data[shiftType]) {
-                                    const availableSpots = data[shiftType].spots_available;
-                                    
-                                    if (availableSpots <= 0) {
-                                        option.disabled = true; 
-                                    } else {
-                                        option.disabled = false;  
-                                    }
-                                }
-                            });
-                        })
-                        .catch(error => console.error('Error fetching shift availability:', error));
-                } else {
-                    // Reset dropdown options if orientation date is cleared
-                    shiftDropdown.querySelectorAll('option').forEach(option => {
-                        option.disabled = false;
+            const shiftTimes = {
+                Weekdays: {
+                    'Morning': { start: '07:00', end: '15:00' },
+                    'Afternoon': { start: '15:00', end: '23:00' },
+                    'Night': { start: '23:00', end: '07:00' }
+                },
+                Weekends: {
+                    'WeekendDay': { start: '07:00', end: '19:00' },
+                    'WeekendNight': { start: '19:00', end: '07:00' }
+                }
+            };
+    
+            function updateShiftOptions() {
+                const selectedShiftRequested = shiftRequestedDropdown.value; 
+        
+                shiftTimingDropdown.innerHTML = ''; 
+        
+                if (shiftTimes[selectedShiftRequested]) {
+                    const shifts = shiftTimes[selectedShiftRequested];
+                    Object.keys(shifts).forEach(shift => {
+                        const option = document.createElement('option');
+                        option.value = shift;
+                        option.textContent = `${shift} (${shifts[shift].start} - ${shifts[shift].end})`;
+                        shiftTimingDropdown.appendChild(option);
                     });
                 }
+            }
+            function fetchShiftAvailabilityOnChange() {
+                const startDate = startDateInput.value;
+                const shiftRequested = shiftRequestedDropdown.value; 
+                const requestedHours = hoursRequestedInput.value;
+                const shiftType = shiftTimingDropdown.value;
+        
+                if (startDate && shiftRequested && requestedHours && shiftType) {
+                    fetchShiftAvailability(startDate, shiftRequested, requestedHours, shiftType);
+                }
+            }
+    
+            async function fetchShiftAvailability(startDate, shiftRequested, requestedHours, shiftType) {
+                try {
+                    const response = await fetch('/api/shift-availability/', {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "X-CSRFToken": "{{ csrf_token }}"
+                        },
+                        body: JSON.stringify({
+                            start_date: startDate,
+                            shift_requested: shiftRequested,
+                            requested_hours: requestedHours,
+                            shift_type: shiftType 
+                        })
+                    });
+        
+                    if (response.ok) {
+                        const data = await response.json();
+                        displayShiftAvailability(data);
+                    } else {
+                        console.error("Error fetching shift availability:", response.statusText);
+                    }
+                } catch (error) {
+                    console.error("Network error:", error);
+                }
+            }
+    
+            function displayShiftAvailability(data) {
+        const card = document.getElementById('shift-availability-card');
+        
+        document.getElementById('shift-type').textContent = data.shift_type;
+        document.getElementById('requested-hours').textContent = data.requested_hours;
+        document.getElementById('start-date').textContent = data.start_date;
+        document.getElementById('end-date').textContent = data.end_date;
+
+        if (data.is_available) {
+            card.classList.add('available');
+            card.classList.remove('not-available');
+        } else {
+            card.classList.add('not-available');
+            card.classList.remove('available');
+        }
+        
+        card.style.display = 'block';
+        
+        setTimeout(() => {
+            card.classList.add('active');
+        }, 10); 
+        setTimeout(() => {
+            closeNotification();
+        }, 100000); 
+    }
+
+    function closeNotification() {
+        const card = document.getElementById('shift-availability-card');
+        card.classList.remove('active');
+        
+        setTimeout(() => {
+            card.style.display = 'none';
+        }, 500); 
+    }
+
+    const closeBtn = document.getElementById('close-btn');
+    if (closeBtn) {
+        closeBtn.addEventListener('click', closeNotification);
+    }
+            shiftRequestedDropdown.addEventListener('change', function () {
+                updateShiftOptions();
+                fetchShiftAvailabilityOnChange();
             });
+    
+            shiftTimingDropdown.addEventListener('change', fetchShiftAvailabilityOnChange);
+            startDateInput.addEventListener('change', fetchShiftAvailabilityOnChange);
+            hoursRequestedInput.addEventListener('input', fetchShiftAvailabilityOnChange);
         });
     </script>
-    
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 
 </html>
