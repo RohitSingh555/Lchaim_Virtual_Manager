@@ -20,6 +20,7 @@ from django.db.models import Case, When, Count, Min, Q, Sum, Value, IntegerField
 from django.http import HttpResponse, FileResponse, Http404, JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.utils import timezone
+from django.core.files.storage import default_storage
 
 import requests
 from openpyxl import Workbook
@@ -157,7 +158,10 @@ def create_student_profile(request):
         profile_form = StudentProfileForm(request.POST, request.FILES)
         if profile_form.is_valid():
             student_profile = profile_form.save()
-
+            print(request.FILES)
+            files = request.FILES.getlist('documents')  
+            for file in files:
+                StudentFile.objects.create(student=student_profile, file=file)
             shift_type = request.POST.get('shift_timing')
             college_request_id = request.POST.get('college')
             college = College.objects.get(id=college_request_id)
@@ -401,89 +405,30 @@ def update_student_profile(request, pk):
     profile = get_object_or_404(StudentProfile, pk=pk)
 
     if request.method == "POST":
-        print("Form data:", request.POST)
-        print("File data:", request.FILES)
+        print("Form data:", request.POST)  
+        print("File data:", request.FILES)  
 
         form = StudentProfileForm(request.POST, request.FILES, instance=profile)
 
-        try:
-            if form.is_valid():
-                print("Form is valid.")  # Debugging
-                student_profile = form.save()
+        if form.is_valid():
+            student_profile = form.save()
 
-                # Handle uploaded files
-                if 'documents' in request.FILES:
-                    files = request.FILES.getlist('documents')
-                    for file in files:
-                        StudentFile.objects.create(student=student_profile, file=file)
+            if 'documents' in request.FILES:
+                files = request.FILES.getlist('documents') 
+                for file in files:
+                    StudentFile.objects.create(student=student_profile, file=file)
 
-                if 'hours_requested' in form.changed_data or \
-                   'shift_requested' in form.changed_data or \
-                   'lchaim_orientation_date' in form.changed_data:
-                    print("Relevant fields have changed.") 
-
-                    requested_hours = student_profile.hours_requested
-                    start_date = student_profile.lchaim_orientation_date
-
-                    if requested_hours and start_date:
-                        days_required = (requested_hours // 9) + (1 if requested_hours % 9 != 0 else 0)
-                        current_date = start_date
-                        working_days = 0
-
-                        while working_days < days_required:
-                            if (student_profile.shift_requested == 'Weekdays' and current_date.weekday() < 5) or \
-                               (student_profile.shift_requested == 'Weekends' and current_date.weekday() >= 5):
-                                working_days += 1
-                            current_date += timedelta(days=1)
-
-                        new_end_date = current_date - timedelta(days=1)
-                        student_profile.end_date = new_end_date
-                        student_profile.save()
-
-                        VolunteerLog.objects.filter(student=student_profile, date__gt=new_end_date).delete()
-
-                        assigned_shift = student_profile.assigned_shift
-                        start_time = assigned_shift.start_time
-                        end_time = assigned_shift.end_time
-
-                        current_date = start_date
-                        while current_date <= new_end_date:
-                            if (student_profile.shift_requested == 'Weekdays' and current_date.weekday() < 5) or \
-                               (student_profile.shift_requested == 'Weekends' and current_date.weekday() >= 5):
-                                log, created = VolunteerLog.objects.get_or_create(
-                                    student=student_profile,
-                                    date=current_date,
-                                    defaults={
-                                        'shift': assigned_shift,
-                                        'start_time': start_time,
-                                        'end_time': end_time,
-                                        'hours_worked': 8,
-                                        'status': 'Present'
-                                    }
-                                )
-                                if not created:
-                                    log.shift = assigned_shift
-                                    log.start_time = start_time
-                                    log.end_time = end_time
-                                    log.hours_worked = 8
-                                    log.status = 'Present'
-                                    log.save()
-
-                            current_date += timedelta(days=1)
-
-                print("Profile and volunteer logs updated successfully.") 
-                return redirect('student_profile_list')
-            else:
-                print("Form is invalid:", form.errors) 
-
-        except Exception as e:
-            print("Error occurred:", e)  
-
+            return redirect('student_profile_list')
     else:
-        print("GET request - rendering form.")
         form = StudentProfileForm(instance=profile)
 
-    return render(request, 'update_profile.html', {'form': form})
+    existing_files = StudentFile.objects.filter(student=profile)
+
+    return render(request, 'update_profile.html', {
+        'form': form,
+        'existing_files': existing_files
+    })
+
 
 @admin_required
 def delete_student_profile(request, pk):
@@ -863,7 +808,13 @@ def download_file(request, file_id):
         return response
     except StudentFile.DoesNotExist:
         raise Http404("File not found.")
-    
+
+
+def remove_file(request, pk):
+    student_file = get_object_or_404(StudentFile, pk=pk)
+    student_file.delete()
+    return redirect('update_student_profile', pk=student_file.student.pk)
+
 class MarkGraduateAPIView(APIView):
     def patch(self, request, pk):
         student = get_object_or_404(StudentProfile, pk=pk)
@@ -879,3 +830,6 @@ class MarkGraduateAPIView(APIView):
             "id": student.id,
             "status": student.status
         }, status=status.HTTP_200_OK)
+    
+
+    
