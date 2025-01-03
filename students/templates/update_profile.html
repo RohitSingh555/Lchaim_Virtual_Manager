@@ -249,7 +249,7 @@
 </head>
 
 <body class="bg-gray-100">
-
+    
     {% include 'navbar.html' %}
     <div class="form-container mt-20">
         <h2>Update Student Profile</h2>
@@ -376,44 +376,71 @@
         
         
     </div>
-   
+    <div id="message-container" style="display: none; position: fixed; top: 12rem; right: 5rem; padding: 10px; border: 1px solid #ccc; border-radius: 5px; z-index: 9999;"></div>
+
     
     <script>
-    document.addEventListener("DOMContentLoaded", function() {
-        var sendEmailBtn = document.getElementById('send-email-btn');
+document.addEventListener("DOMContentLoaded", function() {
+    var sendEmailBtn = document.getElementById('send-email-btn');
+    var messageContainer = document.getElementById('message-container');
     
-        sendEmailBtn.addEventListener('click', function(event) {
-            var email = document.getElementById('id_email').value;
-    
-            console.log("Email:", email);  
-            if (!email) {
-                console.log("Email is required!");
-                return;
-            }
-    
-            var formData = new FormData();
-            formData.append('email', email);  
-            formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
-    
-            var xhr = new XMLHttpRequest();
-            xhr.open('POST', '/send-email/', true);
-    
-            xhr.onload = function() {
-                if (xhr.status === 200) {
-                    var response = JSON.parse(xhr.responseText);
-                    if (response.status === 'success') {
-                        alert('Email sent successfully!');
-                    } else {
-                        console.log('Error: ' + response.message);
-                    }
+    sendEmailBtn.addEventListener('click', function(event) {
+        var email = document.getElementById('id_email').value;
+
+        console.log("Email:", email);  
+        if (!email) {
+            showMessage("Email is required!", "error");
+            return;
+        }
+
+        var formData = new FormData();
+        formData.append('email', email);  
+        formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+
+        var xhr = new XMLHttpRequest();
+        xhr.open('POST', '/send-email/', true);
+
+        xhr.onload = function() {
+            if (xhr.status === 200) {
+                var response = JSON.parse(xhr.responseText);
+                if (response.status === 'success') {
+                    showMessage('Email sent successfully!', 'success');
                 } else {
-                    alert('An error occurred while sending the email.');
+                    showMessage('Error: ' + response.message, 'error');
                 }
-            };
-    
-            xhr.send(formData);
-        });
+            } else {
+                showMessage('An error occurred while sending the email.', 'error');
+            }
+        };
+
+        xhr.send(formData);
     });
+
+    function showMessage(message, type) {
+        // Set the message text
+        messageContainer.textContent = message;
+
+        // Set the style based on the type (success or error)
+        if (type === 'success') {
+            messageContainer.style.backgroundColor = '#d4edda';  // Green for success
+            messageContainer.style.borderColor = '#c3e6cb';
+            messageContainer.style.color = '#155724';
+        } else {
+            messageContainer.style.backgroundColor = '#f8d7da';  // Red for error
+            messageContainer.style.borderColor = '#f5c6cb';
+            messageContainer.style.color = '#721c24';
+        }
+
+        // Show the message container
+        messageContainer.style.display = 'block';
+
+        // Hide the message after 5 seconds
+        setTimeout(function() {
+            messageContainer.style.display = 'none';
+        }, 5000);
+    }
+});
+
     </script>
     
       <script>
