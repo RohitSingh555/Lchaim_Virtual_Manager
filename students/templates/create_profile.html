@@ -176,60 +176,59 @@
             }
         }
 
-.shift-notification-card {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    width: 300px;
-    background-color: #fff;
-    border-radius: 10px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-    padding: 15px;
-    display: none; 
-    z-index: 9999;
-    opacity: 0;
-    transition: opacity 0.5s ease;
-}
+        .shift-notification-card {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 300px;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            padding: 15px;
+            display: none;
+            z-index: 9999;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
 
-.shift-notification-card.active {
-    opacity: 1;
-    display: block;
-}
+        .shift-notification-card.active {
+            opacity: 1;
+            display: block;
+        }
 
-.shift-notification-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 10px;
-}
+        .shift-notification-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
 
-.notification-title {
-    font-weight: bold;
-    font-size: 16px;
-}
+        .notification-title {
+            font-weight: bold;
+            font-size: 16px;
+        }
 
-.close-btn {
-    background: transparent;
-    border: none;
-    font-size: 18px;
-    cursor: pointer;
-    color: #333;
-}
+        .close-btn {
+            background: transparent;
+            border: none;
+            font-size: 18px;
+            cursor: pointer;
+            color: #333;
+        }
 
-.shift-notification-content {
-    font-size: 14px;
-}
+        .shift-notification-content {
+            font-size: 14px;
+        }
 
-.available {
-    background-color: #28a745;
-    color: white;
-}
+        .available {
+            background-color: #28a745;
+            color: white;
+        }
 
-.not-available {
-    background-color: #dc3545;
-    color: white;
-}
-
+        .not-available {
+            background-color: #dc3545;
+            color: white;
+        }
     </style>
 </head>
 
@@ -251,8 +250,8 @@
 
     <div class="form-container mt-20">
         <h2>Create Student Profile</h2>
-        
-        
+
+
         {% if form.errors %}
         <div class="alert alert-danger">
             <strong>There were some errors with your submission:</strong>
@@ -288,7 +287,7 @@
             <div class="form-group">
                 <label for="id_college">College</label>
                 {{ form.college }}
-            </div>            
+            </div>
             <div class="form-group">
                 <label for="id_start_date">Start Date</label>
                 <input type="date" id="id_start_date" name="start_date" class="form-control">
@@ -300,26 +299,26 @@
                     <option value="Weekends">Weekends</option>
                 </select>
             </div>
-            
+
             <div class="form-group">
                 <label for="id_hours_requested">Hours Requested</label>
                 {{ form.hours_requested }}
             </div>
-            
+
             <div class="form-group">
                 <label for="id_lchaim_orientation_date">Lchaim Orientation Date</label>
                 {{ form.lchaim_orientation_date }}
             </div>
             <div class="form-group">
                 <label for="id_shift_timing">Shift Timing</label>
-                <select id="id_shift_timing" name="shift_timing" class="form-control" onchange="updateShiftTimes()">
+                <select id="id_shift_timing" name="shift_timing" class="form-control" >
                     <option value="">-- Select Shift --</option>
                     <option value="Morning">Morning (7 AM - 3 PM)</option>
                     <option value="Afternoon">Afternoon (3 PM - 11 PM)</option>
                     <option value="Night">Night (11 PM - 7 AM)</option>
                 </select>
             </div>
-            
+
             <div class="form-row">
                 <div class="form-group">
                     <label for="id_start_time">Shift Start Time</label>
@@ -330,7 +329,7 @@
                     <input type="time" id="id_end_time" name="end_time" class="form-control" readonly>
                 </div>
             </div>
-            
+
             <div class="form-group">
                 <label for="id_lchaim_training_completed">Lchaim Training Completed</label>
                 <div class="custom-switch">
@@ -370,7 +369,7 @@
             const toggleButton = document.getElementById("toggleDropdown");
             const shiftAvailability = document.getElementById("shift-availability");
             const dropdownIcon = document.getElementById("dropdownIcon");
-            
+
             toggleButton.addEventListener("click", function () {
                 if (shiftAvailability.style.maxHeight) {
                     shiftAvailability.style.maxHeight = null;
@@ -384,61 +383,9 @@
     </script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-    const shiftRequestedDropdown = document.getElementById('id_shift_requested');
-    const shiftTimingDropdown = document.getElementById('id_shift_timing');
+            const shiftRequestedDropdown = document.getElementById('id_shift_requested');
+            const shiftTimingDropdown = document.getElementById('id_shift_timing');
 
-    const shiftTimes = {
-        Weekdays: {
-            'Morning': { start: '07:00', end: '15:00' },
-            'Afternoon': { start: '15:00', end: '23:00' },
-            'Night': { start: '23:00', end: '07:00' }
-        },
-        Weekends: {
-            'WeekendDay': { start: '07:00', end: '19:00' },
-            'WeekendNight': { start: '19:00', end: '07:00' }
-        }
-    };
-
-    function updateShiftOptions() {
-        const selectedShiftType = shiftRequestedDropdown.value; 
-
-        shiftTimingDropdown.innerHTML = '';
-
-        if (shiftTimes[selectedShiftType]) {
-            const shifts = shiftTimes[selectedShiftType];
-            Object.keys(shifts).forEach(shift => {
-                const option = document.createElement('option');
-                option.value = shift;
-                option.textContent = `${shift} (${shifts[shift].start} - ${shifts[shift].end})`;
-                shiftTimingDropdown.appendChild(option);
-            });
-        }
-    }
-
-    shiftRequestedDropdown.addEventListener('change', updateShiftOptions);
-
-    shiftTimingDropdown.addEventListener('change', function () {
-        const selectedShift = shiftTimingDropdown.value;
-        const selectedShiftType = shiftRequestedDropdown.value;
-
-        if (shiftTimes[selectedShiftType] && shiftTimes[selectedShiftType][selectedShift]) {
-            document.getElementById('id_start_time').value = shiftTimes[selectedShiftType][selectedShift].start;
-            document.getElementById('id_end_time').value = shiftTimes[selectedShiftType][selectedShift].end;
-        } else {
-            document.getElementById('id_start_time').value = '';
-            document.getElementById('id_end_time').value = '';
-        }
-    });
-});
-
-    </script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const shiftRequestedDropdown = document.getElementById('id_shift_requested'); 
-            const shiftTimingDropdown = document.getElementById('id_shift_timing'); 
-            const startDateInput = document.getElementById('id_start_date');
-            const hoursRequestedInput = document.getElementById('id_hours_requested');
-            
             const shiftTimes = {
                 Weekdays: {
                     'Morning': { start: '07:00', end: '15:00' },
@@ -450,12 +397,64 @@
                     'WeekendNight': { start: '19:00', end: '07:00' }
                 }
             };
-    
+
             function updateShiftOptions() {
-                const selectedShiftRequested = shiftRequestedDropdown.value; 
-        
-                shiftTimingDropdown.innerHTML = ''; 
-        
+                const selectedShiftType = shiftRequestedDropdown.value;
+
+                shiftTimingDropdown.innerHTML = '';
+
+                if (shiftTimes[selectedShiftType]) {
+                    const shifts = shiftTimes[selectedShiftType];
+                    Object.keys(shifts).forEach(shift => {
+                        const option = document.createElement('option');
+                        option.value = shift;
+                        option.textContent = `${shift} (${shifts[shift].start} - ${shifts[shift].end})`;
+                        shiftTimingDropdown.appendChild(option);
+                    });
+                }
+            }
+
+            shiftRequestedDropdown.addEventListener('change', updateShiftOptions);
+
+            shiftTimingDropdown.addEventListener('change', function () {
+                const selectedShift = shiftTimingDropdown.value;
+                const selectedShiftType = shiftRequestedDropdown.value;
+
+                if (shiftTimes[selectedShiftType] && shiftTimes[selectedShiftType][selectedShift]) {
+                    document.getElementById('id_start_time').value = shiftTimes[selectedShiftType][selectedShift].start;
+                    document.getElementById('id_end_time').value = shiftTimes[selectedShiftType][selectedShift].end;
+                } else {
+                    document.getElementById('id_start_time').value = '';
+                    document.getElementById('id_end_time').value = '';
+                }
+            });
+        });
+
+    </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const shiftRequestedDropdown = document.getElementById('id_shift_requested');
+            const shiftTimingDropdown = document.getElementById('id_shift_timing');
+            const startDateInput = document.getElementById('id_start_date');
+            const hoursRequestedInput = document.getElementById('id_hours_requested');
+
+            const shiftTimes = {
+                Weekdays: {
+                    'Morning': { start: '07:00', end: '15:00' },
+                    'Afternoon': { start: '15:00', end: '23:00' },
+                    'Night': { start: '23:00', end: '07:00' }
+                },
+                Weekends: {
+                    'WeekendDay': { start: '07:00', end: '19:00' },
+                    'WeekendNight': { start: '19:00', end: '07:00' }
+                }
+            };
+
+            function updateShiftOptions() {
+                const selectedShiftRequested = shiftRequestedDropdown.value;
+
+                shiftTimingDropdown.innerHTML = '';
+
                 if (shiftTimes[selectedShiftRequested]) {
                     const shifts = shiftTimes[selectedShiftRequested];
                     Object.keys(shifts).forEach(shift => {
@@ -468,15 +467,15 @@
             }
             function fetchShiftAvailabilityOnChange() {
                 const startDate = startDateInput.value;
-                const shiftRequested = shiftRequestedDropdown.value; 
+                const shiftRequested = shiftRequestedDropdown.value;
                 const requestedHours = hoursRequestedInput.value;
                 const shiftType = shiftTimingDropdown.value;
-        
+
                 if (startDate && shiftRequested && requestedHours && shiftType) {
                     fetchShiftAvailability(startDate, shiftRequested, requestedHours, shiftType);
                 }
             }
-    
+
             async function fetchShiftAvailability(startDate, shiftRequested, requestedHours, shiftType) {
                 try {
                     const response = await fetch('/api/shift-availability/', {
@@ -489,10 +488,10 @@
                             start_date: startDate,
                             shift_requested: shiftRequested,
                             requested_hours: requestedHours,
-                            shift_type: shiftType 
+                            shift_type: shiftType
                         })
                     });
-        
+
                     if (response.ok) {
                         const data = await response.json();
                         displayShiftAvailability(data);
@@ -503,51 +502,56 @@
                     console.error("Network error:", error);
                 }
             }
-    
+
             function displayShiftAvailability(data) {
-        const card = document.getElementById('shift-availability-card');
-        
-        document.getElementById('shift-type').textContent = data.shift_type;
-        document.getElementById('requested-hours').textContent = data.requested_hours;
-        document.getElementById('start-date').textContent = data.start_date;
-        document.getElementById('end-date').textContent = data.end_date;
+                const card = document.getElementById('shift-availability-card');
+                const submitButton = document.querySelector('button[type="submit"]'); // Submit button
 
-        if (data.is_available) {
-            card.classList.add('available');
-            card.classList.remove('not-available');
-        } else {
-            card.classList.add('not-available');
-            card.classList.remove('available');
-        }
-        
-        card.style.display = 'block';
-        
-        setTimeout(() => {
-            card.classList.add('active');
-        }, 10); 
-        setTimeout(() => {
-            closeNotification();
-        }, 100000); 
-    }
+                const shiftMessage = document.querySelector('#shift-availability-card .shift-notification-content');
+                document.getElementById('shift-type').textContent = data.shift_type;
+                document.getElementById('requested-hours').textContent = data.requested_hours;
+                document.getElementById('start-date').textContent = data.start_date;
+                document.getElementById('end-date').textContent = data.end_date;
 
-    function closeNotification() {
-        const card = document.getElementById('shift-availability-card');
-        card.classList.remove('active');
-        
-        setTimeout(() => {
-            card.style.display = 'none';
-        }, 500); 
-    }
+                if (data.is_available) {
+                    card.classList.add('available');
+                    card.classList.remove('not-available');
+                    submitButton.disabled = false; 
+                } else {
+                    card.classList.add('not-available');
+                    card.classList.remove('available');
+                    shiftMessage.innerHTML = `<p><strong>Shift Unavailable:</strong> ${data.message}</p>`;
+                    submitButton.disabled = true;
+                }
 
-    const closeBtn = document.getElementById('close-btn');
-    if (closeBtn) {
-        closeBtn.addEventListener('click', closeNotification);
-    }
+                card.style.display = 'block';
+
+                setTimeout(() => {
+                    card.classList.add('active');
+                }, 10);
+                setTimeout(() => {
+                    closeNotification();
+                }, 100000);
+            }
+
+            function closeNotification() {
+                const card = document.getElementById('shift-availability-card');
+                card.classList.remove('active');
+
+                setTimeout(() => {
+                    card.style.display = 'none';
+                }, 500);
+            }
+
+            const closeBtn = document.getElementById('close-btn');
+            if (closeBtn) {
+                closeBtn.addEventListener('click', closeNotification);
+            }
             shiftRequestedDropdown.addEventListener('change', function () {
                 updateShiftOptions();
                 fetchShiftAvailabilityOnChange();
             });
-    
+
             shiftTimingDropdown.addEventListener('change', fetchShiftAvailabilityOnChange);
             startDateInput.addEventListener('change', fetchShiftAvailabilityOnChange);
             hoursRequestedInput.addEventListener('input', fetchShiftAvailabilityOnChange);

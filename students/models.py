@@ -60,8 +60,8 @@ class StudentProfile(models.Model):
         default='Training'
     )
 
-    def __str__(self):
-        return f"{self.first_name} {self.last_name}"
+    # def __str__(self):
+    #     return f"{self.first_name} {self.last_name}"
 
     def calculate_end_date(self):
         if self.start_date and self.hours_requested:

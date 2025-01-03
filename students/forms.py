@@ -23,6 +23,17 @@ class StudentProfileForm(forms.ModelForm):
             'lchaim_orientation_date': forms.DateInput(attrs={'type': 'date'}),
             'comments': forms.Textarea(attrs={'rows': 4, 'cols': 40}),
         }
+    def __init__(self, *args, **kwargs):
+        # Check if the object instance is being passed (update case)
+        instance = kwargs.get('instance', None)
+        super().__init__(*args, **kwargs)
+
+        if instance is None:
+            self.fields['start_date'].required = True
+            self.fields['shift_timing'].required = True
+        else:
+            self.fields['start_date'].required = False
+            self.fields['shift_timing'].required = False
 
 class VolunteerLogForm(forms.ModelForm):
     class Meta:

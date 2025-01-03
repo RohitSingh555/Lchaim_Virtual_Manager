@@ -22,7 +22,8 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.utils import timezone
 from django.core.files.storage import default_storage
 
-import requests
+
+from io import BytesIO
 from openpyxl import Workbook
 
 from .forms import CollegeForm, StudentFileForm, StudentProfileForm, VolunteerLogForm
@@ -136,7 +137,7 @@ def shift_availability_api(request):
             shift_requested = data['shift_requested']
             
             availability = get_shift_availability(start_date, shift_type, requested_hours, shift_requested)
-            
+            print(availability)
             return JsonResponse(availability)
         
         except KeyError as e:
@@ -258,8 +259,37 @@ def create_student_profile(request):
 
     return render(request, 'create_profile.html', {'form': profile_form})
 
+@csrf_exempt  
+def send_email(request):
+    if request.method == 'POST':
+        student_email = request.POST.get('email')
+        
+        if not student_email:
+            return JsonResponse({'status': 'error', 'message': 'Student email is missing'})
+        
+        try:
+            # Use get() to retrieve a single student object based on the email
+            student = StudentProfile.objects.get(email=student_email)
+            
+            # You can print the student directly
+            print(student)  # This will print the StudentProfile object (e.g., StudentProfile object (54))
 
+            # Pass the actual student object to the threading function
+            threading.Thread(target=send_student_creation_email, args=(student,)).start()
+            
+            return JsonResponse({'status': 'success'})
+        
+        except StudentProfile.DoesNotExist:
+            return JsonResponse({'status': 'error', 'message': 'Student not found'})
+        except Exception as e:
+            # Log or print the error for debugging
+            print(f"Error: {str(e)}")
+            return JsonResponse({'status': 'error', 'message': 'An unexpected error occurred'})
+
+    return JsonResponse({'status': 'error', 'message': 'Invalid request method. Only POST is allowed.'})
+                         
 def send_student_creation_email(student):
+    print(student)
     subject_q = 'New Student Profile Created'
     message = f"""
     <html>
@@ -298,7 +328,7 @@ def send_student_creation_email(student):
     </head>
     <body>
         <div class="email-container">
-            <p>Dear Student,</p>
+            <p>Dear {student.first_name},</p>
             <p>Welcome to L'chaim! Before you begin your placement, you must be aware of the most 
             important policies at L'chaim. Please read the attached training documents and confirm that you 
             have read and understood them.
@@ -310,6 +340,28 @@ def send_student_creation_email(student):
     </html>
     """
 
+    volunteer_logs = VolunteerLog.objects.filter(student=student)
+    wb = Workbook()
+    ws = wb.active
+    ws.title = f"Schedule for {student.first_name} {student.last_name}"
+
+    headers = ['Date', 'Start Time', 'End Time', 'Shift']
+    ws.append(headers)
+
+    for log in volunteer_logs:
+        start_time = log.start_time.strftime('%H:%M') if log.start_time else 'N/A'
+        end_time = log.end_time.strftime('%H:%M') if log.end_time else 'N/A'
+        shift_type = log.shift.type if log.shift and log.shift.type else 'N/A'
+        
+        # Append the log details to the Excel sheet
+        ws.append([log.date, start_time, end_time, shift_type])
+
+    excel_file = BytesIO()
+    wb.save(excel_file)
+    excel_file.seek(0)
+
+    excel_filename = f"{student.first_name}_{student.last_name}_schedule.xlsx"
+
     email = EmailMessage(
         subject=subject_q,
         body=message,
@@ -318,8 +370,9 @@ def send_student_creation_email(student):
     )
     email.content_subtype = "html"
 
-    attachments_folder = os.path.join(settings.BASE_DIR, 'attachments')
+    email.attach(excel_filename, excel_file.read(), 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
 
+    attachments_folder = os.path.join(settings.BASE_DIR, 'attachments')
     if os.path.exists(attachments_folder):
         for file_name in os.listdir(attachments_folder):
             if file_name.endswith('.pdf'):
@@ -331,8 +384,9 @@ def send_student_creation_email(student):
                     print(f"File {file_name} not found in attachments folder.")
     else:
         print(f"Attachments folder not found at {attachments_folder}.")
-
     email.send()
+
+
 
 @login_required
 def student_profile_list(request):
@@ -419,6 +473,9 @@ def update_student_profile(request, pk):
                     StudentFile.objects.create(student=student_profile, file=file)
 
             return redirect('student_profile_list')
+        else :
+            print("File Error:", form.errors)  
+
     else:
         form = StudentProfileForm(instance=profile)
 
@@ -524,7 +581,6 @@ def update_attendance(request, student_id, date):
         log.save()
 
         return JsonResponse({'success': True})
-
     return JsonResponse({'success': False})
 
 
