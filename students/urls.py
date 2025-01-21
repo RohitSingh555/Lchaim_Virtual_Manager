@@ -31,6 +31,12 @@ urlpatterns = [
 
     path('api/shift-availability/', views.shift_availability_api, name='shift_availability_api'),
     path('api/students/<int:pk>/mark-graduate/', views.MarkGraduateAPIView.as_view(), name='mark-graduate'),
+
+    path('orientation-dates/', views.orientation_date_list, name='orientation_date_list'),
+    path('orientation-dates/add/', views.add_orientation_date, name='add_orientation_date'),
+    path('orientation-dates/edit/<int:pk>/', views.edit_orientation_date, name='edit_orientation_date'),
+    path('orientation-dates/delete/<int:pk>/', views.delete_orientation_date, name='delete_orientation_date'),
+    path('log/delete/<int:log_id>/', views.delete_log, name='delete_log'),
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

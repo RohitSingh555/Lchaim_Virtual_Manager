@@ -1,5 +1,5 @@
 from django import forms
-from .models import College, StudentFile, StudentProfile, VolunteerLog
+from .models import College, OrientationDate, StudentFile, StudentProfile, VolunteerLog
 
 
 
@@ -10,7 +10,11 @@ SHIFT_CHOICES = [
 
 class StudentProfileForm(forms.ModelForm):
     shift_timing = forms.ChoiceField(choices=[('Morning', 'Morning'), ('Afternoon', 'Afternoon'), ('Night', 'Night'),('WeekendNight','WeekendNight'),('WeekendDay',"WeekendDay")], label="Shift Timing")
-
+    lchaim_orientation_date = forms.ModelChoiceField(
+        queryset=OrientationDate.objects.all(),
+        empty_label="Select Orientation Date",
+        label="Orientation Date"
+    )
     class Meta:
         model = StudentProfile
         fields = [
@@ -20,7 +24,7 @@ class StudentProfileForm(forms.ModelForm):
             'skills_book_completed', 'police_check', 'med_docs', 'comments'
         ]
         widgets = {
-            'lchaim_orientation_date': forms.DateInput(attrs={'type': 'date'}),
+            'start_date': forms.DateInput(attrs={'type': 'date'}),
             'comments': forms.Textarea(attrs={'rows': 4, 'cols': 40}),
         }
     def __init__(self, *args, **kwargs):
@@ -34,6 +38,10 @@ class StudentProfileForm(forms.ModelForm):
         else:
             self.fields['start_date'].required = False
             self.fields['shift_timing'].required = False
+
+
+
+
 
 class VolunteerLogForm(forms.ModelForm):
     class Meta:
@@ -53,3 +61,16 @@ class StudentFileForm(forms.ModelForm):
         model = StudentFile
         fields = ['file']
        
+
+class OrientationDateForm(forms.ModelForm):
+    class Meta:
+        model = OrientationDate
+        fields = ['date', 'description']
+        widgets = {
+            'date': forms.DateInput(attrs={'type': 'date'}),
+            'description': forms.TextInput(attrs={'placeholder': 'Optional description'}),
+        }
+        labels = {
+            'date': 'Orientation Date',
+            'description': 'Description (optional)',
+        }

@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Orientation Date</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gray-100 font-sans">
+
+    {% include 'navbar.html' %}
+    
+    <div class="flex justify-center items-center min-h-screen bg-gray-50">
+        <div class="max-w-3xl w-full p-10 bg-white rounded-lg shadow-lg">
+            <h1 class="text-5xl font-semibold text-center text-gray-800 mb-8">Add Orientation Date</h1>
+            
+            <form method="post">
+                {% csrf_token %}
+                
+                <div class="space-y-8">
+                    <div class="grid grid-cols-1 gap-6">
+                        {{ form.as_p|safe }}
+                        
+                   
+                    </div>
+                </div>
+
+                <div class="mt-10">
+                    <button type="submit" class="w-full bg-blue-600 text-white py-4 px-8 text-lg font-semibold rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-300 ease-in-out">
+                        Save
+                    </button>
+                </div>
+            </form>
+
+            <div class="mt-8 text-center">
+                <a href="{% url 'orientation_date_list' %}" class="text-blue-600 hover:underline text-xl font-semibold">Back to List</a>
+            </div>
+        </div>
+    </div>
+
+</body>
+
+</html>

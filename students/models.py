@@ -10,7 +10,15 @@ class College(models.Model):
 
     def __str__(self):
         return self.name
+    
+class OrientationDate(models.Model):
+    date = models.DateField(unique=True)
+    description = models.CharField(max_length=255, blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)  
+    updated_at = models.DateTimeField(auto_now=True)  
 
+    def __str__(self):
+        return f"{self.date} - {self.description or 'No Description'}"
 
 class Shift(models.Model):
     SHIFT_TYPES = [
@@ -51,7 +59,7 @@ class StudentProfile(models.Model):
     assigned_shift = models.ForeignKey(Shift, on_delete=models.SET_NULL, null=True, blank=True, related_name="students")
     start_date = models.DateField(null=True)
     end_date = models.DateField(null=True)
-    lchaim_orientation_date = models.DateField(null=True)
+    lchaim_orientation_date = models.ForeignKey(OrientationDate, on_delete=models.SET_NULL, null=True, blank=True)
     skills_book_completed = models.BooleanField(default=False)
     comments = models.TextField(blank=True, null=True)
     status = models.CharField(
@@ -96,3 +104,4 @@ class StudentFile(models.Model):
 
     class Meta:
         ordering = ['uploaded_at']
+

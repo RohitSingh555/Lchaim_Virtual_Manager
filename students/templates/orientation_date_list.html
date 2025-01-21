@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orientation Dates</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        // Open the dialog modal
+        function openDialog(pk) {
+            const modal = document.getElementById(`delete-modal-${pk}`);
+            modal.classList.remove('hidden');
+        }
+
+        // Close the dialog modal
+        function closeDialog(pk) {
+            const modal = document.getElementById(`delete-modal-${pk}`);
+            modal.classList.add('hidden');
+        }
+    </script>
+</head>
+<body class="bg-gray-50">
+
+<div class="flex justify-center items-center min-h-screen px-4 py-6">
+    <div class="w-full max-w-4xl bg-white p-8 rounded-xl shadow-lg">
+        {% include 'navbar.html' %}
+        
+        <h1 class="text-3xl font-semibold text-green-600 text-center mb-6">Orientation Dates</h1>
+        
+        <div class="flex justify-end mb-4">
+            <a href="{% url 'add_orientation_date' %}" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition">Add New Orientation Date</a>
+        </div>
+        
+        <div class="overflow-x-auto">
+            <table class="min-w-full bg-white table-auto shadow-md rounded-lg">
+                <thead class="bg-gray-100">
+                    <tr>
+                        <th class="py-3 px-6 text-left text-sm font-semibold text-gray-700">Date</th>
+                        <th class="py-3 px-6 text-left text-sm font-semibold text-gray-700">Description</th>
+                        <th class="py-3 px-6 text-left text-sm font-semibold text-gray-700">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for date in dates %}
+                        <tr class="border-t border-gray-200">
+                            <td class="py-3 px-6 text-sm text-gray-800">{{ date.date }}</td>
+                            <td class="py-3 px-6 text-sm text-gray-800">{{ date.description }}</td>
+                            <td class="py-3 px-6 text-sm text-gray-800">
+                                <a href="{% url 'edit_orientation_date' date.pk %}" class="text-blue-600 hover:text-blue-800 hover:underline mr-4">Edit</a>
+                                <button onclick="openDialog('{{ date.pk }}')" class="text-red-600 hover:text-red-800 hover:underline">Delete</button>
+                            </td>
+                        </tr>
+
+                        <!-- Modal Dialog -->
+                        <div id="delete-modal-{{ date.pk }}" class="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50 hidden">
+                            <div class="bg-white rounded-lg shadow-lg p-6 w-full max-w-sm">
+                                <h3 class="text-lg font-semibold text-gray-700 mb-4">Confirm Deletion</h3>
+                                <p class="text-gray-600 mb-6">Are you sure you want to delete the orientation date for <strong>{{ date.date }}</strong>?</p>
+                                <div class="flex justify-end space-x-4">
+                                    <button onclick="closeDialog('{{ date.pk }}')" class="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded-lg">Cancel</button>
+                                    <form method="post" action="{% url 'delete_orientation_date' date.pk %}">
+                                        {% csrf_token %}
+                                        <button type="submit" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg">Delete</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    {% empty %}
+                        <tr>
+                            <td colspan="3" class="py-3 px-6 text-center text-gray-500">No orientation dates found.</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

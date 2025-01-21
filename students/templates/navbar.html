@@ -32,10 +32,14 @@
             <a href="{% url 'create_college' %}" class="text-blue-900 hover:text-blue-700 flex items-center space-x-2 transition duration-300 border-r pr-4">
                 <i class="fas fa-chart-line"></i> <span>Add College</span>
             </a> 
-            <a href="{% url 'calendar_student_logs' %}" class="text-blue-900 hover:text-blue-700 flex items-center space-x-2 transition duration-300">
+            <a href="{% url 'calendar_student_logs' %}" class="text-blue-900 hover:text-blue-700 flex items-center space-x-2 transition duration-300 border-r pr-4">
                 <i class="fas fa-calendar"></i> <span>Calendar</span>
             </a>
+            <a href="{% url 'orientation_date_list' %}" class="text-blue-900 hover:text-blue-700 flex items-center space-x-2 transition duration-300">
+                <i class="fas fa-calendar-check"></i> <span>Orientation Dates</span>
+            </a>
         </div>
+        
 
         <div class="hidden lg:flex items-center space-x-4 relative">
             <span class="text-blue-900">{{ user.username }}</span>
@@ -76,7 +80,9 @@
         <a href="{% url 'calendar_student_logs' %}" class="block py-2 text-blue-900 hover:bg-gray-200 transition duration-300 flex items-center space-x-2">
             <i class="fas fa-calendar"></i> <span>Calendar</span>
         </a>
-
+        <a href="{% url 'orientation_date_list' %}" class="block py-2 text-blue-900 hover:bg-gray-200 transition duration-300 flex items-center space-x-2">
+            <i class="fas fa-calendar-check"></i> <span>Orientation Dates</span>
+        </a>
         <!-- Add Profile and Logout to Mobile Menu -->
         <div class="flex items-center space-x-4 mt-4">
             <span class="text-blue-900">{{ user.username }}</span>

@@ -289,6 +289,10 @@
                 {{ form.college }}
             </div>
             <div class="form-group">
+                <label for="id_lchaim_orientation_date">Lchaim Orientation Date</label>
+                {{ form.lchaim_orientation_date }}
+            </div>
+            <div class="form-group">
                 <label for="id_start_date">Start Date</label>
                 <input type="date" id="id_start_date" name="start_date" class="form-control">
             </div>
@@ -305,10 +309,7 @@
                 {{ form.hours_requested }}
             </div>
 
-            <div class="form-group">
-                <label for="id_lchaim_orientation_date">Lchaim Orientation Date</label>
-                {{ form.lchaim_orientation_date }}
-            </div>
+          
             <div class="form-group">
                 <label for="id_shift_timing">Shift Timing</label>
                 <select id="id_shift_timing" name="shift_timing" class="form-control" >
@@ -330,18 +331,7 @@
                 </div>
             </div>
 
-            <div class="form-group">
-                <label for="id_lchaim_training_completed">Lchaim Training Completed</label>
-                <div class="custom-switch">
-                    {{ form.lchaim_training_completed }}
-                </div>
-            </div>
-            <div class="form-group">
-                <label for="id_skills_book_completed">Skills Book Completed</label>
-                <div class="custom-switch">
-                    {{ form.skills_book_completed }}
-                </div>
-            </div>
+     
             <div class="form-group">
                 <label for="id_police_check">Police Check</label>
                 <div class="custom-switch">
@@ -354,6 +344,47 @@
                     {{ form.med_docs }}
                 </div>
             </div>
+            <div class="form-group mt-4">
+                <div class="bg-white border border-gray-300 rounded-lg p-3  mx-auto">
+                    <h4 class="text-base font-semibold text-gray-800 mb-2 text-left">Required Documents for Placement</h4>
+                    <ul class="space-y-1 text-sm text-gray-700">
+                        <li class="flex items-center space-x-2">
+                            <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                            <span>COVID Vaccination</span>
+                        </li>
+                        <li class="flex items-center space-x-2">
+                            <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                            <span>Medical Certificate</span>
+                        </li>
+                        <li class="flex items-center space-x-2">
+                            <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                            <span>Police Check / Vulnerable Sector Check</span>
+                        </li>
+                        <li class="flex items-center space-x-2">
+                            <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                            <span>CPR or First Aid</span>
+                        </li>
+                        <li class="flex items-center space-x-2">
+                            <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                            <span>Mask Fit</span>
+                        </li>
+                    </ul>
+                    <p class="text-xs text-gray-600 mt-2">Please ensure that all documents are prepared before uploading.</p>
+                </div>
+            </div>
+            
+            
+            
             <div class="form-group">
                 <label for="id_documents">Documents (Multiple Files)</label>
                 <input type="file" id="id_documents" name="documents" multiple class="form-control" />

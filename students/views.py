@@ -26,8 +26,8 @@ from django.core.files.storage import default_storage
 from io import BytesIO
 from openpyxl import Workbook
 
-from .forms import CollegeForm, StudentFileForm, StudentProfileForm, VolunteerLogForm
-from .models import College, Shift, StudentFile, StudentProfile, VolunteerLog
+from .forms import CollegeForm, OrientationDateForm, StudentFileForm, StudentProfileForm, VolunteerLogForm
+from .models import College, OrientationDate, Shift, StudentFile, StudentProfile, VolunteerLog
 
 
 def admin_required(function):
@@ -583,11 +583,16 @@ def update_attendance(request, student_id, date):
         return JsonResponse({'success': True})
     return JsonResponse({'success': False})
 
+from django.shortcuts import render, get_object_or_404, redirect
+from .models import StudentProfile, VolunteerLog
+from datetime import timedelta
+import re
 
-@admin_required
 def student_details(request, student_id):
     student = get_object_or_404(StudentProfile, id=student_id)
-    volunteer_logs = VolunteerLog.objects.filter(student=student)
+    
+    # Order logs by date in ascending order (oldest first)
+    volunteer_logs = VolunteerLog.objects.filter(student=student).order_by('date')  # Ascending order
     student_files = StudentFile.objects.filter(student=student)
     
     filename_pattern = re.compile(r'([^/]+)$')
@@ -604,12 +609,57 @@ def student_details(request, student_id):
         if log.status == 'Present':
             total_hours += log.hours_worked if log.hours_worked else 7
     
+    if request.method == 'POST':
+        log_id = request.POST.get('log_id')
+        action = request.POST.get('action')
+        
+        # Handle toggle action to mark log as absent
+        if action == 'toggle':
+            log = get_object_or_404(VolunteerLog, id=log_id, student=student)
+            previous_log_data = {
+                'start_time': log.start_time,
+                'end_time': log.end_time,
+                'hours_worked': log.hours_worked,
+                'notes': log.notes
+            }
+            
+            log.status = 'Absent'
+            log.hours_worked = 0
+            log.start_time = None
+            log.end_time = None
+            log.notes = "Marked as Absent"
+            log.save()
+            
+            last_log = VolunteerLog.objects.filter(student=student).order_by('-date').first()
+            if last_log:
+                new_date = last_log.date + timedelta(days=1)  # Set the date as the last date + 1
+                
+                # Create a new log entry with the new date and copy data from the previous log
+                new_log = VolunteerLog.objects.create(
+                    student=student,
+                    date=new_date,
+                    status='Present',
+                    start_time=previous_log_data['start_time'],
+                    end_time=previous_log_data['end_time'],
+                    hours_worked=previous_log_data['hours_worked'],
+                    notes=previous_log_data['notes']
+                )
+
+            return redirect('student_details', student_id=student.id)
+
+        # Handle delete action
+        if action == 'delete':
+            log = get_object_or_404(VolunteerLog, id=log_id, student=student)
+            log.delete()
+            return redirect('student_details', student_id=student.id)
+    
     return render(request, 'student_details.html', {
         'student': student,
         'volunteer_logs': volunteer_logs,
         'total_hours': total_hours,
         'student_files': student_files
     })
+
 
 from django.utils.timezone import now
 @admin_required
@@ -887,5 +937,49 @@ class MarkGraduateAPIView(APIView):
             "status": student.status
         }, status=status.HTTP_200_OK)
     
+def orientation_date_list(request):
+    dates = OrientationDate.objects.all()
+    return render(request, 'orientation_date_list.html', {'dates': dates})
 
+# Add a new orientation date
+def add_orientation_date(request):
+    if request.method == 'POST':
+        form = OrientationDateForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('orientation_date_list')
+    else:
+        form = OrientationDateForm()
+    return render(request, 'add_orientation_date.html', {'form': form})
+
+# Edit an existing orientation date
+def edit_orientation_date(request, pk):
+    orientation_date = get_object_or_404(OrientationDate, pk=pk)
+    if request.method == 'POST':
+        form = OrientationDateForm(request.POST, instance=orientation_date)
+        if form.is_valid():
+            form.save()
+            return redirect('orientation_date_list')
+    else:
+        form = OrientationDateForm(instance=orientation_date)
+    return render(request, 'edit_orientation_date.html', {'form': form})
+
+# Delete an orientation date
+def delete_orientation_date(request, pk):
+    orientation_date = get_object_or_404(OrientationDate, pk=pk)
+    if request.method == 'POST':
+        orientation_date.delete()
+        return redirect('orientation_date_list')
+    return HttpResponse(status=405)  # Method not allowed
+
+def delete_log(request, log_id):
+    log = get_object_or_404(VolunteerLog, id=log_id)
     
+    # Delete the log
+    log.delete()
+    
+    # Optionally, add a success message
+    messages.success(request, "Volunteer log has been deleted successfully.")
+    
+    # Redirect back to the student's details page or wherever necessary
+    return redirect('student_details', student_id=log.student.id)
