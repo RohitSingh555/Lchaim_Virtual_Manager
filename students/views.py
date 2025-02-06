@@ -158,11 +158,21 @@ def create_student_profile(request):
     if request.method == "POST":
         profile_form = StudentProfileForm(request.POST, request.FILES)
         if profile_form.is_valid():
-            student_profile = profile_form.save()
+            student_profile = profile_form.save(commit=False)
+            student_profile.weekdays_selected = request.POST.getlist('weekdays_selected')  # Capture selected weekdays
+            student_profile.save()
+
+            print(student_profile.lchaim_orientation_date)
+            print(student_profile.start_date)
+            if student_profile.lchaim_orientation_date and student_profile.start_date:
+                if student_profile.start_date < student_profile.lchaim_orientation_date.date:
+                    profile_form.add_error('start_date', "Start date cannot be earlier than the Lchaim Orientation date.")
+                    return render(request, 'create_profile.html', {'form': profile_form})
             print(request.FILES)
             files = request.FILES.getlist('documents')  
             for file in files:
                 StudentFile.objects.create(student=student_profile, file=file)
+
             shift_type = request.POST.get('shift_timing')
             college_request_id = request.POST.get('college')
             college = College.objects.get(id=college_request_id)
@@ -189,8 +199,9 @@ def create_student_profile(request):
                 working_days = 0
 
                 while working_days < days_required:
-                    if (student_profile.shift_requested == 'Weekdays' and current_date.weekday() < 5) or \
-                       (student_profile.shift_requested == 'Weekends' and (current_date.weekday() >= 5 or (current_date.weekday() == 4 and shift_type == 'Night'))):
+                    weekday_name = current_date.strftime('%A')  # Get weekday name
+
+                    if student_profile.shift_requested == 'Weekdays' and (not student_profile.weekdays_selected or weekday_name in student_profile.weekdays_selected):
                         if validate_shift_capacity(current_date, assigned_shift):
                             working_days += 1
                         else:
@@ -207,10 +218,11 @@ def create_student_profile(request):
 
                 current_date = start_date
                 while current_date <= end_date:
-                    if (student_profile.shift_requested == 'Weekdays' and current_date.weekday() < 5) or \
-                       (student_profile.shift_requested == 'Weekends' and (current_date.weekday() >= 5 or (current_date.weekday() == 4 and shift_type == 'Night'))):
+                    weekday_name = current_date.strftime('%A')
+
+                    if student_profile.shift_requested == 'Weekdays' and (not student_profile.weekdays_selected or weekday_name in student_profile.weekdays_selected):
                         if validate_shift_capacity(current_date, assigned_shift):
-                            if shift_type == 'Night' and current_date.weekday() in [4, 5, 6]: 
+                            if shift_type == 'Night' and current_date.weekday() in [4, 5, 6]:  
                                 next_date = current_date + timedelta(days=1)
                                 VolunteerLog.objects.create(
                                     student=student_profile,
@@ -258,6 +270,7 @@ def create_student_profile(request):
         profile_form = StudentProfileForm()
 
     return render(request, 'create_profile.html', {'form': profile_form})
+
 
 @csrf_exempt  
 def send_email(request):
@@ -937,6 +950,7 @@ class MarkGraduateAPIView(APIView):
             "status": student.status
         }, status=status.HTTP_200_OK)
     
+@admin_required
 def orientation_date_list(request):
     dates = OrientationDate.objects.all()
     return render(request, 'orientation_date_list.html', {'dates': dates})

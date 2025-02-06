@@ -18,7 +18,7 @@ class OrientationDate(models.Model):
     updated_at = models.DateTimeField(auto_now=True)  
 
     def __str__(self):
-        return f"{self.date} - {self.description or 'No Description'}"
+        return self.date.strftime('%Y-%m-%d')
 
 class Shift(models.Model):
     SHIFT_TYPES = [
@@ -43,7 +43,15 @@ class StudentProfile(models.Model):
         ('Weekdays', 'Weekdays'),
         ('Weekends', 'Weekends'),
     ]
-
+    
+    WEEKDAYS_CHOICES = [
+        ('Monday', 'Monday'),
+        ('Tuesday', 'Tuesday'),
+        ('Wednesday', 'Wednesday'),
+        ('Thursday', 'Thursday'),
+        ('Friday', 'Friday'),
+    ]
+    
     first_name = models.CharField(max_length=100)
     last_name = models.CharField(max_length=100)
     phone = models.CharField(max_length=15, default='')
@@ -56,6 +64,7 @@ class StudentProfile(models.Model):
     hours_requested = models.IntegerField(null=True)
     hours_completed = models.PositiveIntegerField(default=0)
     shift_requested = models.CharField(max_length=10, choices=SHIFT_CHOICES)
+    weekdays_selected = models.JSONField(default=list, blank=True)  # Stores selected weekdays as a list
     assigned_shift = models.ForeignKey(Shift, on_delete=models.SET_NULL, null=True, blank=True, related_name="students")
     start_date = models.DateField(null=True)
     end_date = models.DateField(null=True)

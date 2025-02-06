@@ -284,10 +284,10 @@
                 <label for="id_phone">Phone</label>
                 {{ form.phone }}
             </div>
-            <div class="form-group">
+      <div class="form-group">
                 <label for="id_college">College</label>
                 {{ form.college }}
-            </div>
+            </div>      
             <div class="form-group">
                 <label for="id_lchaim_orientation_date">Lchaim Orientation Date</label>
                 {{ form.lchaim_orientation_date }}
@@ -309,7 +309,11 @@
                 {{ form.hours_requested }}
             </div>
 
-          
+            <div class="form-group">
+                <label>Select Preferred Weekdays:</label>
+                {{ form.weekdays_selected }}
+            </div>
+            
             <div class="form-group">
                 <label for="id_shift_timing">Shift Timing</label>
                 <select id="id_shift_timing" name="shift_timing" class="form-control" >
@@ -396,6 +400,8 @@
     </div>
 
     <script>
+ 
+   
         document.addEventListener("DOMContentLoaded", function () {
             const toggleButton = document.getElementById("toggleDropdown");
             const shiftAvailability = document.getElementById("shift-availability");

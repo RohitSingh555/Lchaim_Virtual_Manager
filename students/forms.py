@@ -15,12 +15,26 @@ class StudentProfileForm(forms.ModelForm):
         empty_label="Select Orientation Date",
         label="Orientation Date"
     )
+    weekdays_selected = forms.MultipleChoiceField(
+        choices=[
+            ('Monday', 'Monday'), ('Tuesday', 'Tuesday'), ('Wednesday', 'Wednesday'),
+            ('Thursday', 'Thursday'), ('Friday', 'Friday')
+        ],
+        required=False,
+        widget=forms.CheckboxSelectMultiple
+    )
+    college = forms.ModelChoiceField(
+        queryset=College.objects.all(),
+        empty_label="Select College",  # Default empty label
+        required=True,  # Allow null selection
+        label="College"
+    )
     class Meta:
         model = StudentProfile
         fields = [
             'first_name', 'last_name', 'phone', 'email', 'lchaim_training_completed',
             'college','start_date',
-            'hours_requested', 'shift_requested', 'shift_timing', 'lchaim_orientation_date', 
+            'hours_requested', 'shift_requested', 'shift_timing', 'lchaim_orientation_date', 'weekdays_selected',
             'skills_book_completed', 'police_check', 'med_docs', 'comments'
         ]
         widgets = {
@@ -38,7 +52,7 @@ class StudentProfileForm(forms.ModelForm):
         else:
             self.fields['start_date'].required = False
             self.fields['shift_timing'].required = False
-
+    
 
 
 
