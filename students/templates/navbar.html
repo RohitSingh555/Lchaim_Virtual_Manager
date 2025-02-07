@@ -117,6 +117,15 @@
             profileDropdown.classList.add('hidden');
         }
     });
+
+    document.addEventListener("DOMContentLoaded", function () {
+    document.querySelectorAll('input[type="date"]').forEach(function (dateInput) {
+        dateInput.addEventListener("click", function () {
+            this.showPicker(); // Opens the date picker UI
+        });
+    });
+});
+
 </script>
 
 </body>

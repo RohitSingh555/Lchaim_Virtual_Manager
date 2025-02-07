@@ -1,3 +1,4 @@
+import json
 from django import forms
 from .models import College, OrientationDate, StudentFile, StudentProfile, VolunteerLog
 
@@ -7,6 +8,16 @@ SHIFT_CHOICES = [
     ('Weekdays', 'Weekdays'),
     ('Weekends', 'Weekends'),
 ]
+WEEKDAYS_CHOICES = {
+    "Monday": 0,
+    "Tuesday": 1,
+    "Wednesday": 2,
+    "Thursday": 3,
+    "Friday": 4,
+    "Saturday": 5,
+    "Sunday": 6,
+}
+
 
 class StudentProfileForm(forms.ModelForm):
     shift_timing = forms.ChoiceField(choices=[('Morning', 'Morning'), ('Afternoon', 'Afternoon'), ('Night', 'Night'),('WeekendNight','WeekendNight'),('WeekendDay',"WeekendDay")], label="Shift Timing")
@@ -15,14 +26,32 @@ class StudentProfileForm(forms.ModelForm):
         empty_label="Select Orientation Date",
         label="Orientation Date"
     )
-    weekdays_selected = forms.MultipleChoiceField(
-        choices=[
-            ('Monday', 'Monday'), ('Tuesday', 'Tuesday'), ('Wednesday', 'Wednesday'),
-            ('Thursday', 'Thursday'), ('Friday', 'Friday')
-        ],
+    weekdays_selected = forms.CharField(
         required=False,
-        widget=forms.CheckboxSelectMultiple
+        widget=forms.HiddenInput(),  # Hide it since JS will populate it
+        label="Preferred Weekdays"
     )
+
+    def clean_weekdays_selected(self):
+        """Ensure the value is a valid JSON string representing a key-value dictionary"""
+        data = self.cleaned_data.get("weekdays_selected", "")
+
+        if not data:
+            return {}
+
+        try:
+            selected_weekdays = json.loads(data)  # Convert JSON string to dict
+            # Ensure all keys and values are valid
+            cleaned_weekdays = {
+                key: WEEKDAYS_CHOICES[key]
+                for key in selected_weekdays.keys()
+                if key in WEEKDAYS_CHOICES and selected_weekdays[key] == WEEKDAYS_CHOICES[key]
+            }
+            return cleaned_weekdays
+        except (json.JSONDecodeError, KeyError, ValueError):
+            raise forms.ValidationError("Invalid weekdays format. Ensure it is a valid JSON dictionary.")
+
+
     college = forms.ModelChoiceField(
         queryset=College.objects.all(),
         empty_label="Select College",  # Default empty label

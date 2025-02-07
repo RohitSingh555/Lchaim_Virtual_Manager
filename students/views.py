@@ -77,7 +77,7 @@ def logout_view(request):
     logout(request)
     return redirect('login')
 
-def get_shift_availability(start_date, shift_type, requested_hours, shift_requested):
+def get_shift_availability(user, start_date, shift_type, requested_hours, shift_requested):
     try:
         assigned_shift = Shift.objects.get(type__icontains=shift_type)
     except Shift.DoesNotExist:
@@ -102,7 +102,7 @@ def get_shift_availability(start_date, shift_type, requested_hours, shift_reques
             current_date += timedelta(days=1)
             continue
 
-        if validate_shift_capacity(current_date, assigned_shift):
+        if validate_shift_capacity(user, current_date, assigned_shift):
             working_days += 1
         else:
             return {
@@ -136,7 +136,7 @@ def shift_availability_api(request):
             requested_hours = int(data['requested_hours'])
             shift_requested = data['shift_requested']
             
-            availability = get_shift_availability(start_date, shift_type, requested_hours, shift_requested)
+            availability = get_shift_availability(request.user, start_date, shift_type, requested_hours, shift_requested)
             print(availability)
             return JsonResponse(availability)
         
@@ -147,32 +147,27 @@ def shift_availability_api(request):
 
     return JsonResponse({"error": "Invalid request method."}, status=405)
 
-def validate_shift_capacity(date, assigned_shift):
+def validate_shift_capacity(user, date, assigned_shift):
     """
     Validates if the shift on the given date exceeds its capacity.
+    Superusers can always be assigned shifts regardless of capacity.
     """
+    if user.is_superuser:
+        return True
+
     shift_students_count = VolunteerLog.objects.filter(date=date, shift=assigned_shift).count()
     return shift_students_count < assigned_shift.max_students
+
 
 def create_student_profile(request):
     if request.method == "POST":
         profile_form = StudentProfileForm(request.POST, request.FILES)
         if profile_form.is_valid():
-            student_profile = profile_form.save(commit=False)
-            student_profile.weekdays_selected = request.POST.getlist('weekdays_selected')  # Capture selected weekdays
-            student_profile.save()
-
-            print(student_profile.lchaim_orientation_date)
-            print(student_profile.start_date)
-            if student_profile.lchaim_orientation_date and student_profile.start_date:
-                if student_profile.start_date < student_profile.lchaim_orientation_date.date:
-                    profile_form.add_error('start_date', "Start date cannot be earlier than the Lchaim Orientation date.")
-                    return render(request, 'create_profile.html', {'form': profile_form})
+            student_profile = profile_form.save()
             print(request.FILES)
             files = request.FILES.getlist('documents')  
             for file in files:
                 StudentFile.objects.create(student=student_profile, file=file)
-
             shift_type = request.POST.get('shift_timing')
             college_request_id = request.POST.get('college')
             college = College.objects.get(id=college_request_id)
@@ -199,10 +194,9 @@ def create_student_profile(request):
                 working_days = 0
 
                 while working_days < days_required:
-                    weekday_name = current_date.strftime('%A')  # Get weekday name
-
-                    if student_profile.shift_requested == 'Weekdays' and (not student_profile.weekdays_selected or weekday_name in student_profile.weekdays_selected):
-                        if validate_shift_capacity(current_date, assigned_shift):
+                    if (student_profile.shift_requested == 'Weekdays' and current_date.weekday() < 5) or \
+                       (student_profile.shift_requested == 'Weekends' and (current_date.weekday() >= 5 or (current_date.weekday() == 4 and shift_type == 'Night'))):
+                        if validate_shift_capacity(request.user, current_date, assigned_shift):
                             working_days += 1
                         else:
                             messages.error(
@@ -217,47 +211,54 @@ def create_student_profile(request):
                 student_profile.save()
 
                 current_date = start_date
+                weekdays_selected_str = request.POST.get('weekdays_selected')  # Get as string
+                try:
+                    weekdays_selected_dict = json.loads(weekdays_selected_str)  # Convert JSON string to dictionary
+                    weekdays_selected = list(weekdays_selected_dict.values())  # Extract weekday numbers
+                except json.JSONDecodeError:
+                    messages.error(request, "Invalid weekdays_selected format.")
+                    return render(request, 'create_profile.html', {'form': profile_form})
                 while current_date <= end_date:
-                    weekday_name = current_date.strftime('%A')
-
-                    if student_profile.shift_requested == 'Weekdays' and (not student_profile.weekdays_selected or weekday_name in student_profile.weekdays_selected):
-                        if validate_shift_capacity(current_date, assigned_shift):
-                            if shift_type == 'Night' and current_date.weekday() in [4, 5, 6]:  
-                                next_date = current_date + timedelta(days=1)
-                                VolunteerLog.objects.create(
-                                    student=student_profile,
-                                    date=current_date,
-                                    shift=assigned_shift,
-                                    start_time=time(19, 0),
-                                    end_time=time(23, 59),
-                                    hours_worked=5,
-                                    status='Present'
-                                )
-                                VolunteerLog.objects.create(
-                                    student=student_profile,
-                                    date=next_date,
-                                    shift=assigned_shift,
-                                    start_time=time(0, 0),
-                                    end_time=time(7, 0),
-                                    hours_worked=7,
-                                    status='Present'
-                                )
+                    if (student_profile.shift_requested == 'Weekdays' and current_date.weekday() < 5) or \
+                       (student_profile.shift_requested == 'Weekends' and (current_date.weekday() >= 5 or (current_date.weekday() == 4 and shift_type == 'Night'))):
+                        if current_date.weekday() in weekdays_selected:
+                            if validate_shift_capacity(request.user, current_date, assigned_shift):
+                                if shift_type == 'Night' and current_date.weekday() in [4, 5, 6]: 
+                                    next_date = current_date + timedelta(days=1)
+                                    VolunteerLog.objects.create(
+                                        student=student_profile,
+                                        date=current_date,
+                                        shift=assigned_shift,
+                                        start_time=time(19, 0),
+                                        end_time=time(23, 59),
+                                        hours_worked=5,
+                                        status='Present'
+                                    )
+                                    VolunteerLog.objects.create(
+                                        student=student_profile,
+                                        date=next_date,
+                                        shift=assigned_shift,
+                                        start_time=time(0, 0),
+                                        end_time=time(7, 0),
+                                        hours_worked=7,
+                                        status='Present'
+                                    )
+                                else:
+                                    VolunteerLog.objects.create(
+                                        student=student_profile,
+                                        date=current_date,
+                                        shift=assigned_shift,
+                                        start_time=start_time,
+                                        end_time=end_time,
+                                        hours_worked=shift_total_time,
+                                        status='Present'
+                                    )
                             else:
-                                VolunteerLog.objects.create(
-                                    student=student_profile,
-                                    date=current_date,
-                                    shift=assigned_shift,
-                                    start_time=start_time,
-                                    end_time=end_time,
-                                    hours_worked=shift_total_time,
-                                    status='Present'
+                                messages.error(
+                                    request,
+                                    f"Capacity exceeded on {current_date.strftime('%Y-%m-%d')} for {shift_type} shift."
                                 )
-                        else:
-                            messages.error(
-                                request,
-                                f"Capacity exceeded on {current_date.strftime('%Y-%m-%d')} for {shift_type} shift."
-                            )
-                            return render(request, 'create_profile.html', {'form': profile_form})
+                                return render(request, 'create_profile.html', {'form': profile_form})
                     current_date += timedelta(days=1)
 
             threading.Thread(target=send_student_creation_email, args=(student_profile,)).start()
@@ -270,7 +271,6 @@ def create_student_profile(request):
         profile_form = StudentProfileForm()
 
     return render(request, 'create_profile.html', {'form': profile_form})
-
 
 @csrf_exempt  
 def send_email(request):
@@ -950,7 +950,6 @@ class MarkGraduateAPIView(APIView):
             "status": student.status
         }, status=status.HTTP_200_OK)
     
-@admin_required
 def orientation_date_list(request):
     dates = OrientationDate.objects.all()
     return render(request, 'orientation_date_list.html', {'dates': dates})

@@ -26,6 +26,9 @@
             min-height: 100vh;
             padding-top: 70px;
         }
+        .no-default-width{
+            width: 10% !important;
+        }
 
         .form-container {
             background: #ffffff;
@@ -309,9 +312,77 @@
                 {{ form.hours_requested }}
             </div>
 
-            <div class="form-group">
-                <label>Select Preferred Weekdays:</label>
-                {{ form.weekdays_selected }}
+            <div class="form-group relative">
+                <label for="weekdaysDropdown" class="block font-medium text-gray-700 mb-2 flex items-center">
+                    Select Preferred Weekdays:
+                        <div id="tooltip" class=" mt-2 p-2 text-xs text-white bg-gray-800 rounded-md shadow-lg ">
+                            Note: Leave the following field empty if you don't want to select custom weekdays and would like to work for all weekdays from Monday to Friday.
+                        </div>
+                </label>
+                    
+                    
+            
+                <!-- Custom Multi-Select Dropdown -->
+                <div class="relative">
+                    <button id="weekdaysDropdownButton" type="button" class="w-full px-4 py-2 text-left bg-white border border-gray-300 rounded-lg shadow-sm flex items-center justify-between focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        <span>Select Weekdays</span>
+                        <!-- Dropdown Icon -->
+                        <svg id="dropdownIcon" class="w-5 h-5 text-gray-600 transition-transform transform rotate-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </button>
+            
+                    <!-- Dropdown Menu -->
+                    <div id="weekdaysDropdownMenu" class="absolute left-0 mt-1 w-full bg-white border border-gray-300 rounded-lg shadow-lg hidden  max-h-48">
+                        <ul class="max-h-48 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-200">
+                            <li>
+                                <label class="flex items-center px-4 py-2 cursor-pointer hover:bg-gray-100 d-flex">
+                                    <input type="checkbox" value="0" data-label="Monday" class="weekday-option w-4 h-4 no-default-width">
+                                    <span class="ml-3 text-gray-700 no-default-width">Monday</span>
+                                </label>
+                            </li>
+                            <li>
+                                <label class="flex items-center px-4 py-2 cursor-pointer hover:bg-gray-100 d-flex">
+                                    <input type="checkbox" value="1" data-label="Tuesday" class="weekday-option w-4 h-4 no-default-width">
+                                    <span class="ml-3 text-gray-700 no-default-width">Tuesday</span>
+                                </label>
+                            </li>
+                            <li>
+                                <label class="flex items-center px-4 py-2 cursor-pointer hover:bg-gray-100 d-flex">
+                                    <input type="checkbox" value="2" data-label="Wednesday" class="weekday-option w-4 h-4 no-default-width">
+                                    <span class="ml-3 text-gray-700 no-default-width">Wednesday</span>
+                                </label>
+                            </li>
+                            <li>
+                                <label class="flex items-center px-4 py-2 cursor-pointer hover:bg-gray-100 d-flex">
+                                    <input type="checkbox" value="3" data-label="Thursday" class="weekday-option w-4 h-4 no-default-width">
+                                    <span class="ml-3 text-gray-700 no-default-width">Thursday</span>
+                                </label>
+                            </li>
+                            <li>
+                                <label class="flex items-center px-4 py-2 cursor-pointer hover:bg-gray-100 d-flex">
+                                    <input type="checkbox" value="4" data-label="Friday" class="weekday-option w-4 h-4 no-default-width">
+                                    <span class="ml-3 text-gray-700 no-default-width">Friday</span>
+                                </label>
+                            </li>
+                            <li>
+                                <label class="flex items-center px-4 py-2 cursor-pointer hover:bg-gray-100">
+                                    <input type="checkbox" value="5" data-label="Saturday" class="weekday-option w-4 h-4">
+                                    <span class="ml-3 text-gray-700 no-default-width">Saturday</span>
+                                </label>
+                            </li>
+                            <li>
+                                <label class="flex items-center px-4 py-2 cursor-pointer hover:bg-gray-100">
+                                    <input type="checkbox" value="6" data-label="Sunday" class="weekday-option w-4 h-4">
+                                    <span class="ml-3 text-gray-700">Sunday</span>
+                                </label>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            
+                <!-- Hidden Input to Store Selected Data -->
+                <input type="hidden" id="weekdaysSelected" name="weekdays_selected">
             </div>
             
             <div class="form-group">
@@ -416,6 +487,7 @@
                     dropdownIcon.innerHTML = "&#9650;";
                 }
             });
+            
         });
     </script>
     <script>
@@ -594,6 +666,42 @@
             hoursRequestedInput.addEventListener('input', fetchShiftAvailabilityOnChange);
         });
     </script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const dropdownButton = document.getElementById("weekdaysDropdownButton");
+            const dropdownMenu = document.getElementById("weekdaysDropdownMenu");
+            const checkboxes = document.querySelectorAll(".weekday-option");
+            const hiddenInput = document.getElementById("weekdaysSelected");
+        
+            // Toggle dropdown
+            dropdownButton.onclick = function () {
+                dropdownMenu.classList.toggle("hidden");
+            };
+        
+            // Close dropdown when clicking outside
+            document.addEventListener("click", function (event) {
+                if (!dropdownButton.contains(event.target) && !dropdownMenu.contains(event.target)) {
+                    dropdownMenu.classList.add("hidden");
+                }
+            });
+        
+            // Update hidden input when selection changes
+            checkboxes.forEach(checkbox => {
+                checkbox.addEventListener("change", function () {
+                    let selectedData = {};
+                    checkboxes.forEach(cb => {
+                        if (cb.checked) {
+                            selectedData[cb.dataset.label] = parseInt(cb.value);
+                        }
+                    });
+        
+                    hiddenInput.value = JSON.stringify(selectedData);
+                    dropdownButton.innerText = Object.keys(selectedData).join(", ") || "Select Weekdays";
+                });
+            });
+        });
+        </script>
 </body>
 
 </html>

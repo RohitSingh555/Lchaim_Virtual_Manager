@@ -64,7 +64,7 @@ class StudentProfile(models.Model):
     hours_requested = models.IntegerField(null=True)
     hours_completed = models.PositiveIntegerField(default=0)
     shift_requested = models.CharField(max_length=10, choices=SHIFT_CHOICES)
-    weekdays_selected = models.JSONField(default=list, blank=True)  # Stores selected weekdays as a list
+    weekdays_selected = models.TextField(blank=True)
     assigned_shift = models.ForeignKey(Shift, on_delete=models.SET_NULL, null=True, blank=True, related_name="students")
     start_date = models.DateField(null=True)
     end_date = models.DateField(null=True)
