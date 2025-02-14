@@ -277,6 +277,12 @@
                 <label for="id_college">College</label>
                 {{ form.college }}
             </div>
+            
+            <div class="form-group">
+                <label for="id_lchaim_orientation_date">Lchaim Orientation Date</label>
+                {{ form.lchaim_orientation_date }}
+            </div>
+
             <div class="form-group">
                 <label for="id_shift_requested">Shift Requested</label>
                 {{ form.shift_requested }}
@@ -297,14 +303,6 @@
                 </div>
                 
                 {{ form.hours_requested }}
-            </div>
-            
-            
-            
-
-            <div class="form-group">
-                <label for="id_lchaim_orientation_date">Lchaim Orientation Date</label>
-                {{ form.lchaim_orientation_date }}
             </div>
             
 
@@ -372,8 +370,6 @@
                 Send Email
             </button>
         </div>
-        
-        
         
     </div>
     <div id="message-container" style="display: none; position: fixed; top: 12rem; right: 5rem; padding: 10px; border: 1px solid #ccc; border-radius: 5px; z-index: 9999;"></div>

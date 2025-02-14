@@ -174,7 +174,7 @@ def create_student_profile(request):
             student_profile.school = college.name
 
             try:
-                assigned_shift = Shift.objects.get(type__icontains=shift_type)
+                assigned_shift = Shift.objects.filter(type__icontains=shift_type).first()
                 student_profile.assigned_shift = assigned_shift
                 student_profile.save()
             except Shift.DoesNotExist:
@@ -229,8 +229,8 @@ def create_student_profile(request):
                                         student=student_profile,
                                         date=current_date,
                                         shift=assigned_shift,
-                                        start_time=time(19, 0),
-                                        end_time=time(23, 59),
+                                        start_time=start_time,
+                                        end_time=end_time,
                                         hours_worked=5,
                                         status='Present'
                                     )
@@ -238,8 +238,8 @@ def create_student_profile(request):
                                         student=student_profile,
                                         date=next_date,
                                         shift=assigned_shift,
-                                        start_time=time(0, 0),
-                                        end_time=time(7, 0),
+                                        start_time=start_time,
+                                        end_time=end_time,
                                         hours_worked=7,
                                         status='Present'
                                     )
