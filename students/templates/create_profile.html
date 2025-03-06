@@ -299,10 +299,10 @@
                 <label for="id_start_date">Start Date</label>
                 <input type="date" id="id_start_date" name="start_date" class="form-control">
             </div>
-            <div class="form-group">
+            <div class="form-group hidden">
                 <label for="id_shift_requested">Shift Requested</label>
                 <select id="id_shift_requested" name="shift_requested" class="form-control">
-                    <option value="Weekdays">Weekdays</option>
+                    <option value="Weekdays" selected>Weekdays</option>
                     <option value="Weekends">Weekends</option>
                 </select>
             </div>
@@ -366,14 +366,14 @@
                                 </label>
                             </li>
                             <li>
-                                <label class="flex items-center px-4 py-2 cursor-pointer hover:bg-gray-100">
-                                    <input type="checkbox" value="5" data-label="Saturday" class="weekday-option w-4 h-4">
+                                <label class="flex items-center px-4 py-2 cursor-pointer hover:bg-gray-100 d-flex">
+                                    <input type="checkbox" value="5" data-label="Saturday" class="weekday-option w-4 h-4 no-default-width">
                                     <span class="ml-3 text-gray-700 no-default-width">Saturday</span>
                                 </label>
                             </li>
                             <li>
-                                <label class="flex items-center px-4 py-2 cursor-pointer hover:bg-gray-100">
-                                    <input type="checkbox" value="6" data-label="Sunday" class="weekday-option w-4 h-4">
+                                <label class="flex items-center px-4 py-2 cursor-pointer hover:bg-gray-100 d-flex">
+                                    <input type="checkbox" value="6" data-label="Sunday" class="weekday-option w-4 h-4 no-default-width">
                                     <span class="ml-3 text-gray-700">Sunday</span>
                                 </label>
                             </li>
@@ -389,9 +389,11 @@
                 <label for="id_shift_timing">Shift Timing</label>
                 <select id="id_shift_timing" name="shift_timing" class="form-control" >
                     <option value="">-- Select Shift --</option>
-                    <option value="Morning">Morning (7 AM - 3 PM)</option>
-                    <option value="Afternoon">Afternoon (3 PM - 11 PM)</option>
-                    <option value="Night">Night (11 PM - 7 AM)</option>
+                    <option value="Morning">7 AM - 3 PM</option>
+                    <option value="Afternoon">3 PM - 11 PM</option>
+                    <option value="Night">11 PM - 7 AM</option>
+                    <option value="WeekendDay">07:00 - 19:00</option>
+                    <option value="WeekendNight">19:00 - 07:00</option>
                 </select>
             </div>
 

@@ -169,6 +169,7 @@ def create_student_profile(request):
             for file in files:
                 StudentFile.objects.create(student=student_profile, file=file)
             shift_type = request.POST.get('shift_timing')
+            print(shift_type)
             college_request_id = request.POST.get('college')
             college = College.objects.get(id=college_request_id)
             student_profile.school = college.name
@@ -181,7 +182,7 @@ def create_student_profile(request):
                 messages.error(request, "The specified shift type does not exist.")
                 return render(request, 'create_profile.html', {'form': profile_form})
 
-            if student_profile.lchaim_orientation_date and student_profile.hours_requested:
+            if student_profile.hours_requested:
                 requested_hours = student_profile.hours_requested
                 start_date = student_profile.start_date
                 start_time = assigned_shift.start_time
@@ -281,13 +282,9 @@ def send_email(request):
             return JsonResponse({'status': 'error', 'message': 'Student email is missing'})
         
         try:
-            # Use get() to retrieve a single student object based on the email
             student = StudentProfile.objects.get(email=student_email)
             
-            # You can print the student directly
-            print(student)  # This will print the StudentProfile object (e.g., StudentProfile object (54))
-
-            # Pass the actual student object to the threading function
+            print(student)  
             threading.Thread(target=send_student_creation_email, args=(student,)).start()
             
             return JsonResponse({'status': 'success'})
@@ -302,7 +299,7 @@ def send_email(request):
     return JsonResponse({'status': 'error', 'message': 'Invalid request method. Only POST is allowed.'})
                          
 def send_student_creation_email(student):
-    print(student)
+    orientation_date = student.lchaim_orientation_date.date.strftime('%Y-%m-%d') if student.lchaim_orientation_date else student.start_date.strftime('%Y-%m-%d')
     subject_q = 'New Student Profile Created'
     message = f"""
     <html>
@@ -342,7 +339,7 @@ def send_student_creation_email(student):
     <body>
         <div class="email-container">
             <p>Dear {student.first_name},</p>
-            <p>Welcome to L'chaim! Before you begin your placement, you must be aware of the most 
+            <p>Welcome to L'chaim! Here's your orientation date: {orientation_date} But, Before you begin your placement, you must be aware of the most 
             important policies at L'chaim. Please read the attached training documents and confirm that you 
             have read and understood them.
             Wishing you the best learning experience and good luck!</p>
