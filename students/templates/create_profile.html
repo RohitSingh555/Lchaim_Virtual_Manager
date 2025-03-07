@@ -297,7 +297,7 @@
             </div>
             <div class="form-group">
                 <label for="id_start_date">Start Date</label>
-                <input type="date" id="id_start_date" name="start_date" class="form-control">
+                <input type="date" id="id_start_date" name="start_date" class="form-control start-date">
             </div>
             <div class="form-group hidden">
                 <label for="id_shift_requested">Shift Requested</label>
@@ -471,11 +471,35 @@
             </div>
         </form>
     </div>
+    <script>
+        document.getElementById("id_lchaim_orientation_date").addEventListener("change", function() {
+            let selectedOption = this.options[this.selectedIndex];  
+            let orientationDate = selectedOption.textContent.trim(); 
+            
+            console.log("Extracted Orientation Date:", orientationDate); 
+        
+            if (orientationDate.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                let startDateInput = document.querySelector(".start-date");  
+                if (startDateInput) {  
+                    startDateInput.setAttribute("min", orientationDate); 
+                    
+                    startDateInput.value = "";
+                    startDateInput.value = orientationDate; 
+        
+                }  
+            } else {  
+                let startDateInput = document.querySelector(".start-date");  
+                if (startDateInput) {  
+                    startDateInput.removeAttribute("min");  
+                    startDateInput.value = ""; // Clear input  
+                }  
+            }  
+        });
+        
+    </script>
 
     <script>
- 
-   
-        document.addEventListener("DOMContentLoaded", function () {
+            document.addEventListener("DOMContentLoaded", function () {
             const toggleButton = document.getElementById("toggleDropdown");
             const shiftAvailability = document.getElementById("shift-availability");
             const dropdownIcon = document.getElementById("dropdownIcon");
@@ -493,6 +517,7 @@
         });
     </script>
     <script>
+
         document.addEventListener('DOMContentLoaded', function () {
             const shiftRequestedDropdown = document.getElementById('id_shift_requested');
             const shiftTimingDropdown = document.getElementById('id_shift_timing');

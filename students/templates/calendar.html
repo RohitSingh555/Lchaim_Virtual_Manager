@@ -314,10 +314,12 @@
     const cleanedData = student_data.replace(/Decimal\(([^)]+)\)/g, (match, p1) => p1);
     const students = JSON.parse(cleanedData);
 
-    let currentDate = new Date();
+    let currentDate = new Date("{{ current_date }}");
 
     function renderWeeklyCalendar(date) {
       const startOfWeek = getStartOfWeek(new Date(date));
+      
+      console.log(new Date(date));
       const endOfWeek = new Date(startOfWeek);
       endOfWeek.setDate(startOfWeek.getDate() + 6);
       calendarTitle.textContent = `${formatDate(startOfWeek)} - ${formatDate(endOfWeek)}`;
@@ -351,20 +353,17 @@
               const studentInfo = document.createElement("div");
               studentInfo.className = "flex items-center text-gray-700";
               
-              // Adding red/green dot
               const statusDot = document.createElement("span");
               statusDot.className = "status-dot " + (log.status === "Present" ? "status-green" : "status-red");
               studentInfo.appendChild(statusDot);
 
-              // Adding student name and hours
               const studentName = document.createElement("span");
               studentName.textContent = `${student.name} (${log.hours_worked} hrs)`;
               studentInfo.appendChild(studentName);
 
-              // Adding student name and hours
               const studentPhoneNumber = document.createElement("div");
               studentPhoneNumber.className = `phone-number text-gray-500`;
-              studentPhoneNumber.textContent = `📞 - ${student.phone}`;
+              studentPhoneNumber.textContent = `\ud83d\udcde - ${student.phone}`;
               
 
               const timeInfo = document.createElement("div");
@@ -375,7 +374,6 @@
               userRow.appendChild(studentPhoneNumber);
               userRow.appendChild(timeInfo);
 
-              // Adding a link to the student's log details page
               const studentLink = document.createElement("a");
               studentLink.href = `/student/${student.id}/logs/`;  // Dynamic link
               studentLink.className = "text-blue-500 hover:text-blue-700 ";
@@ -399,24 +397,27 @@
     }
 
     function formatDate(date) {
-      const options = { weekday: 'short', month: 'short', day: 'numeric' };
-      return new Date(date).toLocaleDateString("en-US", options);
+      const options = { 
+        weekday: 'short', 
+        month: 'short', 
+        day: 'numeric',
+      };
+    
+      return date.toLocaleDateString("en-US", options);
     }
+    
 
     function getStartOfWeek(date) {
-      // Clone the input date to avoid modifying the original reference
       const localDate = new Date(date);
   
-      // Determine the day of the week (0 = Sunday, 1 = Monday, etc.)
       const day = localDate.getDay();
-      const diff = day === 0 ? -6 : 1 - day; // Adjust to start the week on Monday
+      const diff = day === 0 ? -6 : 1 - day; 
   
-      // Calculate the start of the week based on the local timezone
       localDate.setDate(localDate.getDate() + diff);
-      localDate.setHours(0, 0, 0, 0); // Reset time to start of the day in the local timezone
+      localDate.setHours(0, 0, 0, 0); 
   
       return localDate;
-  }
+    }
   
 
     prevWeek.addEventListener("click", () => {
@@ -456,6 +457,8 @@
         closeDateModal();
       }
     }
+
+
   </script>
 
 </body>

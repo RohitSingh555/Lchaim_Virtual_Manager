@@ -8,6 +8,10 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 # Django Imports
+from django.shortcuts import render, get_object_or_404, redirect
+from .models import StudentProfile, VolunteerLog
+from datetime import timedelta
+import re
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
@@ -21,11 +25,10 @@ from django.http import HttpResponse, FileResponse, Http404, JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.utils import timezone
 from django.core.files.storage import default_storage
-
-
+from django.utils.timezone import now
+from django.views.decorators.csrf import csrf_exempt
 from io import BytesIO
 from openpyxl import Workbook
-
 from .forms import CollegeForm, OrientationDateForm, StudentFileForm, StudentProfileForm, VolunteerLogForm
 from .models import College, OrientationDate, Shift, StudentFile, StudentProfile, VolunteerLog
 
@@ -123,8 +126,6 @@ def get_shift_availability(user, start_date, shift_type, requested_hours, shift_
         "end_date": end_date,
     }
 
-from django.views.decorators.csrf import csrf_exempt
-
 @csrf_exempt 
 def shift_availability_api(request):
     if request.method == "POST":
@@ -137,7 +138,6 @@ def shift_availability_api(request):
             shift_requested = data['shift_requested']
             
             availability = get_shift_availability(request.user, start_date, shift_type, requested_hours, shift_requested)
-            print(availability)
             return JsonResponse(availability)
         
         except KeyError as e:
@@ -164,12 +164,10 @@ def create_student_profile(request):
         profile_form = StudentProfileForm(request.POST, request.FILES)
         if profile_form.is_valid():
             student_profile = profile_form.save()
-            print(request.FILES)
             files = request.FILES.getlist('documents')  
             for file in files:
                 StudentFile.objects.create(student=student_profile, file=file)
             shift_type = request.POST.get('shift_timing')
-            print(shift_type)
             college_request_id = request.POST.get('college')
             college = College.objects.get(id=college_request_id)
             student_profile.school = college.name
@@ -195,16 +193,14 @@ def create_student_profile(request):
                 working_days = 0
 
                 while working_days < days_required:
-                    if (student_profile.shift_requested == 'Weekdays' and current_date.weekday() < 5) or \
-                       (student_profile.shift_requested == 'Weekends' and (current_date.weekday() >= 5 or (current_date.weekday() == 4 and shift_type == 'Night'))):
-                        if validate_shift_capacity(request.user, current_date, assigned_shift):
-                            working_days += 1
-                        else:
-                            messages.error(
-                                request,
-                                f"Capacity exceeded on {current_date.strftime('%Y-%m-%d')} for {shift_type} shift."
-                            )
-                            return render(request, 'create_profile.html', {'form': profile_form})
+                    if validate_shift_capacity(request.user, current_date, assigned_shift):
+                        working_days += 1
+                    else:
+                        messages.error(
+                            request,
+                            f"Capacity exceeded on {current_date.strftime('%Y-%m-%d')} for {shift_type} shift."
+                        )
+                        return render(request, 'create_profile.html', {'form': profile_form})
                     current_date += timedelta(days=1)
 
                 end_date = current_date - timedelta(days=1)
@@ -219,47 +215,25 @@ def create_student_profile(request):
                 except json.JSONDecodeError:
                     messages.error(request, "Invalid weekdays_selected format.")
                     return render(request, 'create_profile.html', {'form': profile_form})
+                
                 while current_date <= end_date:
-                    if (student_profile.shift_requested == 'Weekdays' and current_date.weekday() < 5) or \
-                       (student_profile.shift_requested == 'Weekends' and (current_date.weekday() >= 5 or (current_date.weekday() == 4 and shift_type == 'Night'))):
-                        if current_date.weekday() in weekdays_selected:
-                            if validate_shift_capacity(request.user, current_date, assigned_shift):
-                                if shift_type == 'Night' and current_date.weekday() in [4, 5, 6]: 
-                                    next_date = current_date + timedelta(days=1)
-                                    VolunteerLog.objects.create(
-                                        student=student_profile,
-                                        date=current_date,
-                                        shift=assigned_shift,
-                                        start_time=start_time,
-                                        end_time=end_time,
-                                        hours_worked=5,
-                                        status='Present'
-                                    )
-                                    VolunteerLog.objects.create(
-                                        student=student_profile,
-                                        date=next_date,
-                                        shift=assigned_shift,
-                                        start_time=start_time,
-                                        end_time=end_time,
-                                        hours_worked=7,
-                                        status='Present'
-                                    )
-                                else:
-                                    VolunteerLog.objects.create(
-                                        student=student_profile,
-                                        date=current_date,
-                                        shift=assigned_shift,
-                                        start_time=start_time,
-                                        end_time=end_time,
-                                        hours_worked=shift_total_time,
-                                        status='Present'
-                                    )
-                            else:
-                                messages.error(
-                                    request,
-                                    f"Capacity exceeded on {current_date.strftime('%Y-%m-%d')} for {shift_type} shift."
-                                )
-                                return render(request, 'create_profile.html', {'form': profile_form})
+                    if current_date.weekday() in weekdays_selected:
+                        if validate_shift_capacity(request.user, current_date, assigned_shift):
+                            VolunteerLog.objects.create(
+                                student=student_profile,
+                                date=current_date,
+                                shift=assigned_shift,
+                                start_time=start_time,
+                                end_time=end_time,
+                                hours_worked=shift_total_time,
+                                status='Present'
+                            )
+                        else:
+                            messages.error(
+                                request,
+                                f"Capacity exceeded on {current_date.strftime('%Y-%m-%d')} for {shift_type} shift."
+                            )
+                            return render(request, 'create_profile.html', {'form': profile_form})
                     current_date += timedelta(days=1)
 
             threading.Thread(target=send_student_creation_email, args=(student_profile,)).start()
@@ -273,6 +247,7 @@ def create_student_profile(request):
 
     return render(request, 'create_profile.html', {'form': profile_form})
 
+
 @csrf_exempt  
 def send_email(request):
     if request.method == 'POST':
@@ -284,7 +259,6 @@ def send_email(request):
         try:
             student = StudentProfile.objects.get(email=student_email)
             
-            print(student)  
             threading.Thread(target=send_student_creation_email, args=(student,)).start()
             
             return JsonResponse({'status': 'success'})
@@ -292,7 +266,6 @@ def send_email(request):
         except StudentProfile.DoesNotExist:
             return JsonResponse({'status': 'error', 'message': 'Student not found'})
         except Exception as e:
-            # Log or print the error for debugging
             print(f"Error: {str(e)}")
             return JsonResponse({'status': 'error', 'message': 'An unexpected error occurred'})
 
@@ -363,7 +336,6 @@ def send_student_creation_email(student):
         end_time = log.end_time.strftime('%H:%M') if log.end_time else 'N/A'
         shift_type = log.shift.type if log.shift and log.shift.type else 'N/A'
         
-        # Append the log details to the Excel sheet
         ws.append([log.date, start_time, end_time, shift_type])
 
     excel_file = BytesIO()
@@ -416,6 +388,22 @@ def student_profile_list(request):
 
     if orientation_date:
         profiles = profiles.filter(lchaim_orientation_date=orientation_date)
+        
+    profiles = list(profiles)
+
+    for profile in profiles:
+        raw_data = profile.weekdays_selected
+        if isinstance(raw_data, str) and raw_data.strip():  
+            try:
+                weekdays_dict = json.loads(raw_data.replace("'", '"'))  
+                if isinstance(weekdays_dict, dict):
+                    profile.weekdays_display = ", ".join(weekdays_dict.keys())
+                else:
+                    profile.weekdays_display = "Invalid data"
+            except json.JSONDecodeError:
+                profile.weekdays_display = "Invalid data"
+        else:
+            profile.weekdays_display = "No weekdays selected"
 
     paginator = Paginator(profiles, 10) 
     page_number = request.GET.get('page', 1)
@@ -469,8 +457,6 @@ def update_student_profile(request, pk):
     profile = get_object_or_404(StudentProfile, pk=pk)
 
     if request.method == "POST":
-        print("Form data:", request.POST)  
-        print("File data:", request.FILES)  
 
         form = StudentProfileForm(request.POST, request.FILES, instance=profile)
 
@@ -559,9 +545,7 @@ def student_attendance(request):
 def update_attendance(request, student_id, date):
     student = get_object_or_404(StudentProfile, id=student_id)
     today = timezone.now().date()
-    print(date)
     log, created = VolunteerLog.objects.get_or_create(student=student, date=date)
-    print(log)
     
     if request.method == 'POST':
         status = request.POST.get('status')
@@ -578,7 +562,6 @@ def update_attendance(request, student_id, date):
 
         log.status = status
         log.notes = notes
-        print(hours_worked)
 
         if hours_worked:
             if isinstance(hours_worked, str) and ':' in hours_worked:
@@ -593,15 +576,10 @@ def update_attendance(request, student_id, date):
         return JsonResponse({'success': True})
     return JsonResponse({'success': False})
 
-from django.shortcuts import render, get_object_or_404, redirect
-from .models import StudentProfile, VolunteerLog
-from datetime import timedelta
-import re
 
 def student_details(request, student_id):
     student = get_object_or_404(StudentProfile, id=student_id)
     
-    # Order logs by date in ascending order (oldest first)
     volunteer_logs = VolunteerLog.objects.filter(student=student).order_by('date')  # Ascending order
     student_files = StudentFile.objects.filter(student=student)
     
@@ -611,7 +589,6 @@ def student_details(request, student_id):
     for file in student_files:
         match = filename_pattern.search(file.file.name)
         if match:
-            print(match.group(0))
             file.file = match.group(0)  
     
     total_hours = 0
@@ -671,7 +648,6 @@ def student_details(request, student_id):
     })
 
 
-from django.utils.timezone import now
 @admin_required
 def student_logs(request):
     query = request.GET.get('q', '').strip()
@@ -744,6 +720,8 @@ def get_end_of_week(date):
     end = date + timedelta(days=(6 - date.weekday()))
     return end.replace(hour=23, minute=59, second=59, microsecond=0)
 
+
+from django.utils.timezone import localtime
 @admin_required
 def calendar_student_logs(request):
     current_date = timezone.now()
@@ -786,7 +764,8 @@ def calendar_student_logs(request):
     return render(request, 'calendar.html', {
         'student_data': student_data_json,
         'week_start_date': week_start_date,
-        'week_end_date': week_end_date
+        'week_end_date': week_end_date,
+        'current_date':localtime().isoformat() 
     })
 
 def download_excel(request, selected_date):
