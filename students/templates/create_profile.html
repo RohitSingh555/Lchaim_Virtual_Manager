@@ -397,7 +397,7 @@
                 </select>
             </div>
 
-            <div class="form-row">
+            <div class="form-row hidden">
                 <div class="form-group">
                     <label for="id_start_time">Shift Start Time</label>
                     <input type="time" id="id_start_time" name="start_time" class="form-control" readonly>
@@ -421,8 +421,11 @@
                     {{ form.med_docs }}
                 </div>
             </div>
+            
+            
+            
             <div class="form-group mt-4">
-                <div class="bg-white border border-gray-300 rounded-lg p-3  mx-auto">
+                <div class="bg-white border border-gray-300 rounded-lg p-3 mx-auto">
                     <h4 class="text-base font-semibold text-gray-800 mb-2 text-left">Required Documents for Placement</h4>
                     <ul class="space-y-1 text-sm text-gray-700">
                         <li class="flex items-center space-x-2">
@@ -457,15 +460,57 @@
                         </li>
                     </ul>
                     <p class="text-xs text-gray-600 mt-2">Please ensure that all documents are prepared before uploading.</p>
+                    <br>
+                    <ul class="space-y-3 text-sm text-gray-700">
+                        <!-- COVID Vaccination -->
+                        <li class="flex flex-col space-y-2">
+                            <label class="font-medium text-gray-700" for="covid_vaccination">
+                                COVID Vaccination <span class="text-red-500">*</span>
+                            </label>
+                            <input type="file" id="covid_vaccination" name="covid_vaccination" required
+                                   class="border border-gray-300 rounded-lg p-2 w-full focus:ring focus:ring-blue-300" />
+                        </li>
+                    
+                        <!-- Medical Certificate -->
+                        <li class="flex flex-col space-y-2">
+                            <label class="font-medium text-gray-700" for="medical_certificate">
+                                Medical Certificate <span class="text-red-500">*</span>
+                            </label>
+                            <input type="file" id="medical_certificate" name="medical_certificate" required
+                                   class="border border-gray-300 rounded-lg p-2 w-full focus:ring focus:ring-blue-300" />
+                        </li>
+                    
+                        <!-- Police Check -->
+                        <li class="flex flex-col space-y-2">
+                            <label class="font-medium text-gray-700" for="police_check">
+                                Police Check / Vulnerable Sector Check <span class="text-red-500">*</span>
+                            </label>
+                            <input type="file" id="police_check" name="police_check" required
+                                   class="border border-gray-300 rounded-lg p-2 w-full focus:ring focus:ring-blue-300" />
+                        </li>
+                    
+                        <!-- CPR or First Aid -->
+                        <li class="flex flex-col space-y-2">
+                            <label class="font-medium text-gray-700" for="cpr_first_aid">
+                                CPR or First Aid <span class="text-red-500">*</span>
+                            </label>
+                            <input type="file" id="cpr_first_aid" name="cpr_first_aid" required
+                                   class="border border-gray-300 rounded-lg p-2 w-full focus:ring focus:ring-blue-300" />
+                        </li>
+                    
+                        <!-- Mask Fit (Not Required) -->
+                        <li class="flex flex-col space-y-2">
+                            <label class="font-medium text-gray-700" for="mask_fit">
+                                Mask Fit
+                            </label>
+                            <input type="file" id="mask_fit" name="mask_fit"
+                                   class="border border-gray-300 rounded-lg p-2 w-full focus:ring focus:ring-blue-300" />
+                        </li>
+                    </ul>
+                    
                 </div>
             </div>
-            
-            
-            
-            <div class="form-group">
-                <label for="id_documents">Documents (Multiple Files)</label>
-                <input type="file" id="id_documents" name="documents" multiple class="form-control" />
-            </div>
+            <br>
             <div class="button-container">
                 <button type="submit" class="btn btn-primary">Submit</button>
             </div>

@@ -256,7 +256,10 @@
             {% for data in student_data %}
             <div class="card">
                 <div class="card-header">
+                    <div class="flex flex-col">
                     <div class="card-title">{{ data.student.first_name }} {{ data.student.last_name }}</div>
+                    <div class="card-sub-title">{{ data.student.email }}</div>
+                </div>
                     <div
                         class="status-label {% if data.status == 'Active' %}status-active{% else %}status-inactive{% endif %}">
                         {{ data.status }}

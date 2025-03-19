@@ -193,16 +193,24 @@
         <!-- Student Files Section -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {% for file in student_files %}
-            <div class="file-card">
-                <span class="file-name">{{ file.file.name }}</span>
-                <a href="{% url 'download_file' file.id %}" class="download-link">
-                    Download
-                </a>
+            <div class="file-card flex flex-col items-center p-4 border rounded-xl shadow-md bg-white transition-transform transform hover:scale-[1.02] hover:shadow-lg">
+                <span class="file-name font-medium text-gray-900 truncate w-full text-center">{{ file.file.name }}</span>
+                <div class="mt-3 flex space-x-3">
+                    <!-- Download Button -->
+                    <a href="{% url 'download_file' file.id %}" class="download-link flex items-center gap-2 text-gray-700 px-3 py-1.5 rounded-lg border border-gray-300 shadow-sm hover:bg-gray-100 transition">
+                        <i class="fas fa-arrow-down"></i> Download
+                    </a>
+                    <!-- View Button -->
+                    <a href="/media/student_files/{{ file.file.name }}" target="_blank" class="view-link flex items-center gap-2 text-gray-700 px-3 py-1.5 rounded-lg border border-gray-300 shadow-sm hover:bg-gray-100 transition">
+                        <i class="fas fa-eye"></i> View
+                    </a>
+                </div>
             </div>
             {% empty %}
-            <p class="text-gray-600">No files available for download.</p>
+            <p class="text-gray-500 text-center">No files available for download.</p>
             {% endfor %}
         </div>
+        <br>
 
         <!-- Volunteer Logs Section -->
         <div class="overflow-x-auto bg-white shadow-lg rounded-lg mb-8">
@@ -214,6 +222,7 @@
                         <th class="py-3 px-6 text-left text-lg font-semibold text-blue-700">Shift</th>
                         <th class="py-3 px-6 text-left text-lg font-semibold text-blue-700">Hours Worked</th>
                         <th class="py-3 px-6 text-left text-lg font-semibold text-blue-700">Notes</th>
+                        <th class="py-3 px-6 text-left text-lg font-semibold text-blue-700">Actions</th>
                     </tr>
                 </thead>
                 <tbody>

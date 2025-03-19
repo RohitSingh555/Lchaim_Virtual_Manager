@@ -158,15 +158,26 @@ def validate_shift_capacity(user, date, assigned_shift):
     shift_students_count = VolunteerLog.objects.filter(date=date, shift=assigned_shift).count()
     return shift_students_count < assigned_shift.max_students
 
-
+@login_required
 def create_student_profile(request):
     if request.method == "POST":
         profile_form = StudentProfileForm(request.POST, request.FILES)
         if profile_form.is_valid():
             student_profile = profile_form.save()
-            files = request.FILES.getlist('documents')  
-            for file in files:
-                StudentFile.objects.create(student=student_profile, file=file)
+            # files = request.FILES.getlist('documents')  
+            file_fields = [
+                "covid_vaccination",
+                "medical_certificate",
+                "police_check",
+                "cpr_first_aid",
+                "mask_fit"
+            ]
+
+            for field_name in file_fields:
+                file = request.FILES.get(field_name)
+                if file:
+                    StudentFile.objects.create(student=student_profile, file=file)
+
             shift_type = request.POST.get('shift_timing')
             college_request_id = request.POST.get('college')
             college = College.objects.get(id=college_request_id)
@@ -299,16 +310,24 @@ def send_student_creation_email(student):
         </style>
     </head>
     <body>
-        <div class="email-container">
-            <p>Dear {student.first_name},</p>
-            <p>Welcome to L'chaim! Here's your orientation date: {orientation_date} - {orientation_description} But, Before you begin your placement, you must be aware of the most 
-            important policies at L'chaim. Please read the attached training documents and confirm that you 
-            have read and understood them.
-            Wishing you the best learning experience and good luck!</p>
-            <p>Kind regards,</p>
-            <p>Judy</p>
-        </div>
-    </body>
+    <div class="email-container">
+        <p>Dear {student.first_name},</p>
+
+        <p>Welcome to L'Chaim! We are excited to have you join us. Your orientation has been scheduled for <strong>{orientation_date} at 10:00 AM</strong>. During this session, we will cover important details to help you transition smoothly into your placement. <br> <strong>Orientation Topic:</strong> {orientation_description}.</p>
+
+        <p>Before you begin, it is essential that you familiarize yourself with our key policies and guidelines. Please find the attached training documents and review them carefully. Once you have read and understood them, kindly confirm your acknowledgment.</p>
+
+        <p>If you have any questions or need further clarification, feel free to reach out.</p>
+
+        <p>Wishing you the best learning experience and a successful journey at L'Chaim!</p>
+
+        <p>Kind regards,</p>
+        <p><strong>Judy</strong></p>
+        <p>L'Chaim Administration Team</p>
+        <p><a href="mailto:lchaim@app.lchaimretirement.ca">lchaim@app.lchaimretirement.ca</a></p>
+    </div>
+</body>
+
     </html>
     """
 
@@ -356,59 +375,57 @@ def send_student_creation_email(student):
     else:
         print(f"Attachments folder not found at {attachments_folder}.")
     email.send()
-
-
-
 @login_required
 def student_profile_list(request):
-    query = request.GET.get('q', '')
-    orientation_date = request.GET.get('orientation_date', '')
+    query = Q()
+    
+    # Filtering logic
+    search_query = request.GET.get("search", "").strip()
+    if search_query:
+        query |= Q(first_name__icontains=search_query)
+        query |= Q(last_name__icontains=search_query)
+        query |= Q(email__icontains=search_query)
+        query |= Q(lchaim_orientation_date__icontains=search_query)
 
-    profiles = StudentProfile.objects.all()
+    # Sorting logic
+    sort_field = request.GET.get("sort_field", "").strip()  # Get sort field from request
+    sort_order = request.GET.get("sort_order", "asc").strip()  # Default to ascending
 
-    if query:
-        profiles = profiles.filter(
-            first_name__icontains=query
-        ) | profiles.filter(
-            last_name__icontains=query
-        ) | profiles.filter(
-            email__icontains=query
-        )
+    # If sort_field is empty, sort by latest entry (assuming 'id' or 'created_at' exists)
+    if not sort_field:
+        sort_field = "-id"  # Default sorting by latest entry (highest ID)
 
-    if orientation_date:
-        profiles = profiles.filter(lchaim_orientation_date=orientation_date)
-        
-    profiles = list(profiles)
+    # Validate sorting field
+    valid_fields = {
+        "first_name", "last_name", "email", "start_date", "end_date", "status", "id"
+    }
+    
+    if sort_field.lstrip("-") not in valid_fields:
+        sort_field = "-id"  # Fallback to latest entry sorting
 
-    for profile in profiles:
-        raw_data = profile.weekdays_selected
-        if isinstance(raw_data, str) and raw_data.strip():  
-            try:
-                weekdays_dict = json.loads(raw_data.replace("'", '"'))  
-                if isinstance(weekdays_dict, dict):
-                    profile.weekdays_display = ", ".join(weekdays_dict.keys())
-                else:
-                    profile.weekdays_display = "Invalid data"
-            except json.JSONDecodeError:
-                profile.weekdays_display = "Invalid data"
-        else:
-            profile.weekdays_display = "No weekdays selected"
+    # Apply sorting order
+    if sort_order == "desc" and sort_field != "-id":  
+        sort_field = f"-{sort_field}"
 
-    paginator = Paginator(profiles, 10) 
-    page_number = request.GET.get('page', 1)
+    student_profiles = StudentProfile.objects.filter(query).order_by(sort_field)
+
+    # Pagination logic
+    paginator = Paginator(student_profiles, 10)
+    page_number = request.GET.get("page")
     page_obj = paginator.get_page(page_number)
-
     is_school_group = request.user.groups.filter(name='School').exists()
     
     is_admin = request.user.groups.filter(name='Admin').exists()
 
-    return render(request, 'student_profile_list.html', {
-        'page_obj': page_obj,
-        'query': query,
-        'orientation_date': orientation_date,
+    context = {
+        "page_obj": page_obj,
+        "search_query": search_query,
+        "sort_field": request.GET.get("sort_field", ""),
+        "sort_order": request.GET.get("sort_order", ""),
         'is_school_group': is_school_group, 
         'is_admin': is_admin
-    })
+    }
+    return render(request, "student_profile_list.html", context)
 
 @login_required
 def student_graduated_list(request):

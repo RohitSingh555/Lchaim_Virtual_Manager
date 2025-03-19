@@ -42,7 +42,25 @@
                     <i class="fas fa-graduation-cap mr-2"></i>View Graduated
                 </a>
             </div>
-
+            <form method="get" class="mb-4 flex space-x-4">
+                <!-- Sort Field Dropdown -->
+                <select name="sort_field" class="px-3 py-2 border rounded">
+                    <option value="first_name" {% if sort_field == "first_name" %}selected{% endif %}>First Name</option>
+                    <option value="last_name" {% if sort_field == "last_name" %}selected{% endif %}>Last Name</option>
+                    <option value="email" {% if sort_field == "email" %}selected{% endif %}>Email</option>
+                    <option value="lchaim_orientation_date" {% if sort_field == "lchaim_orientation_date" %}selected{% endif %}>Orientation Date</option>
+                </select>
+            
+                <!-- Sort Order Dropdown -->
+                <select name="sort_order" class="px-3 py-2 border rounded">
+                    <option value="asc" {% if sort_order == "asc" %}selected{% endif %}>Ascending</option>
+                    <option value="desc" {% if sort_order == "desc" %}selected{% endif %}>Descending</option>
+                </select>
+            
+                <!-- Submit Button -->
+                <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded">Sort</button>
+            </form>
+            
             <!-- Search and Filter Section -->
             <div class=" rounded-lg mt-6  pt-4">
                 <form method="get" action="" class="flex gap-4 justify-end items-center">
@@ -62,23 +80,40 @@
             <!-- Table Section -->
             <div class="bg-white shadow-lg rounded-lg mt-6 mx-auto overflow-x-auto">
                 <table class="min-w-full table-auto border-collapse">
-                    <thead class="bg-blue-800 text-white">
-                        <tr>
-                            <th class="px-4 py-3 text-center">First Name</th>
-                            <th class="px-4 py-3 text-center">Last Name</th>
-                            <th class="px-4 py-3 text-center">Email</th>
-                            <th class="px-4 py-3 text-center">Phone</th>
-                            <th class="px-4 py-3 text-center">School</th>
-                            <th class="px-4 py-3 text-center">Weekdays Selected</th>
-                            <th class="px-4 py-3 text-center">Hours Requested</th>
-                            <th class="px-4 py-3 text-center">Orientation Date</th>
-                            <th class="px-4 py-3 text-center">Start Date</th>
-                            
-                            {% if is_admin %}
-                            <th class="px-4 py-3 text-center">Actions</th>
-                            {% endif %}
-                        </tr>
-                    </thead>
+                   <thead class="bg-blue-800 text-white">
+    <tr>
+        <th class="px-4 py-3 text-center">
+            <a href="?sort_field=first_name&sort_order={% if sort_field == 'first_name' and sort_order == 'asc' %}desc{% else %}asc{% endif %}" class="hover:underline">
+                First Name {% if sort_field == "first_name" %}({{ sort_order|title }}){% endif %}
+            </a>
+        </th>
+        <th class="px-4 py-3 text-center">
+            <a href="?sort_field=last_name&sort_order={% if sort_field == 'last_name' and sort_order == 'asc' %}desc{% else %}asc{% endif %}" class="hover:underline">
+                Last Name {% if sort_field == "last_name" %}({{ sort_order|title }}){% endif %}
+            </a>
+        </th>
+        <th class="px-4 py-3 text-center">
+            <a href="?sort_field=email&sort_order={% if sort_field == 'email' and sort_order == 'asc' %}desc{% else %}asc{% endif %}" class="hover:underline">
+                Email {% if sort_field == "email" %}({{ sort_order|title }}){% endif %}
+            </a>
+        </th>
+        <th class="px-4 py-3 text-center">Phone</th>
+        <th class="px-4 py-3 text-center">School</th>
+        <th class="px-4 py-3 text-center">Weekdays Selected</th>
+        <th class="px-4 py-3 text-center">Hours Requested</th>
+        <th class="px-4 py-3 text-center">
+            <a href="?sort_field=lchaim_orientation_date&sort_order={% if sort_field == 'lchaim_orientation_date' and sort_order == 'asc' %}desc{% else %}asc{% endif %}" class="hover:underline">
+                Orientation Date {% if sort_field == "lchaim_orientation_date" %}({{ sort_order|title }}){% endif %}
+            </a>
+        </th>
+        <th class="px-4 py-3 text-center">Start Date</th>
+
+        {% if is_admin %}
+        <th class="px-4 py-3 text-center">Actions</th>
+        {% endif %}
+    </tr>
+</thead>
+
                     <tbody>
                         {% for profile in page_obj %}
                         <tr class="border-b hover:bg-gray-100 transition duration-200">
@@ -110,32 +145,46 @@
 
             <!-- Pagination -->
             <div class="mt-6 flex justify-center">
-                <nav class="w-full">
-                    <ul class="flex flex-wrap justify-center items-center gap-2">
-                        {% if page_obj.has_previous %}
+                <ul class="flex items-center space-x-2">
+                    <!-- First & Previous Buttons -->
+                    {% if page_obj.has_previous %}
                         <li>
-                            <a class="bg-blue-800 text-white px-3 py-2 rounded-md hover:bg-blue-900 transition duration-200" href="?page={{ page_obj.previous_page_number }}&q={{ query }}&orientation_date={{ orientation_date }}">
-                                <i class="fas fa-chevron-left"></i>
+                            <a href="?page=1&sort_field={{ sort_field }}&sort_order={{ sort_order }}" 
+                               class="px-3 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition">
+                                <i class="fa fa-angle-double-left"></i>
                             </a>
                         </li>
-                        {% endif %}
-                        {% for num in page_obj.paginator.page_range %}
                         <li>
-                            <a class="px-4 py-2 rounded-md {% if page_obj.number == num %}bg-blue-800 text-white{% else %}bg-gray-200 text-gray-600{% endif %} hover:bg-blue-800 hover:text-white transition duration-200" href="?page={{ num }}&q={{ query }}&orientation_date={{ orientation_date }}">
-                                {{ num }}
+                            <a href="?page={{ page_obj.previous_page_number }}&sort_field={{ sort_field }}&sort_order={{ sort_order }}" 
+                               class="px-3 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition">
+                                <i class="fa fa-angle-left"></i>
                             </a>
                         </li>
-                        {% endfor %}
-                        {% if page_obj.has_next %}
+                    {% endif %}
+            
+                    <!-- Page Numbers -->
+                    <li class="px-4 py-2 bg-blue-500 text-white rounded-lg font-semibold">
+                        Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                    </li>
+            
+                    <!-- Next & Last Buttons -->
+                    {% if page_obj.has_next %}
                         <li>
-                            <a class="bg-blue-800 text-white px-3 py-2 rounded-md hover:bg-blue-900 transition duration-200" href="?page={{ page_obj.next_page_number }}&q={{ query }}&orientation_date={{ orientation_date }}">
-                                <i class="fas fa-chevron-right"></i>
+                            <a href="?page={{ page_obj.next_page_number }}&sort_field={{ sort_field }}&sort_order={{ sort_order }}" 
+                               class="px-3 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition">
+                                <i class="fa fa-angle-right"></i>
                             </a>
                         </li>
-                        {% endif %}
-                    </ul>
-                </nav>
+                        <li>
+                            <a href="?page={{ page_obj.paginator.num_pages }}&sort_field={{ sort_field }}&sort_order={{ sort_order }}" 
+                               class="px-3 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition">
+                                <i class="fa fa-angle-double-right"></i>
+                            </a>
+                        </li>
+                    {% endif %}
+                </ul>
             </div>
+            
             {% endif %}
         </div>
     </div>
