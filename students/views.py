@@ -187,25 +187,7 @@ def create_student_profile(request):
                 end_time = assigned_shift.end_time
 
                 shift_total_time = (datetime.combine(date.min, end_time) - datetime.combine(date.min, start_time)).seconds / 3600
-                days_required = (requested_hours // shift_total_time) + (1 if requested_hours % shift_total_time != 0 else 0)
-
-                current_date = start_date
-                working_days = 0
-
-                while working_days < days_required:
-                    if validate_shift_capacity(request.user, current_date, assigned_shift):
-                        working_days += 1
-                    else:
-                        messages.error(
-                            request,
-                            f"Capacity exceeded on {current_date.strftime('%Y-%m-%d')} for {shift_type} shift."
-                        )
-                        return render(request, 'create_profile.html', {'form': profile_form})
-                    current_date += timedelta(days=1)
-
-                end_date = current_date - timedelta(days=1)
-                student_profile.end_date = end_date
-                student_profile.save()
+                days_required = int(requested_hours // shift_total_time) + (1 if requested_hours % shift_total_time != 0 else 0)
 
                 current_date = start_date
                 weekdays_selected_str = request.POST.get('weekdays_selected')  # Get as string
@@ -216,7 +198,8 @@ def create_student_profile(request):
                     messages.error(request, "Invalid weekdays_selected format.")
                     return render(request, 'create_profile.html', {'form': profile_form})
                 
-                while current_date <= end_date:
+                working_days = 0
+                while working_days < days_required:
                     if current_date.weekday() in weekdays_selected:
                         if validate_shift_capacity(request.user, current_date, assigned_shift):
                             VolunteerLog.objects.create(
@@ -228,6 +211,7 @@ def create_student_profile(request):
                                 hours_worked=shift_total_time,
                                 status='Present'
                             )
+                            working_days += 1
                         else:
                             messages.error(
                                 request,
@@ -236,9 +220,12 @@ def create_student_profile(request):
                             return render(request, 'create_profile.html', {'form': profile_form})
                     current_date += timedelta(days=1)
 
+                student_profile.end_date = current_date - timedelta(days=1)
+                student_profile.save()
+            
             threading.Thread(target=send_student_creation_email, args=(student_profile,)).start()
 
-            messages.success(request, "Student profile created successfully, and volunteer logs have been generated!")
+            messages.success(request, "Thank you for your submission! Please check your inbox and spam folder for a welcome email.")
             return redirect('student_profile_list')
         else:
             messages.error(request, "There were errors in the form. Please correct them.")
@@ -246,6 +233,7 @@ def create_student_profile(request):
         profile_form = StudentProfileForm()
 
     return render(request, 'create_profile.html', {'form': profile_form})
+
 
 
 @csrf_exempt  
@@ -273,6 +261,7 @@ def send_email(request):
                          
 def send_student_creation_email(student):
     orientation_date = student.lchaim_orientation_date.date.strftime('%Y-%m-%d') if student.lchaim_orientation_date else student.start_date.strftime('%Y-%m-%d')
+    orientation_description = student.lchaim_orientation_date.description if student.lchaim_orientation_date else None
     subject_q = 'New Student Profile Created'
     message = f"""
     <html>
@@ -312,7 +301,7 @@ def send_student_creation_email(student):
     <body>
         <div class="email-container">
             <p>Dear {student.first_name},</p>
-            <p>Welcome to L'chaim! Here's your orientation date: {orientation_date} But, Before you begin your placement, you must be aware of the most 
+            <p>Welcome to L'chaim! Here's your orientation date: {orientation_date} - {orientation_description} But, Before you begin your placement, you must be aware of the most 
             important policies at L'chaim. Please read the attached training documents and confirm that you 
             have read and understood them.
             Wishing you the best learning experience and good luck!</p>
@@ -410,12 +399,15 @@ def student_profile_list(request):
     page_obj = paginator.get_page(page_number)
 
     is_school_group = request.user.groups.filter(name='School').exists()
+    
+    is_admin = request.user.groups.filter(name='Admin').exists()
 
     return render(request, 'student_profile_list.html', {
         'page_obj': page_obj,
         'query': query,
         'orientation_date': orientation_date,
         'is_school_group': is_school_group, 
+        'is_admin': is_admin
     })
 
 @login_required
@@ -928,9 +920,12 @@ class MarkGraduateAPIView(APIView):
     
 def orientation_date_list(request):
     dates = OrientationDate.objects.all()
-    return render(request, 'orientation_date_list.html', {'dates': dates})
+    is_admin = request.user.groups.filter(name='Admin').exists()
+    return render(request, 'orientation_date_list.html', {'dates': dates, 'is_admin': is_admin})
+
 
 # Add a new orientation date
+@admin_required
 def add_orientation_date(request):
     if request.method == 'POST':
         form = OrientationDateForm(request.POST)
@@ -942,6 +937,8 @@ def add_orientation_date(request):
     return render(request, 'add_orientation_date.html', {'form': form})
 
 # Edit an existing orientation date
+
+@admin_required
 def edit_orientation_date(request, pk):
     orientation_date = get_object_or_404(OrientationDate, pk=pk)
     if request.method == 'POST':
@@ -954,6 +951,7 @@ def edit_orientation_date(request, pk):
     return render(request, 'edit_orientation_date.html', {'form': form})
 
 # Delete an orientation date
+@admin_required
 def delete_orientation_date(request, pk):
     orientation_date = get_object_or_404(OrientationDate, pk=pk)
     if request.method == 'POST':

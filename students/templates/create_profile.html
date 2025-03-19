@@ -474,27 +474,27 @@
     <script>
         document.getElementById("id_lchaim_orientation_date").addEventListener("change", function() {
             let selectedOption = this.options[this.selectedIndex];  
-            let orientationDate = selectedOption.textContent.trim(); 
+            let orientationText = selectedOption.textContent.trim(); 
             
-            console.log("Extracted Orientation Date:", orientationDate); 
+            // Extract date using regex
+            let dateMatch = orientationText.match(/\d{4}-\d{2}-\d{2}/);
+            let orientationDate = dateMatch ? dateMatch[0] : "";
         
-            if (orientationDate.match(/^\d{4}-\d{2}-\d{2}$/)) {
-                let startDateInput = document.querySelector(".start-date");  
-                if (startDateInput) {  
-                    startDateInput.setAttribute("min", orientationDate); 
-                    
-                    startDateInput.value = "";
-                    startDateInput.value = orientationDate; 
+            console.log("Extracted Orientation Date:", orientationDate);
         
-                }  
-            } else {  
-                let startDateInput = document.querySelector(".start-date");  
-                if (startDateInput) {  
-                    startDateInput.removeAttribute("min");  
-                    startDateInput.value = ""; // Clear input  
-                }  
-            }  
+            let startDateInput = document.querySelector(".start-date");
+        
+            if (startDateInput) {
+                if (orientationDate) {
+                    startDateInput.setAttribute("min", orientationDate);
+                    startDateInput.value = orientationDate;
+                } else {
+                    startDateInput.removeAttribute("min");
+                    startDateInput.value = ""; // Clear input
+                }
+            }
         });
+        
         
     </script>
 
@@ -711,33 +711,49 @@
             const checkboxes = document.querySelectorAll(".weekday-option");
             const hiddenInput = document.getElementById("weekdaysSelected");
         
-            // Toggle dropdown
+            const defaultSelection = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
+        
             dropdownButton.onclick = function () {
                 dropdownMenu.classList.toggle("hidden");
             };
-        
-            // Close dropdown when clicking outside
             document.addEventListener("click", function (event) {
                 if (!dropdownButton.contains(event.target) && !dropdownMenu.contains(event.target)) {
                     dropdownMenu.classList.add("hidden");
                 }
             });
         
-            // Update hidden input when selection changes
-            checkboxes.forEach(checkbox => {
-                checkbox.addEventListener("change", function () {
-                    let selectedData = {};
+            function updateSelection() {
+                let selectedData = {};
+                let selectedLabels = [];
+        
+                checkboxes.forEach(cb => {
+                    if (cb.checked) {
+                        selectedData[cb.dataset.label] = parseInt(cb.value);
+                        selectedLabels.push(cb.dataset.label);
+                    }
+                });
+        
+                if (selectedLabels.length === 0) {
                     checkboxes.forEach(cb => {
-                        if (cb.checked) {
+                        if (defaultSelection.includes(cb.dataset.label)) {
+                            cb.checked = true;
                             selectedData[cb.dataset.label] = parseInt(cb.value);
+                            selectedLabels.push(cb.dataset.label);
                         }
                     });
+                }
         
-                    hiddenInput.value = JSON.stringify(selectedData);
-                    dropdownButton.innerText = Object.keys(selectedData).join(", ") || "Select Weekdays";
-                });
+                hiddenInput.value = JSON.stringify(selectedData);
+                dropdownButton.innerText = selectedLabels.join(", ");
+            }
+        
+            updateSelection();
+        
+            checkboxes.forEach(checkbox => {
+                checkbox.addEventListener("change", updateSelection);
             });
         });
+        
         </script>
 </body>
 

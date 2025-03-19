@@ -27,9 +27,11 @@
         
         <h1 class="text-3xl font-semibold text-green-600 text-center mb-6">Orientation Dates</h1>
         
+        {% if is_admin %}
         <div class="flex justify-end mb-4">
             <a href="{% url 'add_orientation_date' %}" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition">Add New Orientation Date</a>
         </div>
+        {% endif %}
         
         <div class="overflow-x-auto">
             <table class="min-w-full bg-white table-auto shadow-md rounded-lg">
@@ -37,7 +39,9 @@
                     <tr>
                         <th class="py-3 px-6 text-left text-sm font-semibold text-gray-700">Date</th>
                         <th class="py-3 px-6 text-left text-sm font-semibold text-gray-700">Description</th>
+                        {% if is_admin %}
                         <th class="py-3 px-6 text-left text-sm font-semibold text-gray-700">Actions</th>
+                        {% endif %}
                     </tr>
                 </thead>
                 <tbody>
@@ -45,10 +49,13 @@
                         <tr class="border-t border-gray-200">
                             <td class="py-3 px-6 text-sm text-gray-800">{{ date.date }}</td>
                             <td class="py-3 px-6 text-sm text-gray-800">{{ date.description }}</td>
+                            {% if is_admin %}
                             <td class="py-3 px-6 text-sm text-gray-800">
                                 <a href="{% url 'edit_orientation_date' date.pk %}" class="text-blue-600 hover:text-blue-800 hover:underline mr-4">Edit</a>
                                 <button onclick="openDialog('{{ date.pk }}')" class="text-red-600 hover:text-red-800 hover:underline">Delete</button>
                             </td>
+                            {% endif %}
+
                         </tr>
 
                         <!-- Modal Dialog -->

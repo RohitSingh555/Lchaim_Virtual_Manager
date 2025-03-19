@@ -74,6 +74,8 @@ class StudentProfileForm(forms.ModelForm):
         # Check if the object instance is being passed (update case)
         instance = kwargs.get('instance', None)
         super().__init__(*args, **kwargs)
+        self.fields['lchaim_orientation_date'].label_from_instance = lambda obj: f"{obj.date.strftime('%Y-%m-%d')} - {obj.description or 'No Description'}"
+
 
         if instance is None:
             self.fields['start_date'].required = True
