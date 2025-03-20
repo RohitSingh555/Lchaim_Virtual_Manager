@@ -80,7 +80,9 @@ def logout_view(request):
     logout(request)
     return redirect('login')
 
-def get_shift_availability(user, start_date, shift_type, requested_hours, shift_requested):
+from datetime import datetime, date, timedelta
+
+def get_shift_availability(user, start_date, shift_type, requested_hours, shift_requested, weekdays_selected):
     try:
         assigned_shift = Shift.objects.get(type__icontains=shift_type)
     except Shift.DoesNotExist:
@@ -97,21 +99,18 @@ def get_shift_availability(user, start_date, shift_type, requested_hours, shift_
 
     current_date = start_date
     working_days = 0
-    while working_days < days_required:
-        if shift_requested == 'Weekdays' and current_date.weekday() >= 5:
-            current_date += timedelta(days=1)
-            continue
-        if shift_requested == 'Weekends' and current_date.weekday() < 5:
-            current_date += timedelta(days=1)
-            continue
 
-        if validate_shift_capacity(user, current_date, assigned_shift):
-            working_days += 1
-        else:
-            return {
-                "is_available": False,
-                "message": f"Capacity exceeded on {current_date.strftime('%Y-%m-%d')} for {shift_type} shift.",
-            }
+    selected_weekdays = set(weekdays_selected.values())
+
+    while working_days < days_required:
+        if current_date.weekday() in selected_weekdays:
+            if validate_shift_capacity(user, current_date, assigned_shift):
+                working_days += 1
+            else:
+                return {
+                    "is_available": False,
+                    "message": f"Capacity exceeded on {current_date.strftime('%Y-%m-%d')} for {shift_type} shift.",
+                }
 
         current_date += timedelta(days=1)
 
@@ -123,8 +122,10 @@ def get_shift_availability(user, start_date, shift_type, requested_hours, shift_
         "shift_type": shift_type,
         "requested_hours": requested_hours,
         "shift_requested": shift_requested,
+        "weekdays_selected": list(selected_weekdays),
         "end_date": end_date,
     }
+
 
 @csrf_exempt 
 def shift_availability_api(request):
@@ -136,8 +137,10 @@ def shift_availability_api(request):
             shift_type = data['shift_type']
             requested_hours = int(data['requested_hours'])
             shift_requested = data['shift_requested']
+            weekdays_selected = data['selected_weekdays']
+            print(weekdays_selected)
             
-            availability = get_shift_availability(request.user, start_date, shift_type, requested_hours, shift_requested)
+            availability = get_shift_availability(request.user, start_date, shift_type, requested_hours, shift_requested, weekdays_selected)
             return JsonResponse(availability)
         
         except KeyError as e:
@@ -323,8 +326,9 @@ def send_student_creation_email(student):
 
         <p>Kind regards,</p>
         <p><strong>Judy</strong></p>
-        <p>L'Chaim Administration Team</p>
-        <p><a href="mailto:lchaim@app.lchaimretirement.ca">lchaim@app.lchaimretirement.ca</a></p>
+        <p><strong>L'Chaim Administration Team</strong></p>
+<p>718 Sheppard Ave W, North York, ON M3H 2S6, Canada</p>
+<p><a href="mailto:lchaim@app.lchaimretirement.ca">lchaim@app.lchaimretirement.ca</a></p>
     </div>
 </body>
 
@@ -397,17 +401,30 @@ def student_profile_list(request):
 
     # Validate sorting field
     valid_fields = {
-        "first_name", "last_name", "email", "start_date", "end_date", "status", "id"
+        "first_name", "last_name", "email", "start_date", "end_date", "status", "id", "lchaim_orientation_date"
     }
-    
+
     if sort_field.lstrip("-") not in valid_fields:
         sort_field = "-id"  # Fallback to latest entry sorting
 
-    # Apply sorting order
-    if sort_order == "desc" and sort_field != "-id":  
-        sort_field = f"-{sort_field}"
+    # Ensure sorting works properly for dates
+    if sort_field == "lchaim_orientation_date":
+        sort_field = "lchaim_orientation_date" if sort_order == "asc" else "-lchaim_orientation_date"
 
     student_profiles = StudentProfile.objects.filter(query).order_by(sort_field)
+    for profile in student_profiles:
+        raw_data = profile.weekdays_selected
+        if isinstance(raw_data, str) and raw_data.strip():  
+            try:
+                weekdays_dict = json.loads(raw_data.replace("'", '"'))  
+                if isinstance(weekdays_dict, dict):
+                    profile.weekdays_display = ", ".join(weekdays_dict.keys())
+                else:
+                    profile.weekdays_display = "Invalid data"
+            except json.JSONDecodeError:
+                profile.weekdays_display = "Invalid data"
+        else:
+            profile.weekdays_display = "No weekdays selected"
 
     # Pagination logic
     paginator = Paginator(student_profiles, 10)

@@ -316,85 +316,123 @@
 
     let currentDate = new Date("{{ current_date }}");
 
-    function renderWeeklyCalendar(date) {
-      const startOfWeek = getStartOfWeek(new Date(date));
-      
-      console.log(new Date(date));
-      const endOfWeek = new Date(startOfWeek);
-      endOfWeek.setDate(startOfWeek.getDate() + 6);
-      calendarTitle.textContent = `${formatDate(startOfWeek)} - ${formatDate(endOfWeek)}`;
+    // Create the floating button
+const floatingStudentCountBtn = document.createElement("button");
+floatingStudentCountBtn.className = "fixed bottom-4 left-4 bg-blue-600 text-white px-4 py-2 rounded-full shadow-lg";
+floatingStudentCountBtn.textContent = "📊 Student Count";
+document.body.appendChild(floatingStudentCountBtn);
 
-      weeklySlots.innerHTML = "";
-      for (let i = 0; i < 7; i++) {
-        const day = new Date(startOfWeek);
-        day.setDate(startOfWeek.getDate() + i);
+// Create the hidden student count container
+const floatingStudentCountContainer = document.createElement("div");
+floatingStudentCountContainer.className = "fixed bottom-16 left-4 bg-white border border-gray-300 shadow-lg rounded-lg p-4 w-64 hidden";
+document.body.appendChild(floatingStudentCountContainer);
 
-        const dayColumn = document.createElement("div");
-        dayColumn.className = "day-column";
+// Toggle the student count display
+floatingStudentCountBtn.addEventListener("click", () => {
+  floatingStudentCountContainer.classList.toggle("hidden");
+});
 
-        const dayHeader = document.createElement("div");
-        dayHeader.textContent = `${formatDate(day)}`;
-        dayHeader.className = "day-header";
-        dayColumn.appendChild(dayHeader);
+function renderWeeklyCalendar(date) {
+  const startOfWeek = getStartOfWeek(new Date(date));
+  console.log(new Date(date));
 
-        let logsForDay = false;
+  const endOfWeek = new Date(startOfWeek);
+  endOfWeek.setDate(startOfWeek.getDate() + 6);
+  calendarTitle.textContent = `${formatDate(startOfWeek)} - ${formatDate(endOfWeek)}`;
 
-        students.forEach(student => {
-          student.logs.forEach(log => {
-            const logDate = new Date(log.date);
-            const logDateString = logDate.toISOString().split("T")[0];
-            const currentDayString = day.toISOString().split("T")[0];
+  weeklySlots.innerHTML = "";
+  floatingStudentCountContainer.innerHTML = "";
 
-            if (logDateString === currentDayString) {
-              logsForDay = true;
-              const userRow = document.createElement("div");
-              userRow.className = "log-item";
+  let dailyStudentCount = {};
 
-              const studentInfo = document.createElement("div");
-              studentInfo.className = "flex items-center text-gray-700";
-              
-              const statusDot = document.createElement("span");
-              statusDot.className = "status-dot " + (log.status === "Present" ? "status-green" : "status-red");
-              studentInfo.appendChild(statusDot);
+  for (let i = 0; i < 7; i++) {
+    const day = new Date(startOfWeek);
+    day.setDate(startOfWeek.getDate() + i);
 
-              const studentName = document.createElement("span");
-              studentName.textContent = `${student.name} (${log.hours_worked} hrs)`;
-              studentInfo.appendChild(studentName);
+    const dayColumn = document.createElement("div");
+    dayColumn.className = "day-column";
 
-              const studentPhoneNumber = document.createElement("div");
-              studentPhoneNumber.className = `phone-number text-gray-500`;
-              studentPhoneNumber.textContent = `\ud83d\udcde - ${student.phone}`;
-              
+    const dayHeader = document.createElement("div");
+    dayHeader.textContent = `${formatDate(day)}`;
+    dayHeader.className = "day-header";
+    dayColumn.appendChild(dayHeader);
 
-              const timeInfo = document.createElement("div");
-              timeInfo.className = "text-gray-500";
-              timeInfo.textContent = `${log.start_time} - ${log.end_time}`;
+    let logsForDay = false;
+    let studentSet = new Set();  // ✅ Reset studentSet for each day
 
-              userRow.appendChild(studentInfo);
-              userRow.appendChild(studentPhoneNumber);
-              userRow.appendChild(timeInfo);
+    students.forEach(student => {
+      student.logs.forEach(log => {
+        const logDate = new Date(log.date);
+        const logDateString = logDate.toISOString().split("T")[0];
+        const currentDayString = day.toISOString().split("T")[0];
 
-              const studentLink = document.createElement("a");
-              studentLink.href = `/student/${student.id}/logs/`;  // Dynamic link
-              studentLink.className = "text-blue-500 hover:text-blue-700 ";
-              studentLink.textContent = "View Logs";
-              userRow.appendChild(studentLink);
+        if (logDateString === currentDayString) {
+          logsForDay = true;
+          studentSet.add(student.id);  // ✅ Add student ID once per day
 
-              dayColumn.appendChild(userRow);
-            }
-          });
-        });
+          const userRow = document.createElement("div");
+          userRow.className = "log-item";
 
-        if (!logsForDay) {
-          const emptySlot = document.createElement("div");
-          emptySlot.className = "no-data";
-          emptySlot.textContent = "No data";
-          dayColumn.appendChild(emptySlot);
+          const studentInfo = document.createElement("div");
+          studentInfo.className = "flex items-center text-gray-700";
+
+          const statusDot = document.createElement("span");
+          statusDot.className = "status-dot " + (log.status === "Present" ? "status-green" : "status-red");
+          studentInfo.appendChild(statusDot);
+
+          const studentName = document.createElement("span");
+          studentName.textContent = `${student.name} (${log.hours_worked} hrs)`;
+          studentInfo.appendChild(studentName);
+
+          const studentPhoneNumber = document.createElement("div");
+          studentPhoneNumber.className = `phone-number text-gray-500`;
+          studentPhoneNumber.textContent = `📞 - ${student.phone}`;
+
+          const studentId = document.createElement("div");
+          studentId.className = `student-id font-bold text-blue-600`;
+          studentId.textContent = `#${student.id}`;
+
+          const timeInfo = document.createElement("div");
+          timeInfo.className = "text-gray-500";
+          timeInfo.textContent = `${log.start_time} - ${log.end_time}`;
+
+          userRow.appendChild(studentId);
+          userRow.appendChild(studentInfo);
+          userRow.appendChild(studentPhoneNumber);
+          userRow.appendChild(timeInfo);
+
+          const studentLink = document.createElement("a");
+          studentLink.href = `/student/${student.id}/logs/`;
+          studentLink.className = "text-blue-500 hover:text-blue-700 ";
+          studentLink.textContent = "View Logs";
+          userRow.appendChild(studentLink);
+
+          dayColumn.appendChild(userRow);
         }
+      });
+    });
 
-        weeklySlots.appendChild(dayColumn);
-      }
+    // ✅ Assign the correct student count after processing all students for the day
+    dailyStudentCount[day.toISOString().split("T")[0]] = studentSet.size;
+
+    if (!logsForDay) {
+      const emptySlot = document.createElement("div");
+      emptySlot.className = "no-data";
+      emptySlot.textContent = "No data";
+      dayColumn.appendChild(emptySlot);
     }
+
+    weeklySlots.appendChild(dayColumn);
+  }
+
+  // ✅ Display the correct student count in the floating container
+  floatingStudentCountContainer.innerHTML = `<h3 class="font-bold text-lg mb-2">Student Count</h3>` +
+    Object.keys(dailyStudentCount)
+      .map(date => `<div class="text-gray-700">${formatDate(new Date(date))}: <strong>${dailyStudentCount[date]}</strong> Students</div>`)
+      .join("");
+}
+
+
 
     function formatDate(date) {
       const options = { 

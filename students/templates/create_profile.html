@@ -669,6 +669,10 @@
 
             async function fetchShiftAvailability(startDate, shiftRequested, requestedHours, shiftType) {
                 try {
+                    // Get the selected weekdays from the hidden input field
+                    const hiddenInput = document.getElementById("weekdaysSelected");
+                    const selectedWeekdays = hiddenInput.value ? JSON.parse(hiddenInput.value) : {};
+            
                     const response = await fetch('/api/shift-availability/', {
                         method: "POST",
                         headers: {
@@ -679,10 +683,11 @@
                             start_date: startDate,
                             shift_requested: shiftRequested,
                             requested_hours: requestedHours,
-                            shift_type: shiftType
+                            shift_type: shiftType,
+                            selected_weekdays: selectedWeekdays  // Pass selected weekdays here
                         })
                     });
-
+            
                     if (response.ok) {
                         const data = await response.json();
                         displayShiftAvailability(data);
@@ -693,6 +698,7 @@
                     console.error("Network error:", error);
                 }
             }
+            
 
             function displayShiftAvailability(data) {
                 const card = document.getElementById('shift-availability-card');
