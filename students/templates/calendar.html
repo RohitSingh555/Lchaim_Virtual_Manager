@@ -259,6 +259,31 @@
         font-size: 0.75rem;
       }
     }
+
+    .glassmorphism {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(12px);
+            border-radius: 12px;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: black !important;
+        }
+
+        /* Floating Effect */
+        .floating {
+            animation: floatUp 0.3s ease-out forwards;
+        }
+
+        @keyframes floatUp {
+            from {
+                transform: translateY(20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
   </style>
 </head>
 
@@ -301,6 +326,16 @@
     <button id="downloadReportBtn" class="btn-blue" onclick="openDateModal()">Download Date-Specific Report</button>
   </div>
 
+  <button id="summaryBtn" class="fixed bottom-6 left-6 bg-gradient-to-br from-blue-500 to-indigo-600 text-white p-4 rounded-full shadow-xl hover:scale-110 transition transform">
+    <i class="fas fa-calendar-week text-2xl"></i>
+</button>
+
+<!-- Floating Summary Box (Initially Hidden) -->
+<div id="summaryBox" class="hidden fixed bottom-20 left-8 glassmorphism shadow-xl rounded-lg p-4 w-72 transition-opacity opacity-0 floating text-white">
+    <h2 class="text-xl font-bold flex items-center gap-2"><i class="fas fa-calendar-alt"></i> Weekly Summary</h2>
+    <div id="summaryContent" class="text-black-50 mt-2"></div>
+</div>
+
   <script>
     const calendarTitle = document.getElementById("calendarTitle");
     const prevWeek = document.getElementById("prevWeek");
@@ -316,123 +351,85 @@
 
     let currentDate = new Date("{{ current_date }}");
 
-    // Create the floating button
-const floatingStudentCountBtn = document.createElement("button");
-floatingStudentCountBtn.className = "fixed bottom-4 left-4 bg-blue-600 text-white px-4 py-2 rounded-full shadow-lg";
-floatingStudentCountBtn.textContent = "📊 Student Count";
-document.body.appendChild(floatingStudentCountBtn);
+    function renderWeeklyCalendar(date) {
+      const startOfWeek = getStartOfWeek(new Date(date));
+      
+      console.log(new Date(date));
+      const endOfWeek = new Date(startOfWeek);
+      endOfWeek.setDate(startOfWeek.getDate() + 6);
+      calendarTitle.textContent = `${formatDate(startOfWeek)} - ${formatDate(endOfWeek)}`;
 
-// Create the hidden student count container
-const floatingStudentCountContainer = document.createElement("div");
-floatingStudentCountContainer.className = "fixed bottom-16 left-4 bg-white border border-gray-300 shadow-lg rounded-lg p-4 w-64 hidden";
-document.body.appendChild(floatingStudentCountContainer);
+      weeklySlots.innerHTML = "";
+      for (let i = 0; i < 7; i++) {
+        const day = new Date(startOfWeek);
+        day.setDate(startOfWeek.getDate() + i);
 
-// Toggle the student count display
-floatingStudentCountBtn.addEventListener("click", () => {
-  floatingStudentCountContainer.classList.toggle("hidden");
-});
+        const dayColumn = document.createElement("div");
+        dayColumn.className = "day-column";
 
-function renderWeeklyCalendar(date) {
-  const startOfWeek = getStartOfWeek(new Date(date));
-  console.log(new Date(date));
+        const dayHeader = document.createElement("div");
+        dayHeader.textContent = `${formatDate(day)}`;
+        dayHeader.className = "day-header";
+        dayColumn.appendChild(dayHeader);
 
-  const endOfWeek = new Date(startOfWeek);
-  endOfWeek.setDate(startOfWeek.getDate() + 6);
-  calendarTitle.textContent = `${formatDate(startOfWeek)} - ${formatDate(endOfWeek)}`;
+        let logsForDay = false;
 
-  weeklySlots.innerHTML = "";
-  floatingStudentCountContainer.innerHTML = "";
+        students.forEach(student => {
+          student.logs.forEach(log => {
+            const logDate = new Date(log.date);
+            const logDateString = logDate.toISOString().split("T")[0];
+            const currentDayString = day.toISOString().split("T")[0];
 
-  let dailyStudentCount = {};
+            if (logDateString === currentDayString) {
+              logsForDay = true;
+              const userRow = document.createElement("div");
+              userRow.className = "log-item";
 
-  for (let i = 0; i < 7; i++) {
-    const day = new Date(startOfWeek);
-    day.setDate(startOfWeek.getDate() + i);
+              const studentInfo = document.createElement("div");
+              studentInfo.className = "flex items-center text-gray-700";
+              
+              const statusDot = document.createElement("span");
+              statusDot.className = "status-dot " + (log.status === "Present" ? "status-green" : "status-red");
+              studentInfo.appendChild(statusDot);
 
-    const dayColumn = document.createElement("div");
-    dayColumn.className = "day-column";
+              const studentName = document.createElement("span");
+              studentName.textContent = `${student.name} (${log.hours_worked} hrs)`;
+              studentInfo.appendChild(studentName);
 
-    const dayHeader = document.createElement("div");
-    dayHeader.textContent = `${formatDate(day)}`;
-    dayHeader.className = "day-header";
-    dayColumn.appendChild(dayHeader);
+              const studentPhoneNumber = document.createElement("div");
+              studentPhoneNumber.className = `phone-number text-gray-500`;
+              studentPhoneNumber.textContent = `\ud83d\udcde - ${student.phone}`;
+              
 
-    let logsForDay = false;
-    let studentSet = new Set();  // ✅ Reset studentSet for each day
+              const timeInfo = document.createElement("div");
+              timeInfo.className = "text-gray-500";
+              timeInfo.textContent = `${log.start_time} - ${log.end_time}`;
 
-    students.forEach(student => {
-      student.logs.forEach(log => {
-        const logDate = new Date(log.date);
-        const logDateString = logDate.toISOString().split("T")[0];
-        const currentDayString = day.toISOString().split("T")[0];
+              userRow.appendChild(studentInfo);
+              userRow.appendChild(studentPhoneNumber);
+              userRow.appendChild(timeInfo);
 
-        if (logDateString === currentDayString) {
-          logsForDay = true;
-          studentSet.add(student.id);  // ✅ Add student ID once per day
+              const studentLink = document.createElement("a");
+              studentLink.href = `/student/${student.id}/logs/`;  // Dynamic link
+              studentLink.className = "text-blue-500 hover:text-blue-700 ";
+              studentLink.textContent = "View Logs";
+              userRow.appendChild(studentLink);
 
-          const userRow = document.createElement("div");
-          userRow.className = "log-item";
+              dayColumn.appendChild(userRow);
+            }
+          });
+        });
 
-          const studentInfo = document.createElement("div");
-          studentInfo.className = "flex items-center text-gray-700";
-
-          const statusDot = document.createElement("span");
-          statusDot.className = "status-dot " + (log.status === "Present" ? "status-green" : "status-red");
-          studentInfo.appendChild(statusDot);
-
-          const studentName = document.createElement("span");
-          studentName.textContent = `${student.name} (${log.hours_worked} hrs)`;
-          studentInfo.appendChild(studentName);
-
-          const studentPhoneNumber = document.createElement("div");
-          studentPhoneNumber.className = `phone-number text-gray-500`;
-          studentPhoneNumber.textContent = `📞 - ${student.phone}`;
-
-          const studentId = document.createElement("div");
-          studentId.className = `student-id font-bold text-blue-600`;
-          studentId.textContent = `#${student.id}`;
-
-          const timeInfo = document.createElement("div");
-          timeInfo.className = "text-gray-500";
-          timeInfo.textContent = `${log.start_time} - ${log.end_time}`;
-
-          userRow.appendChild(studentId);
-          userRow.appendChild(studentInfo);
-          userRow.appendChild(studentPhoneNumber);
-          userRow.appendChild(timeInfo);
-
-          const studentLink = document.createElement("a");
-          studentLink.href = `/student/${student.id}/logs/`;
-          studentLink.className = "text-blue-500 hover:text-blue-700 ";
-          studentLink.textContent = "View Logs";
-          userRow.appendChild(studentLink);
-
-          dayColumn.appendChild(userRow);
+        if (!logsForDay) {
+          const emptySlot = document.createElement("div");
+          emptySlot.className = "no-data";
+          emptySlot.textContent = "No data";
+          dayColumn.appendChild(emptySlot);
         }
-      });
-    });
 
-    // ✅ Assign the correct student count after processing all students for the day
-    dailyStudentCount[day.toISOString().split("T")[0]] = studentSet.size;
-
-    if (!logsForDay) {
-      const emptySlot = document.createElement("div");
-      emptySlot.className = "no-data";
-      emptySlot.textContent = "No data";
-      dayColumn.appendChild(emptySlot);
+        weeklySlots.appendChild(dayColumn);
+      }
     }
-
-    weeklySlots.appendChild(dayColumn);
-  }
-
-  // ✅ Display the correct student count in the floating container
-  floatingStudentCountContainer.innerHTML = `<h3 class="font-bold text-lg mb-2">Student Count</h3>` +
-    Object.keys(dailyStudentCount)
-      .map(date => `<div class="text-gray-700">${formatDate(new Date(date))}: <strong>${dailyStudentCount[date]}</strong> Students</div>`)
-      .join("");
-}
-
-
 
     function formatDate(date) {
       const options = { 
@@ -495,6 +492,82 @@ function renderWeeklyCalendar(date) {
         closeDateModal();
       }
     }
+
+    function generateSummary() {
+    const calendarSlots = document.getElementById("weeklySlots");
+    const dayColumns = calendarSlots.getElementsByClassName("day-column");
+
+    let summary = [];
+    
+    for (let column of dayColumns) {
+        const header = column.querySelector(".day-header").innerText;
+        const logItems = column.getElementsByClassName("log-item");
+        
+        summary.push({ day: header, count: logItems.length });
+    }
+    
+    displaySummary(summary);
+}
+
+function displaySummary(summary) {
+    let summaryContainer = document.getElementById("summaryContent");
+    summaryContainer.innerHTML = "";
+
+    summary.forEach(item => {
+        const entry = document.createElement("p");
+        entry.classList.add("mb-2", "font-medium", "flex", "items-center", "gap-2");
+        entry.innerHTML = `<i class="fas fa-check-circle text-green-400"></i> <strong>${item.day}:</strong> ${item.count} Student(s)`;
+        summaryContainer.appendChild(entry);
+    });
+}
+
+// Function to show/hide the summary box
+function toggleSummaryBox() {
+    let summaryBox = document.getElementById("summaryBox");
+    
+    if (summaryBox.classList.contains("hidden")) {
+        generateSummary(); // Refresh data
+        summaryBox.classList.remove("hidden", "opacity-0");
+        summaryBox.classList.add("opacity-100", "floating");
+
+        // Add event listener for outside click
+        setTimeout(() => {
+            document.addEventListener("click", outsideClickListener);
+        }, 10);
+
+    } else {
+        closeSummaryBox();
+    }
+}
+
+// Function to close the summary box
+function closeSummaryBox() {
+    let summaryBox = document.getElementById("summaryBox");
+    summaryBox.classList.add("opacity-0");
+    
+    setTimeout(() => {
+        summaryBox.classList.add("hidden");
+    }, 300);
+    
+    // Remove outside click listener
+    document.removeEventListener("click", outsideClickListener);
+}
+
+// Detect clicks outside the summary box
+function outsideClickListener(event) {
+    let summaryBox = document.getElementById("summaryBox");
+    let summaryBtn = document.getElementById("summaryBtn");
+
+    if (!summaryBox.contains(event.target) && event.target !== summaryBtn) {
+        closeSummaryBox();
+    }
+}
+
+// Attach click event to summary button
+document.getElementById("summaryBtn").addEventListener("click", function(event) {
+    event.stopPropagation(); // Prevent immediate closure
+    toggleSummaryBox();
+});
 
 
   </script>
