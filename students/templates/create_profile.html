@@ -531,11 +531,17 @@
         
             if (startDateInput) {
                 if (orientationDate) {
-                    startDateInput.setAttribute("min", orientationDate);
-                    startDateInput.value = orientationDate;
+                    let dateObj = new Date(orientationDate);
+
+                    dateObj.setDate(dateObj.getDate() + 1);
+
+                    let nextDay = dateObj.toISOString().split("T")[0];
+
+                    startDateInput.value = nextDay;
+                    startDateInput.setAttribute("min", nextDay); 
                 } else {
                     startDateInput.removeAttribute("min");
-                    startDateInput.value = ""; // Clear input
+                    startDateInput.value = ""; 
                 }
             }
         });
