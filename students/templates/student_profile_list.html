@@ -25,7 +25,7 @@
     {% include 'navbar.html' %}
 
     <div class="flex flex-col bg-gray-100 min-h-screen pt-24">
-        <div class="px-6 lg:px-20 py-6">
+        <div class="px-6 lg:px-6 py-6">
             <div class="lg:flex items-center justify-between">
             {% if is_school_group %}
             <div class="flex justify-center items-center mt-4 text-center "  style="margin-top:36px">
@@ -35,44 +35,75 @@
             </div>
             {% else %}
             <div class="flex flex-wrap gap-4 justify-left mt-4"  style="margin-top:36px">
-                <a href="{% url 'create_student_profile' %}" class="bg-gradient-to-r from-green-400 to-green-600 text-white px-6 py-2 rounded-lg text-lg shadow-lg hover:from-green-500 hover:to-green-700 transition ease-in-out duration-200">
+                <a href="{% url 'create_student_profile' %}" class="bg-gradient-to-r from-green-400 to-green-600 text-white px-6 py-2 rounded-lg text-md shadow-lg hover:from-green-500 hover:to-green-700 transition ease-in-out duration-200">
                     <i class="fas fa-plus mr-2"></i>Create Profile
                 </a>
-                <a href="{% url 'student_graduated_list' %}" class="bg-gradient-to-r from-blue-400 to-blue-600 text-white px-6 py-2 rounded-lg text-lg shadow-lg hover:from-blue-500 hover:to-blue-700 transition ease-in-out duration-200">
+                <a href="{% url 'student_graduated_list' %}" class="bg-gradient-to-r from-blue-400 to-blue-600 text-white px-6 py-2 rounded-lg text-md shadow-lg hover:from-blue-500 hover:to-blue-700 transition ease-in-out duration-200">
                     <i class="fas fa-graduation-cap mr-2"></i>View Graduated
                 </a>
             </div>
-            <!-- Sorting Section -->
-<div class="rounded-lg p-4 pb-0 mt-6">
-    <form method="get" class="flex flex-wrap items-center justify-between gap-4">
-        <div class="flex items-center gap-3">
-            <label for="sort_field" class="text-gray-700 font-medium flex items-center gap-2">
-                <i class="fas fa-sort-alpha-down"></i> Sort By:
-            </label>
-            <select name="sort_field" id="sort_field" class="px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-600 focus:outline-none">
-                <option value="first_name" {% if sort_field == "first_name" %}selected{% endif %}>First Name</option>
-                <option value="last_name" {% if sort_field == "last_name" %}selected{% endif %}>Last Name</option>
-                <option value="email" {% if sort_field == "email" %}selected{% endif %}>Email</option>
-                <option value="lchaim_orientation_date" {% if sort_field == "lchaim_orientation_date" %}selected{% endif %}>Orientation Date</option>
-            </select>
-        </div>
-
-        <div class="flex items-center gap-3">
-            <label for="sort_order" class="text-gray-700 font-medium flex items-center gap-2">
-                <i class="fas fa-sort"></i> Order:
-            </label>
-            <select name="sort_order" id="sort_order" class="px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-600 focus:outline-none">
-                <option value="asc" {% if sort_order == "asc" %}selected{% endif %}>Ascending</option>
-                <option value="desc" {% if sort_order == "desc" %}selected{% endif %}>Descending</option>
-            </select>
-        </div>
-
-        <button type="submit" class="bg-blue-500 text-white px-6 py-2 rounded-lg shadow-md flex items-center gap-2 hover:bg-blue-600 transition duration-200">
-            <i class="fas fa-sort-amount-down-alt"></i> Apply Sort
-        </button>
-    </form>
+            <div class="rounded-lg p-4 pb-0 mt-6">
+                <form method="get" id="filter-form" class="flex flex-wrap items-center justify-between gap-4">
+                    <!-- Sort Field -->
+                    <div class="flex items-center gap-3">
+                        <label for="sort_field" class="text-gray-700 font-medium flex items-center gap-2">
+                            <i class="fas fa-sort-alpha-down"></i> Sort By:
+                        </label>
+                        <select name="sort_field" id="sort_field" class="px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-600 focus:outline-none">
+                            <option value="first_name" {% if sort_field == "first_name" %}selected{% endif %}>First Name</option>
+                            <option value="last_name" {% if sort_field == "last_name" %}selected{% endif %}>Last Name</option>
+                            <option value="email" {% if sort_field == "email" %}selected{% endif %}>Email</option>
+                            <option value="lchaim_orientation_date" {% if sort_field == "lchaim_orientation_date" %}selected{% endif %}>Orientation Date</option>
+                            <option value="school" {% if sort_field == "school" %}selected{% endif %}>School</option> 
+                        </select>
+                    </div>
+            
+                    <!-- Sort Order -->
+                    <div class="flex items-center gap-3">
+                        <label for="sort_order" class="text-gray-700 font-medium flex items-center gap-2">
+                            <i class="fas fa-sort"></i>
+                        </label>
+                        <select name="sort_order" id="sort_order" class="px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-600 focus:outline-none">
+                            <option value="asc" {% if sort_order == "asc" %}selected{% endif %}>Ascending</option>
+                            <option value="desc" {% if sort_order == "desc" %}selected{% endif %}>Descending</option>
+                        </select>
+                    </div>
+            
+                    <!-- School Filter (Auto Submit on Change) -->
+                    <div class="flex items-center gap-3">
+                        <label for="school_filter" class="text-gray-700 font-medium flex items-center gap-2">
+                            <i class="fas fa-school"></i>
+                        </label>
+                        <select name="school_filter" id="school_filter" class="px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-600 focus:outline-none">
+                            <option value="">All Schools</option>
+                            {% for school in schools %}
+                                <option value="{{ school }}" {% if school_filter == school %}selected{% endif %}>{{ school }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <!-- Orientation Date Filter -->
+<div class="flex items-center gap-3">
+    <label for="orientation_date_filter" class="text-gray-700 font-medium flex items-center gap-2">
+        <i class="fas fa-calendar-alt"></i> Orientation Date:
+    </label>
+    <select name="orientation_date_filter" id="orientation_date_filter" 
+            class="px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-600 focus:outline-none">
+        <option value="">Select Orientation Date</option>
+        {% for orientation_date in orientation_dates %}
+            <option value="{{ orientation_date.lchaim_orientation_date }}" {% if orientation_date_filter == orientation_date.id|stringformat:"s" %}selected{% endif %}>
+                {{ orientation_date.lchaim_orientation_date__date }}
+            </option>
+        {% endfor %}
+    </select>
 </div>
-
+            
+                    <!-- Submit Button -->
+                    <button type="submit" class="bg-blue-500 text-white px-2 py-2 rounded-lg shadow-md flex items-center gap-2 hover:bg-blue-600 transition duration-200">
+                        <i class="fas fa-sort-amount-down-alt"></i> Apply
+                    </button>
+                </form>
+            </div>
             
             <!-- Search and Filter Section -->
             <div class=" rounded-lg mt-6  pt-4">
@@ -80,8 +111,8 @@
                     <input type="text" name="q" value="{{ query }}" placeholder="Search by Name or Email"
                         class="border rounded-md px-3 py-2 w-full  focus:outline-none focus:ring-2 focus:ring-blue-800">
                     <button type="submit"
-                        class="bg-blue-800 items-center gap-2 text-white px-6 flex flex-row  py-2 rounded-md hover:bg-blue-900 transition duration-200">
-                        <i class="fas fa-search"></i> Search
+                        class="bg-blue-800 items-center gap-2 text-white px-6 flex flex-row  py-3 rounded-md hover:bg-blue-900 transition duration-200">
+                        <i class="fas fa-search"></i>
                     </button>
                     <button type="button" onclick="window.location.href='?'"
                     class="bg-red-600 text-white px-4 py-2 rounded-lg shadow-md hover:bg-red-500 transition duration-200 ">
@@ -111,7 +142,12 @@
             </a>
         </th>
         <th class="px-4 py-3 text-center">Phone</th>
-        <th class="px-4 py-3 text-center">School</th>
+        <th class="px-4 py-3 text-center">
+            <a href="?sort_field=school&sort_order={% if sort_field == 'school' and sort_order == 'asc' %}desc{% else %}asc{% endif %}" class="hover:underline">
+                School {% if sort_field == "school" %}({{ sort_order|title }}){% endif %}
+            </a>
+        </th>
+        
         <th class="px-4 py-3 text-center w-64">Weekdays Selected</th>
         <th class="px-4 py-3 text-center">Hours Requested</th>
         <th class="px-4 py-3 text-center">
@@ -144,13 +180,18 @@
                             
                             {% if is_admin %}
                             <td class="px-6 py-4 text-center">
-                                <a href="{% url 'update_student_profile' profile.pk %}" class="bg-yellow-500 text-white px-3 py-2 rounded-md inline-flex items-center justify-center space-x-2 hover:bg-yellow-600 transition ease-in-out duration-200">
-                                    <i class="fas fa-pen"></i><span>Edit</span>
-                                </a>
-                                <button onclick="openDeleteModal({{ profile.pk }})" class="bg-red-500 text-white px-3 py-2 rounded-md inline-flex items-center justify-center space-x-2 ml-3 hover:bg-red-600 transition ease-in-out duration-200">
-                                    <i class="fas fa-trash"></i><span>Delete</span>
-                                </button>
+                                <div class="flex items-center justify-center space-x-2">
+                                    <a href="{% url 'update_student_profile' profile.pk %}" 
+                                       class="bg-yellow-500 text-white px-3 py-2 md:px-2 md:py-1 text-sm rounded-md inline-flex items-center justify-center space-x-1 hover:bg-yellow-600 transition ease-in-out duration-200">
+                                        <i class="fas fa-pen"></i><span>Edit</span>
+                                    </a>
+                                    <button onclick="openDeleteModal({{ profile.pk }})" 
+                                        class="bg-red-500 text-white px-3 py-2 md:px-2 md:py-1 text-sm rounded-md inline-flex items-center justify-center space-x-1 hover:bg-red-600 transition ease-in-out duration-200">
+                                        <i class="fas fa-trash"></i><span>Delete</span>
+                                    </button>
+                                </div>
                             </td>
+                            
                             {% endif %}
                         </tr>
                         {% endfor %}
@@ -158,47 +199,48 @@
                 </table>
             </div>
 
-            <!-- Pagination -->
-            <div class="mt-6 flex justify-center">
-                <ul class="flex items-center space-x-2">
-                    <!-- First & Previous Buttons -->
-                    {% if page_obj.has_previous %}
-                        <li>
-                            <a href="?page=1&sort_field={{ sort_field }}&sort_order={{ sort_order }}" 
-                               class="px-3 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition">
-                                <i class="fa fa-angle-double-left"></i>
-                            </a>
-                        </li>
-                        <li>
-                            <a href="?page={{ page_obj.previous_page_number }}&sort_field={{ sort_field }}&sort_order={{ sort_order }}" 
-                               class="px-3 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition">
-                                <i class="fa fa-angle-left"></i>
-                            </a>
-                        </li>
-                    {% endif %}
-            
-                    <!-- Page Numbers -->
-                    <li class="px-4 py-2 bg-blue-500 text-white rounded-lg font-semibold">
-                        Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
-                    </li>
-            
-                    <!-- Next & Last Buttons -->
-                    {% if page_obj.has_next %}
-                        <li>
-                            <a href="?page={{ page_obj.next_page_number }}&sort_field={{ sort_field }}&sort_order={{ sort_order }}" 
-                               class="px-3 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition">
-                                <i class="fa fa-angle-right"></i>
-                            </a>
-                        </li>
-                        <li>
-                            <a href="?page={{ page_obj.paginator.num_pages }}&sort_field={{ sort_field }}&sort_order={{ sort_order }}" 
-                               class="px-3 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition">
-                                <i class="fa fa-angle-double-right"></i>
-                            </a>
-                        </li>
-                    {% endif %}
-                </ul>
-            </div>
+                    <!-- Pagination -->
+<div class="mt-6 flex justify-center">
+    <ul class="flex items-center space-x-2">
+        <!-- First & Previous Buttons -->
+        {% if page_obj.has_previous %}
+            <li>
+                <a href="?page=1&search={{ search_query }}&school_filter={{ school_filter }}&sort_field={{ sort_field }}&sort_order={{ sort_order }}" 
+                   class="px-3 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition">
+                    <i class="fa fa-angle-double-left"></i>
+                </a>
+            </li>
+            <li>
+                <a href="?page={{ page_obj.previous_page_number }}&search={{ search_query }}&school_filter={{ school_filter }}&sort_field={{ sort_field }}&sort_order={{ sort_order }}" 
+                   class="px-3 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition">
+                    <i class="fa fa-angle-left"></i>
+                </a>
+            </li>
+        {% endif %}
+
+        <!-- Page Numbers -->
+        <li class="px-4 py-2 bg-blue-500 text-white rounded-lg font-semibold">
+            Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+        </li>
+
+        <!-- Next & Last Buttons -->
+        {% if page_obj.has_next %}
+            <li>
+                <a href="?page={{ page_obj.next_page_number }}&search={{ search_query }}&school_filter={{ school_filter }}&sort_field={{ sort_field }}&sort_order={{ sort_order }}" 
+                   class="px-3 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition">
+                    <i class="fa fa-angle-right"></i>
+                </a>
+            </li>
+            <li>
+                <a href="?page={{ page_obj.paginator.num_pages }}&search={{ search_query }}&school_filter={{ school_filter }}&sort_field={{ sort_field }}&sort_order={{ sort_order }}" 
+                   class="px-3 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition">
+                    <i class="fa fa-angle-double-right"></i>
+                </a>
+            </li>
+        {% endif %}
+    </ul>
+</div>
+
             
             {% endif %}
         </div>

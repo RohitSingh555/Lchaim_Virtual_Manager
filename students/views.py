@@ -138,7 +138,6 @@ def shift_availability_api(request):
             requested_hours = int(data['requested_hours'])
             shift_requested = data['shift_requested']
             weekdays_selected = data['selected_weekdays']
-            print(weekdays_selected)
             
             availability = get_shift_availability(request.user, start_date, shift_type, requested_hours, shift_requested, weekdays_selected)
             return JsonResponse(availability)
@@ -379,44 +378,68 @@ def send_student_creation_email(student):
     else:
         print(f"Attachments folder not found at {attachments_folder}.")
     email.send()
+
+
 @login_required
 def student_profile_list(request):
     query = Q()
-    
-    # Filtering logic
+
+    # Search functionality
     search_query = request.GET.get("search", "").strip()
     if search_query:
         query |= Q(first_name__icontains=search_query)
         query |= Q(last_name__icontains=search_query)
         query |= Q(email__icontains=search_query)
         query |= Q(lchaim_orientation_date__icontains=search_query)
+        query |= Q(school__icontains=search_query)
 
-    # Sorting logic
-    sort_field = request.GET.get("sort_field", "").strip()  # Get sort field from request
-    sort_order = request.GET.get("sort_order", "asc").strip()  # Default to ascending
+    # Sorting functionality
+    sort_field = request.GET.get("sort_field", "").strip()
+    sort_order = request.GET.get("sort_order", "asc").strip()
 
-    # If sort_field is empty, sort by latest entry (assuming 'id' or 'created_at' exists)
     if not sort_field:
-        sort_field = "-id"  # Default sorting by latest entry (highest ID)
+        sort_field = "-id"
 
-    # Validate sorting field
     valid_fields = {
-        "first_name", "last_name", "email", "start_date", "end_date", "status", "id", "lchaim_orientation_date"
+        "first_name", "last_name", "email", "school", "start_date", "end_date", "status", "id", "lchaim_orientation_date"
     }
 
     if sort_field.lstrip("-") not in valid_fields:
-        sort_field = "-id"  # Fallback to latest entry sorting
+        sort_field = "-id"
 
-    # Ensure sorting works properly for dates
+    if sort_field == "school":
+        sort_field = "school" if sort_order == "asc" else "-school"
     if sort_field == "lchaim_orientation_date":
         sort_field = "lchaim_orientation_date" if sort_order == "asc" else "-lchaim_orientation_date"
 
+    # Get distinct schools for dropdown
+    schools = StudentProfile.objects.values_list("school", flat=True).distinct()
+
+    # Get distinct orientation dates for dropdown
+    orientation_dates = StudentProfile.objects.values("lchaim_orientation_date", "lchaim_orientation_date__date").distinct()
+
+
+    print(orientation_dates)
+
+    # School filtering
+    school_filter = request.GET.get("school_filter", "").strip()
+    if school_filter:
+        query &= Q(school=school_filter)
+
+    # Orientation date filtering
+    orientation_date_filter = request.GET.get("orientation_date_filter", "").strip()
+    if orientation_date_filter:
+        query &= Q(lchaim_orientation_date=orientation_date_filter)
+
+    # Fetch student profiles based on filters
     student_profiles = StudentProfile.objects.filter(query).order_by(sort_field)
+
+    # Process weekdays_selected field
     for profile in student_profiles:
         raw_data = profile.weekdays_selected
-        if isinstance(raw_data, str) and raw_data.strip():  
+        if isinstance(raw_data, str) and raw_data.strip():
             try:
-                weekdays_dict = json.loads(raw_data.replace("'", '"'))  
+                weekdays_dict = json.loads(raw_data.replace("'", '"'))
                 if isinstance(weekdays_dict, dict):
                     profile.weekdays_display = ", ".join(weekdays_dict.keys())
                 else:
@@ -426,12 +449,13 @@ def student_profile_list(request):
         else:
             profile.weekdays_display = "No weekdays selected"
 
-    # Pagination logic
+    # Pagination
     paginator = Paginator(student_profiles, 10)
     page_number = request.GET.get("page")
     page_obj = paginator.get_page(page_number)
+
+    # User permissions
     is_school_group = request.user.groups.filter(name='School').exists()
-    
     is_admin = request.user.groups.filter(name='Admin').exists()
 
     context = {
@@ -439,7 +463,11 @@ def student_profile_list(request):
         "search_query": search_query,
         "sort_field": request.GET.get("sort_field", ""),
         "sort_order": request.GET.get("sort_order", ""),
-        'is_school_group': is_school_group, 
+        "schools": schools,  # List of schools for dropdown
+        "school_filter": school_filter,  # Selected school filter
+        "orientation_dates": orientation_dates,  # List of orientation dates for dropdown
+        "orientation_date_filter": orientation_date_filter,  # Selected orientation date filter
+        'is_school_group': is_school_group,
         'is_admin': is_admin
     }
     return render(request, "student_profile_list.html", context)
