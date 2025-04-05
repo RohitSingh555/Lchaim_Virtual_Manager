@@ -1,6 +1,6 @@
 import json
 from django import forms
-from .models import College, OrientationDate, StudentFile, StudentProfile, VolunteerLog
+from .models import College, OrientationDate, Shift, StudentFile, StudentProfile, VolunteerLog
 
 
 
@@ -18,9 +18,15 @@ WEEKDAYS_CHOICES = {
     "Sunday": 6,
 }
 
+HOURS_CHOICES = [
+    (200, '200'),
+    (230, '230'),
+    (300, '300'),
+    (310, '310'),
+]
 
 class StudentProfileForm(forms.ModelForm):
-    shift_timing = forms.ChoiceField(choices=[('Morning', 'Morning'), ('Afternoon', 'Afternoon'), ('Night', 'Night'),('WeekendNight','WeekendNight'),('WeekendDay',"WeekendDay")], label="Shift Timing")
+
     lchaim_orientation_date = forms.ModelChoiceField(
         queryset=OrientationDate.objects.all(),
         empty_label="Select Orientation Date",
@@ -30,6 +36,11 @@ class StudentProfileForm(forms.ModelForm):
         required=False,
         widget=forms.HiddenInput(),  # Hide it since JS will populate it
         label="Preferred Weekdays"
+    )
+    hours_requested = forms.TypedChoiceField(  # 🔧 CHANGED: TypedChoiceField for integer values
+        choices=HOURS_CHOICES,
+        coerce=int,
+        label="Requested Hours"
     )
 
     def clean_weekdays_selected(self):
@@ -63,7 +74,7 @@ class StudentProfileForm(forms.ModelForm):
         fields = [
             'first_name', 'last_name', 'phone', 'email', 'lchaim_training_completed',
             'college','start_date',
-            'hours_requested', 'shift_requested', 'shift_timing', 'lchaim_orientation_date', 'weekdays_selected',
+            'hours_requested', 'shift_requested', 'lchaim_orientation_date', 'weekdays_selected',
             'skills_book_completed', 'police_check', 'med_docs', 'comments'
         ]
         widgets = {
@@ -79,10 +90,8 @@ class StudentProfileForm(forms.ModelForm):
 
         if instance is None:
             self.fields['start_date'].required = True
-            self.fields['shift_timing'].required = True
         else:
             self.fields['start_date'].required = False
-            self.fields['shift_timing'].required = False
     
 
 

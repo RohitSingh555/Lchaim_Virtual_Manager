@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body {
+            font-family: Helvetica, Arial, sans-serif;
+            font-size: 12px;
+            color: #333;
+        }
+
+        h2 {
+            text-align: center;
+            font-size: 18px;
+            margin-bottom: 30px;
+            color: #2c3e50;
+        }
+
+        .student-card {
+            width: 100%;
+            border: 1px solid #aaa;
+            background-color: #fdfdfd;
+            margin-bottom: 25px;
+        }
+
+        .student-header {
+            background-color: #dbe9f4;
+            padding: 10px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .count-badge {
+            background-color: #2c3e50;
+            color: white;
+            padding: 2px 8px;
+            font-size: 11px;
+            margin-right: 8px;
+        }
+
+        table.inner-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+        }
+
+        td {
+            padding: 6px 8px;
+            border: 1px solid #ccc;
+            vertical-align: top;
+        }
+
+        .label {
+            background-color: #f0f0f0;
+            font-weight: bold;
+            width: 30%;
+        }
+
+        .value {
+            width: 70%;
+        }
+    </style>
+</head>
+<body>
+
+<h2>Student Profiles</h2>
+
+{% for profile in student_profiles %}
+    <table class="student-card">
+        <tr>
+            <td colspan="2" class="student-header">
+                <span class="count-badge">#{{ forloop.counter }}</span>
+                {{ profile.first_name }} {{ profile.last_name }}
+            </td>
+        </tr>
+        <tr>
+            <td class="label">Email</td>
+            <td class="value">{{ profile.email }}</td>
+        </tr>
+        <tr>
+            <td class="label">School</td>
+            <td class="value">{{ profile.school }}</td>
+        </tr>
+        <tr>
+            <td class="label">Orientation Date</td>
+            <td class="value">{{ profile.lchaim_orientation_date.date|date:"Y-m-d" }}</td>
+        </tr>
+        <tr>
+            <td class="label">Start Date</td>
+            <td class="value">{{ profile.start_date|date:"Y-m-d" }}</td>
+        </tr>
+        <tr>
+            <td class="label">End Date</td>
+            <td class="value">{{ profile.end_date|date:"Y-m-d" }}</td>
+        </tr>
+        <tr>
+            <td class="label">Status</td>
+            <td class="value">{{ profile.status }}</td>
+        </tr>
+        <tr>
+            <td class="label">Weekdays Selected</td>
+            <td class="value">
+                {% if profile.weekdays_display %}
+                    {{ profile.weekdays_display }}
+                {% else %}
+                    N/A
+                {% endif %}
+            </td>
+        </tr>
+    </table>
+{% endfor %}
+
+</body>
+</html>

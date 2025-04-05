@@ -162,11 +162,11 @@ def validate_shift_capacity(user, date, assigned_shift):
 
 @login_required
 def create_student_profile(request):
+    shifts = Shift.objects.all()  
     if request.method == "POST":
         profile_form = StudentProfileForm(request.POST, request.FILES)
         if profile_form.is_valid():
             student_profile = profile_form.save()
-            # files = request.FILES.getlist('documents')  
             file_fields = [
                 "covid_vaccination",
                 "medical_certificate",
@@ -180,18 +180,39 @@ def create_student_profile(request):
                 if file:
                     StudentFile.objects.create(student=student_profile, file=file)
 
-            shift_type = request.POST.get('shift_timing')
+            shift_id = request.POST.get('shift_timing')
             college_request_id = request.POST.get('college')
             college = College.objects.get(id=college_request_id)
             student_profile.school = college.name
 
             try:
-                assigned_shift = Shift.objects.filter(type__icontains=shift_type).first()
+                assigned_shift = Shift.objects.get(id=int(shift_id))
                 student_profile.assigned_shift = assigned_shift
+
+                # ✅ New logic to auto-fill shift_requested and weekdays_selected
+                shift_type = assigned_shift.type.lower()
+                if "weekend" in shift_type:
+                    student_profile.shift_requested = "Weekend"
+                    student_profile.weekdays_selected = {
+                        "Saturday": 5,
+                        "Sunday": 6
+                    }
+                    weekdays_selected = [5, 6]
+                else:
+                    student_profile.shift_requested = "Weekday"
+                    student_profile.weekdays_selected = {
+                        "Monday": 0,
+                        "Tuesday": 1,
+                        "Wednesday": 2,
+                        "Thursday": 3,
+                        "Friday": 4
+                    }
+                    weekdays_selected = [0, 1, 2, 3, 4]
+
                 student_profile.save()
             except Shift.DoesNotExist:
-                messages.error(request, "The specified shift type does not exist.")
-                return render(request, 'create_profile.html', {'form': profile_form})
+                messages.error(request, "The specified shift does not exist.")
+                return render(request, 'create_profile.html', {'form': profile_form, 'shifts': shifts})
 
             if student_profile.hours_requested:
                 requested_hours = student_profile.hours_requested
@@ -203,15 +224,8 @@ def create_student_profile(request):
                 days_required = int(requested_hours // shift_total_time) + (1 if requested_hours % shift_total_time != 0 else 0)
 
                 current_date = start_date
-                weekdays_selected_str = request.POST.get('weekdays_selected')  # Get as string
-                try:
-                    weekdays_selected_dict = json.loads(weekdays_selected_str)  # Convert JSON string to dictionary
-                    weekdays_selected = list(weekdays_selected_dict.values())  # Extract weekday numbers
-                except json.JSONDecodeError:
-                    messages.error(request, "Invalid weekdays_selected format.")
-                    return render(request, 'create_profile.html', {'form': profile_form})
-                
                 working_days = 0
+
                 while working_days < days_required:
                     if current_date.weekday() in weekdays_selected:
                         if validate_shift_capacity(request.user, current_date, assigned_shift):
@@ -228,14 +242,14 @@ def create_student_profile(request):
                         else:
                             messages.error(
                                 request,
-                                f"Capacity exceeded on {current_date.strftime('%Y-%m-%d')} for {shift_type} shift."
+                                f"Capacity exceeded on {current_date.strftime('%Y-%m-%d')} for {assigned_shift.type} shift."
                             )
-                            return render(request, 'create_profile.html', {'form': profile_form})
+                            return render(request, 'create_profile.html', {'form': profile_form, 'shifts': shifts})
                     current_date += timedelta(days=1)
 
                 student_profile.end_date = current_date - timedelta(days=1)
                 student_profile.save()
-            
+
             threading.Thread(target=send_student_creation_email, args=(student_profile,)).start()
 
             messages.success(request, "Thank you for your submission! Please check your inbox and spam folder for a welcome email.")
@@ -245,7 +259,7 @@ def create_student_profile(request):
     else:
         profile_form = StudentProfileForm()
 
-    return render(request, 'create_profile.html', {'form': profile_form})
+    return render(request, 'create_profile.html', {'form': profile_form, 'shifts': shifts})
 
 
 
@@ -382,16 +396,15 @@ def send_student_creation_email(student):
 
 @login_required
 def student_profile_list(request):
-    query = Q()
+    search_query = request.GET.get("search", "")
+    query = Q()  # empty query
 
-    # Search functionality
-    search_query = request.GET.get("search", "").strip()
     if search_query:
         query |= Q(first_name__icontains=search_query)
         query |= Q(last_name__icontains=search_query)
         query |= Q(email__icontains=search_query)
-        query |= Q(lchaim_orientation_date__icontains=search_query)
-        query |= Q(school__icontains=search_query)
+
+
 
     # Sorting functionality
     sort_field = request.GET.get("sort_field", "").strip()
@@ -434,6 +447,11 @@ def student_profile_list(request):
     # Fetch student profiles based on filters
     student_profiles = StudentProfile.objects.filter(query).order_by(sort_field)
 
+    if request.GET.get("export") == "excel":
+        return export_student_profiles_excel(student_profiles)
+    if request.GET.get("export") == "pdf":
+        return export_student_profiles_pdf(student_profiles)
+
     # Process weekdays_selected field
     for profile in student_profiles:
         raw_data = profile.weekdays_selected
@@ -470,7 +488,127 @@ def student_profile_list(request):
         'is_school_group': is_school_group,
         'is_admin': is_admin
     }
+    get_params = request.GET.copy()
+    if 'page' in get_params:
+        del get_params['page']
+    query_string = get_params.urlencode()
+    context["query_string"] = query_string
     return render(request, "student_profile_list.html", context)
+
+from django.template.loader import get_template
+from xhtml2pdf import pisa
+def export_student_profiles_pdf(student_profiles):
+    # Process weekdays_display like in your main view
+    for profile in student_profiles:
+        raw_data = profile.weekdays_selected
+        if isinstance(raw_data, str) and raw_data.strip():
+            try:
+                weekdays_dict = json.loads(raw_data.replace("'", '"'))
+                profile.weekdays_display = ", ".join(weekdays_dict.keys()) if isinstance(weekdays_dict, dict) else "Invalid data"
+            except json.JSONDecodeError:
+                profile.weekdays_display = "Invalid data"
+        else:
+            profile.weekdays_display = "No weekdays selected"
+
+    timestamp = datetime.now().strftime('%b-%d-%Y_%I-%M-%p')
+    filename = f"student_profiles_{timestamp}.pdf"
+
+    response = render_to_pdf("student_profiles_pdf.html", {"student_profiles": student_profiles})
+    response['Content-Disposition'] = f'attachment; filename={filename}'
+    return response
+
+
+def render_to_pdf(template_src, context_dict={}):
+    template = get_template(template_src)
+    html = template.render(context_dict)
+    result = BytesIO()
+    pdf = pisa.pisaDocument(BytesIO(html.encode("UTF-8")), result)
+    if not pdf.err:
+        return HttpResponse(result.getvalue(), content_type='application/pdf')
+    return None
+
+import openpyxl
+from openpyxl.utils import get_column_letter
+from openpyxl.styles import Font, PatternFill, Border, Side, Alignment
+def export_student_profiles_excel(student_profiles):
+    workbook = openpyxl.Workbook()
+    worksheet = workbook.active
+    worksheet.title = "Student Profiles"
+
+    # Define column headers
+    columns = [
+        "First Name", "Last Name", "Email", "School", "L'Chaim Orientation Date",
+        "Start Date", "End Date", "Status", "Weekdays Selected"
+    ]
+    worksheet.append(columns)
+
+    # Styling for headers
+    header_font = Font(bold=True, color="FFFFFF")
+    header_fill = PatternFill(start_color="4F81BD", end_color="4F81BD", fill_type="solid")
+    thin_border = Border(
+        left=Side(style='thin'), right=Side(style='thin'),
+        top=Side(style='thin'), bottom=Side(style='thin')
+    )
+    center_align = Alignment(horizontal="center", vertical="center", wrap_text=True)
+
+    for col_num, column_title in enumerate(columns, 1):
+        cell = worksheet.cell(row=1, column=col_num)
+        cell.font = header_font
+        cell.fill = header_fill
+        cell.border = thin_border
+        cell.alignment = center_align
+        worksheet.column_dimensions[get_column_letter(col_num)].width = 22
+
+    # Add data rows
+    for row_num, profile in enumerate(student_profiles, start=2):
+        raw_data = profile.weekdays_selected
+        if isinstance(raw_data, str) and raw_data.strip():
+            try:
+                weekdays_dict = json.loads(raw_data.replace("'", '"'))
+                weekdays_display = ", ".join(weekdays_dict.keys()) if isinstance(weekdays_dict, dict) else "Invalid data"
+            except json.JSONDecodeError:
+                weekdays_display = "Invalid data"
+        else:
+            weekdays_display = "No weekdays selected"
+
+        row_data = [
+            profile.first_name,
+            profile.last_name,
+            profile.email,
+            profile.school,
+            profile.lchaim_orientation_date.date.strftime('%Y-%m-%d') if profile.lchaim_orientation_date else "",
+            profile.start_date.strftime('%Y-%m-%d') if profile.start_date else "",
+            profile.end_date.strftime('%Y-%m-%d') if profile.end_date else "",
+            profile.status,
+            weekdays_display
+        ]
+
+        # Add each cell with styling
+        for col_num, value in enumerate(row_data, 1):
+            cell = worksheet.cell(row=row_num, column=col_num, value=value)
+            cell.border = thin_border
+            cell.alignment = center_align
+
+            # Add alternate row coloring
+            if row_num % 2 == 0:
+                cell.fill = PatternFill(start_color="F2F2F2", end_color="F2F2F2", fill_type="solid")
+
+    # Freeze header row
+    worksheet.freeze_panes = "A2"
+
+    # Add auto-filter
+    worksheet.auto_filter.ref = worksheet.dimensions
+
+    # Prepare response
+    response = HttpResponse(
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    )
+    timestamp = datetime.now().strftime('%b-%d-%Y_%I-%M-%p')
+    filename = f"student_profiles_{timestamp}.xlsx"
+    response['Content-Disposition'] = f'attachment; filename={filename}'
+    workbook.save(response)
+    return response
+
 
 @login_required
 def student_graduated_list(request):
@@ -505,6 +643,123 @@ def student_graduated_list(request):
         'orientation_date': orientation_date,
         'is_school_group': is_school_group,  
     })
+
+@login_required
+def reports_list(request):
+    shift_filter = request.GET.get('shift')
+    date_filter = request.GET.get('start_date')
+    export_format = request.GET.get('export')
+
+    students = StudentProfile.objects.select_related('assigned_shift').all()
+
+    if shift_filter:
+        students = students.filter(assigned_shift__type=shift_filter)
+
+    if date_filter:
+        try:
+            date_obj = datetime.strptime(date_filter, "%Y-%m-%d").date()
+            students = students.filter(start_date=date_obj)
+        except ValueError:
+            pass
+
+    paginator = Paginator(students, 10)
+    page_number = request.GET.get("page")
+    page_obj = paginator.get_page(page_number)
+
+    if export_format == "pdf":
+        return export_pdf(page_obj)
+    elif export_format == "excel":
+        return export_excel(page_obj)
+
+    shifts = Shift.objects.all()
+
+    # Get unique start dates manually (sorted)
+    start_dates = (
+        StudentProfile.objects.exclude(start_date__isnull=True)
+        .order_by("start_date")
+        .values_list("start_date", flat=True)
+        .distinct()
+    )
+
+    return render(request, "reports.html", {
+        "students": page_obj,
+        "shifts": shifts,
+        "shift_filter": shift_filter,
+        "date_filter": date_filter,
+        "start_dates": start_dates,
+    })
+
+
+def export_pdf(students_page):
+    now = datetime.now()
+    template = get_template("report_pdf.html")
+    
+    # Pass 'now' to the template for timestamp rendering
+    html = template.render({
+        "students": students_page,
+        "now": now
+    })
+
+    # Format the filename with timestamp
+    timestamp_str = now.strftime("%Y-%m-%d_%H-%M")
+    filename = f"students_report_{timestamp_str}.pdf"
+
+    response = HttpResponse(content_type="application/pdf")
+    response["Content-Disposition"] = f'attachment; filename="{filename}"'
+
+    pisa.CreatePDF(html, dest=response)
+    return response
+
+def export_excel(students_page):
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Student Reports"
+
+    # Define header and styling
+    headers = ["First Name", "Last Name", "Shift", "Start Date"]
+    header_font = Font(bold=True, color="FFFFFF")
+    header_fill = PatternFill(start_color="4F81BD", end_color="4F81BD", fill_type="solid")
+    thin_border = Border(
+        left=Side(style='thin', color='000000'),
+        right=Side(style='thin', color='000000'),
+        top=Side(style='thin', color='000000'),
+        bottom=Side(style='thin', color='000000'),
+    )
+
+    # Add headers with styling
+    for col_num, column_title in enumerate(headers, 1):
+        cell = ws.cell(row=1, column=col_num, value=column_title)
+        cell.font = header_font
+        cell.fill = header_fill
+        cell.alignment = Alignment(horizontal="center", vertical="center")
+        cell.border = thin_border
+
+    # Add student data
+    for row_num, student in enumerate(students_page, start=2):
+        row_data = [
+            student.first_name,
+            student.last_name,
+            student.assigned_shift.type if student.assigned_shift else "Not Assigned",
+            student.start_date.strftime("%Y-%m-%d") if student.start_date else ""
+        ]
+        for col_num, value in enumerate(row_data, 1):
+            cell = ws.cell(row=row_num, column=col_num, value=value)
+            cell.alignment = Alignment(horizontal="left")
+            cell.border = thin_border
+
+    # Set column widths based on max content
+    column_widths = [15, 15, 20, 15]
+    for i, width in enumerate(column_widths, start=1):
+        ws.column_dimensions[chr(64 + i)].width = width
+
+    # Prepare response
+    timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    filename = f"students_report_{timestamp}.xlsx"
+    response = HttpResponse(content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+    response["Content-Disposition"] = f'attachment; filename="{filename}"'
+
+    wb.save(response)
+    return response
 
 @admin_required
 def update_student_profile(request, pk):

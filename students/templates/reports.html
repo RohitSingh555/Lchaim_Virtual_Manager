@@ -1,0 +1,166 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Student Reports</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen">
+  {% include 'navbar.html' %}
+
+  <div class="max-w-7xl mx-auto px-4 py-10">
+    <h1 class="text-4xl font-semibold mb-8 flex items-center gap-3 text-teal-700">
+      <i class="fa-solid fa-user-graduate text-teal-600"></i>
+      Student Reports
+    </h1>
+
+    <!-- Filter Form -->
+    <form method="get" class="mb-8 flex flex-wrap items-end gap-6" id="filterForm">
+      <div>
+        <label class="block text-sm font-medium mb-1 text-slate-700">
+          <i class="fa-regular fa-calendar-days mr-1 text-slate-500"></i>Start Date
+        </label>
+        <select name="start_date" id="startDateSelect"
+                class="border border-slate-300 rounded-lg px-3 py-2 shadow-sm focus:ring-teal-500 focus:border-teal-500 w-full">
+          <option value="">All Dates</option>
+          {% for date in start_dates %}
+            <option value="{{ date|date:'Y-m-d' }}" {% if date|stringformat:"s" == date_filter %}selected{% endif %}>
+              {{ date|date:'Y-m-d' }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium mb-1 text-slate-700">
+          <i class="fa-solid fa-clock mr-1 text-slate-500"></i>Shift
+        </label>
+        <select name="shift" id="shiftSelect"
+                class="border border-slate-300 rounded-lg px-3 py-2 shadow-sm focus:ring-teal-500 focus:border-teal-500 w-full">
+          <option value="">All Shifts</option>
+          {% for shift in shifts %}
+            <option value="{{ shift.type }}" {% if shift.type == shift_filter %}selected{% endif %}>
+              {{ shift.type }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="flex gap-3">
+        <button id="applyFilterBtn"
+                type="submit"
+                class="flex items-center gap-2 bg-teal-600 text-white px-5 py-2.5 rounded-lg hover:bg-teal-700 shadow transition">
+          <i class="fa-solid fa-filter"></i> Apply Filter
+        </button>
+
+        {% if date_filter or shift_filter %}
+        <a href="{% url 'reports' %}"
+           class="flex items-center gap-2 bg-slate-500 text-white px-5 py-2.5 rounded-lg hover:bg-slate-600 shadow transition">
+          <i class="fa-solid fa-xmark"></i> Clear
+        </a>
+        {% endif %}
+
+        <a href="?{% if date_filter %}start_date={{ date_filter }}&{% endif %}{% if shift_filter %}shift={{ shift_filter }}&{% endif %}export=pdf"
+           class="flex items-center gap-2 bg-rose-600 text-white px-5 py-2.5 rounded-lg hover:bg-rose-700 shadow transition">
+          <i class="fa-solid fa-file-pdf"></i> Export PDF
+        </a>
+        <a href="?{% if date_filter %}start_date={{ date_filter }}&{% endif %}{% if shift_filter %}shift={{ shift_filter }}&{% endif %}export=excel"
+           class="flex items-center gap-2 bg-emerald-600 text-white px-5 py-2.5 rounded-lg hover:bg-emerald-700 shadow transition">
+          <i class="fa-solid fa-file-excel"></i> Export Excel
+        </a>
+      </div>
+    </form>
+
+    <!-- Table -->
+    <div class="overflow-x-auto bg-white shadow-xl rounded-xl border border-slate-200">
+      <table class="min-w-full divide-y divide-slate-200 text-sm">
+        <thead class="bg-slate-100 text-slate-700 uppercase text-xs font-semibold tracking-wide">
+          <tr>
+            <th class="px-6 py-4 text-left"><i class="fa-regular fa-user mr-1"></i>First Name</th>
+            <th class="px-6 py-4 text-left"><i class="fa-regular fa-id-badge mr-1"></i>Last Name</th>
+            <th class="px-6 py-4 text-left"><i class="fa-solid fa-business-time mr-1"></i>Shift</th>
+            <th class="px-6 py-4 text-left"><i class="fa-regular fa-calendar mr-1"></i>Start Date</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100 bg-white">
+          {% for student in students %}
+          <tr class="hover:bg-slate-50 transition">
+            <td class="px-6 py-4 font-medium text-slate-800">{{ student.first_name }}</td>
+            <td class="px-6 py-4 font-medium text-slate-800">{{ student.last_name }}</td>
+            <td class="px-6 py-4">
+              {% if student.assigned_shift %}
+                <span class="text-slate-700">{{ student.assigned_shift.type }}</span>
+              {% else %}
+                <span class="text-slate-400 italic"><i class="fa-solid fa-circle-xmark mr-1"></i>Not Assigned</span>
+              {% endif %}
+            </td>
+            <td class="px-6 py-4 text-slate-700">{{ student.start_date|date:"Y-m-d" }}</td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="4" class="px-6 py-6 text-center text-slate-500">
+              <i class="fa-regular fa-face-frown text-xl mr-2"></i>No students found.
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination -->
+    <div class="mt-8 flex justify-center gap-2 text-sm">
+      {% if students.has_previous %}
+        <a href="?page={{ students.previous_page_number }}{% if shift_filter %}&shift={{ shift_filter }}{% endif %}{% if date_filter %}&start_date={{ date_filter }}{% endif %}"
+           class="px-3 py-2 border border-slate-300 rounded-md hover:bg-slate-100 flex items-center">
+          <i class="fa-solid fa-chevron-left text-sm"></i>
+        </a>
+      {% endif %}
+      <span class="px-4 py-2 border bg-slate-100 text-slate-700 rounded-md">{{ students.number }}</span>
+      {% if students.has_next %}
+        <a href="?page={{ students.next_page_number }}{% if shift_filter %}&shift={{ shift_filter }}{% endif %}{% if date_filter %}&start_date={{ date_filter }}{% endif %}"
+           class="px-3 py-2 border border-slate-300 rounded-md hover:bg-slate-100 flex items-center">
+          <i class="fa-solid fa-chevron-right text-sm"></i>
+        </a>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- JS to Enhance Filter Button -->
+  <script>
+    const originalStartDate = "{{ date_filter|default:'' }}";
+    const originalShift = "{{ shift_filter|default:'' }}";
+
+    const startDateSelect = document.getElementById("startDateSelect");
+    const shiftSelect = document.getElementById("shiftSelect");
+    const applyFilterBtn = document.getElementById("applyFilterBtn");
+
+    function checkChanges() {
+      const currentStartDate = startDateSelect.value;
+      const currentShift = shiftSelect.value;
+
+      if (currentStartDate !== originalStartDate || currentShift !== originalShift) {
+        applyFilterBtn.classList.remove("bg-teal-600", "hover:bg-teal-700");
+        applyFilterBtn.classList.add("bg-yellow-500", "hover:bg-yellow-600");
+        applyFilterBtn.innerHTML = `<i class="fa-solid fa-circle-check"></i> Apply Changes`;
+      } else {
+        applyFilterBtn.classList.remove("bg-yellow-500", "hover:bg-yellow-600");
+        applyFilterBtn.classList.add("bg-teal-600", "hover:bg-teal-700");
+        applyFilterBtn.innerHTML = `<i class="fa-solid fa-filter"></i> Apply Filter`;
+      }
+    }
+
+    startDateSelect.addEventListener("change", checkChanges);
+    shiftSelect.addEventListener("change", checkChanges);
+  </script>
+</body>
+</html>
