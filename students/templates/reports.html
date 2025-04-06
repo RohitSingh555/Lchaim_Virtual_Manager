@@ -19,13 +19,26 @@
   {% include 'navbar.html' %}
 
   <div class="max-w-7xl mx-auto px-4 py-10">
-    <h1 class="text-4xl font-semibold mb-8 flex items-center gap-3 text-teal-700">
+    <h1 class="text-4xl font-semibold mb-8 flex items-center gap-3 text-teal-700 pt-14">
       <i class="fa-solid fa-user-graduate text-teal-600"></i>
       Student Reports
     </h1>
 
     <!-- Filter Form -->
     <form method="get" class="mb-8 flex flex-wrap items-end gap-6" id="filterForm">
+        <div>
+            <label class="block text-sm font-medium mb-1 text-slate-700">
+              <i class="fa-solid fa-calendar-check mr-1 text-slate-500"></i>Volunteer Log Date
+            </label>
+            <input
+              type="date"
+              name="log_date"
+              id="logDateSelect"
+              value="{{ log_date_filter }}"
+              class="border border-slate-300 rounded-lg px-3 py-2 shadow-sm focus:ring-teal-500 focus:border-teal-500 w-full"
+            />
+          </div>
+          
       <div>
         <label class="block text-sm font-medium mb-1 text-slate-700">
           <i class="fa-regular fa-calendar-days mr-1 text-slate-500"></i>Start Date
@@ -63,7 +76,7 @@
           <i class="fa-solid fa-filter"></i> Apply Filter
         </button>
 
-        {% if date_filter or shift_filter %}
+        {% if date_filter or shift_filter or log_date_filter %}
         <a href="{% url 'reports' %}"
            class="flex items-center gap-2 bg-slate-500 text-white px-5 py-2.5 rounded-lg hover:bg-slate-600 shadow transition">
           <i class="fa-solid fa-xmark"></i> Clear
@@ -119,36 +132,52 @@
 
     <!-- Pagination -->
     <div class="mt-8 flex justify-center gap-2 text-sm">
-      {% if students.has_previous %}
-        <a href="?page={{ students.previous_page_number }}{% if shift_filter %}&shift={{ shift_filter }}{% endif %}{% if date_filter %}&start_date={{ date_filter }}{% endif %}"
-           class="px-3 py-2 border border-slate-300 rounded-md hover:bg-slate-100 flex items-center">
-          <i class="fa-solid fa-chevron-left text-sm"></i>
-        </a>
-      {% endif %}
-      <span class="px-4 py-2 border bg-slate-100 text-slate-700 rounded-md">{{ students.number }}</span>
-      {% if students.has_next %}
-        <a href="?page={{ students.next_page_number }}{% if shift_filter %}&shift={{ shift_filter }}{% endif %}{% if date_filter %}&start_date={{ date_filter }}{% endif %}"
-           class="px-3 py-2 border border-slate-300 rounded-md hover:bg-slate-100 flex items-center">
-          <i class="fa-solid fa-chevron-right text-sm"></i>
-        </a>
-      {% endif %}
-    </div>
+        {% if students.has_previous %}
+          <a href="?page={{ students.previous_page_number }}
+                    {% if shift_filter %}&shift={{ shift_filter }}{% endif %}
+                    {% if date_filter %}&start_date={{ date_filter }}{% endif %}
+                    {% if log_date_filter %}&log_date={{ log_date_filter }}{% endif %}"
+             class="px-3 py-2 border border-slate-300 rounded-md hover:bg-slate-100 flex items-center">
+            <i class="fa-solid fa-chevron-left text-sm"></i>
+          </a>
+        {% endif %}
+      
+        <span class="px-4 py-2 border bg-slate-100 text-slate-700 rounded-md">{{ students.number }}</span>
+      
+        {% if students.has_next %}
+          <a href="?page={{ students.next_page_number }}
+                    {% if shift_filter %}&shift={{ shift_filter }}{% endif %}
+                    {% if date_filter %}&start_date={{ date_filter }}{% endif %}
+                    {% if log_date_filter %}&log_date={{ log_date_filter }}{% endif %}"
+             class="px-3 py-2 border border-slate-300 rounded-md hover:bg-slate-100 flex items-center">
+            <i class="fa-solid fa-chevron-right text-sm"></i>
+          </a>
+        {% endif %}
+      </div>
+      
   </div>
 
   <!-- JS to Enhance Filter Button -->
   <script>
     const originalStartDate = "{{ date_filter|default:'' }}";
     const originalShift = "{{ shift_filter|default:'' }}";
-
+    const originalLogDate = "{{ log_date_filter|default:'' }}";
+  
     const startDateSelect = document.getElementById("startDateSelect");
     const shiftSelect = document.getElementById("shiftSelect");
+    const logDateSelect = document.getElementById("logDateSelect");
     const applyFilterBtn = document.getElementById("applyFilterBtn");
-
+  
     function checkChanges() {
       const currentStartDate = startDateSelect.value;
       const currentShift = shiftSelect.value;
-
-      if (currentStartDate !== originalStartDate || currentShift !== originalShift) {
+      const currentLogDate = logDateSelect.value;
+  
+      if (
+        currentStartDate !== originalStartDate ||
+        currentShift !== originalShift ||
+        currentLogDate !== originalLogDate
+      ) {
         applyFilterBtn.classList.remove("bg-teal-600", "hover:bg-teal-700");
         applyFilterBtn.classList.add("bg-yellow-500", "hover:bg-yellow-600");
         applyFilterBtn.innerHTML = `<i class="fa-solid fa-circle-check"></i> Apply Changes`;
@@ -158,9 +187,11 @@
         applyFilterBtn.innerHTML = `<i class="fa-solid fa-filter"></i> Apply Filter`;
       }
     }
-
+  
     startDateSelect.addEventListener("change", checkChanges);
     shiftSelect.addEventListener("change", checkChanges);
+    logDateSelect.addEventListener("change", checkChanges);
   </script>
+  
 </body>
 </html>

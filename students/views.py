@@ -649,27 +649,64 @@ def reports_list(request):
     shift_filter = request.GET.get('shift')
     date_filter = request.GET.get('start_date')
     export_format = request.GET.get('export')
+    log_date_filter = request.GET.get('log_date')
 
-    students = StudentProfile.objects.select_related('assigned_shift').all()
+    # students = StudentProfile.objects.select_related('assigned_shift').all()
 
+    # if shift_filter:
+    #     students = students.filter(assigned_shift__type=shift_filter)
+
+    # # if date_filter:
+    # #     try:
+    # #         date_obj = datetime.strptime(date_filter, "%Y-%m-%d").date()
+    # #         students = students.filter(start_date=date_obj)
+    # #     except ValueError:
+    # #         pass
+
+    # if log_date_filter:
+    #     try:
+    #         log_date = datetime.strptime(log_date_filter, "%Y-%m-%d").date()
+    #         students = students.filter(volunteer_logs__date=log_date).distinct()
+    #     except ValueError:
+    #         pass
+
+    # paginator = Paginator(students, 10)
+    # page_number = request.GET.get("page")
+    # page_obj = paginator.get_page(page_number)
+    
+    
+    logs = VolunteerLog.objects.all()
+    
+    # Apply filters if present
     if shift_filter:
-        students = students.filter(assigned_shift__type=shift_filter)
-
-    if date_filter:
+        logs = logs.filter(shift__type=shift_filter)
+    elif not shift_filter:
+    # Exclude logs with no shift assigned (null)
+        logs = logs.exclude(shift__isnull=True)
+    
+    if log_date_filter:
         try:
-            date_obj = datetime.strptime(date_filter, "%Y-%m-%d").date()
-            students = students.filter(start_date=date_obj)
+            log_date = datetime.strptime(log_date_filter, "%Y-%m-%d").date()
+            logs = logs.filter(date=log_date)
         except ValueError:
-            pass
-
-    paginator = Paginator(students, 10)
+            log_date = None
+    else:
+        log_date = None
+        
+     # Extract related student profiles
+    student_ids = logs.values_list('student_id', flat=True).distinct()
+    students_qs = StudentProfile.objects.filter(id__in=student_ids)
+    
+    
+    paginator = Paginator(students_qs.order_by('first_name', 'last_name'), 10)
     page_number = request.GET.get("page")
     page_obj = paginator.get_page(page_number)
+    
 
     if export_format == "pdf":
-        return export_pdf(page_obj)
+        return export_pdf(students_qs)
     elif export_format == "excel":
-        return export_excel(page_obj)
+        return export_excel(students_qs)
 
     shifts = Shift.objects.all()
 
@@ -681,12 +718,21 @@ def reports_list(request):
         .distinct()
     )
 
+    log_dates = (
+        VolunteerLog.objects.exclude(date__isnull=True)
+        .order_by("date")
+        .values_list("date", flat=True)
+        .distinct()
+    )
+
     return render(request, "reports.html", {
         "students": page_obj,
         "shifts": shifts,
         "shift_filter": shift_filter,
         "date_filter": date_filter,
+        "log_date_filter": log_date_filter,
         "start_dates": start_dates,
+        "log_dates": log_dates,
     })
 
 
@@ -1041,25 +1087,25 @@ def calendar_student_logs(request):
     student_data = []
 
     for student in students:
-        volunteer_logs = VolunteerLog.objects.filter(student=student)
+        volunteer_logs = VolunteerLog.objects.filter(student=student, status='Present').order_by('start_time')
+
         total_hours = 0
         formatted_logs = []
 
         for log in volunteer_logs:
-            if log.status == 'Present':
-                if log.hours_worked is None:
-                    total_hours += 7
-                else:
-                    total_hours += log.hours_worked
+            if log.hours_worked is None:
+                total_hours += 7
+            else:
+                total_hours += log.hours_worked
 
-                formatted_logs.append({
-                    'date': log.date.isoformat(),
-                    'status': log.status,
-                    'start_time': log.start_time.strftime('%H:%M') if log.start_time else None,
-                    'end_time': log.end_time.strftime('%H:%M') if log.end_time else None,
-                    'hours_worked': float(log.hours_worked) if isinstance(log.hours_worked, decimal.Decimal) else log.hours_worked,
-                    'notes': log.notes or '',
-                })
+            formatted_logs.append({
+                'date': log.date.isoformat(),
+                'status': log.status,
+                'start_time': log.start_time.strftime('%H:%M') if log.start_time else None,
+                'end_time': log.end_time.strftime('%H:%M') if log.end_time else None,
+                'hours_worked': float(log.hours_worked) if isinstance(log.hours_worked, decimal.Decimal) else log.hours_worked,
+                'notes': log.notes or '',
+            })
 
         student_data.append({
             'id': student.id,
@@ -1068,7 +1114,6 @@ def calendar_student_logs(request):
             'logs': formatted_logs,
             'total_hours': float(total_hours) if isinstance(total_hours, decimal.Decimal) else total_hours
         })
-
     student_data_json = json.dumps(student_data)
     return render(request, 'calendar.html', {
         'student_data': student_data_json,

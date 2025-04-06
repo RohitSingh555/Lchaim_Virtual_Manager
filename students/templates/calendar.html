@@ -352,84 +352,89 @@
     let currentDate = new Date("{{ current_date }}");
 
     function renderWeeklyCalendar(date) {
-      const startOfWeek = getStartOfWeek(new Date(date));
-      
-      console.log(new Date(date));
-      const endOfWeek = new Date(startOfWeek);
-      endOfWeek.setDate(startOfWeek.getDate() + 6);
-      calendarTitle.textContent = `${formatDate(startOfWeek)} - ${formatDate(endOfWeek)}`;
+  const startOfWeek = getStartOfWeek(new Date(date));
+  const endOfWeek = new Date(startOfWeek);
+  endOfWeek.setDate(startOfWeek.getDate() + 6);
+  calendarTitle.textContent = `${formatDate(startOfWeek)} - ${formatDate(endOfWeek)}`;
 
-      weeklySlots.innerHTML = "";
-      for (let i = 0; i < 7; i++) {
-        const day = new Date(startOfWeek);
-        day.setDate(startOfWeek.getDate() + i);
+  weeklySlots.innerHTML = "";
 
-        const dayColumn = document.createElement("div");
-        dayColumn.className = "day-column";
+  for (let i = 0; i < 7; i++) {
+    const day = new Date(startOfWeek);
+    day.setDate(startOfWeek.getDate() + i);
 
-        const dayHeader = document.createElement("div");
-        dayHeader.textContent = `${formatDate(day)}`;
-        dayHeader.className = "day-header";
-        dayColumn.appendChild(dayHeader);
+    const dayColumn = document.createElement("div");
+    dayColumn.className = "day-column";
 
-        let logsForDay = false;
+    const dayHeader = document.createElement("div");
+    dayHeader.textContent = `${formatDate(day)}`;
+    dayHeader.className = "day-header";
+    dayColumn.appendChild(dayHeader);
 
-        students.forEach(student => {
-          student.logs.forEach(log => {
-            const logDate = new Date(log.date);
-            const logDateString = logDate.toISOString().split("T")[0];
-            const currentDayString = day.toISOString().split("T")[0];
+    const logsForThisDay = [];
 
-            if (logDateString === currentDayString) {
-              logsForDay = true;
-              const userRow = document.createElement("div");
-              userRow.className = "log-item";
+    students.forEach(student => {
+      student.logs.forEach(log => {
+        const logDate = new Date(log.date).toISOString().split("T")[0];
+        const currentDayString = day.toISOString().split("T")[0];
 
-              const studentInfo = document.createElement("div");
-              studentInfo.className = "flex items-center text-gray-700";
-              
-              const statusDot = document.createElement("span");
-              statusDot.className = "status-dot " + (log.status === "Present" ? "status-green" : "status-red");
-              studentInfo.appendChild(statusDot);
-
-              const studentName = document.createElement("span");
-              studentName.textContent = `${student.name} (${log.hours_worked} hrs)`;
-              studentInfo.appendChild(studentName);
-
-              const studentPhoneNumber = document.createElement("div");
-              studentPhoneNumber.className = `phone-number text-gray-500`;
-              studentPhoneNumber.textContent = `\ud83d\udcde - ${student.phone}`;
-              
-
-              const timeInfo = document.createElement("div");
-              timeInfo.className = "text-gray-500";
-              timeInfo.textContent = `${log.start_time} - ${log.end_time}`;
-
-              userRow.appendChild(studentInfo);
-              userRow.appendChild(studentPhoneNumber);
-              userRow.appendChild(timeInfo);
-
-              const studentLink = document.createElement("a");
-              studentLink.href = `/student/${student.id}/logs/`;  // Dynamic link
-              studentLink.className = "text-blue-500 hover:text-blue-700 ";
-              studentLink.textContent = "View Logs";
-              userRow.appendChild(studentLink);
-
-              dayColumn.appendChild(userRow);
-            }
-          });
-        });
-
-        if (!logsForDay) {
-          const emptySlot = document.createElement("div");
-          emptySlot.className = "no-data";
-          emptySlot.textContent = "No data";
-          dayColumn.appendChild(emptySlot);
+        if (logDate === currentDayString) {
+          logsForThisDay.push({ ...log, student });
         }
+      });
+    });
 
-        weeklySlots.appendChild(dayColumn);
-      }
+    // Sort logs by start_time
+    logsForThisDay.sort((a, b) => a.start_time.localeCompare(b.start_time));
+
+    if (logsForThisDay.length === 0) {
+      const emptySlot = document.createElement("div");
+      emptySlot.className = "no-data";
+      emptySlot.textContent = "No data";
+      dayColumn.appendChild(emptySlot);
+    } else {
+      logsForThisDay.forEach(({ student, ...log }) => {
+        const userRow = document.createElement("div");
+        userRow.className = "log-item";
+
+        const studentInfo = document.createElement("div");
+        studentInfo.className = "flex items-center text-gray-700";
+
+        const statusDot = document.createElement("span");
+        statusDot.className = "status-dot " + (log.status === "Present" ? "status-green" : "status-red");
+        studentInfo.appendChild(statusDot);
+
+        const studentName = document.createElement("span");
+        studentName.textContent = `${student.name} (${log.hours_worked} hrs)`;
+        studentInfo.appendChild(studentName);
+
+        const studentPhoneNumber = document.createElement("div");
+        studentPhoneNumber.className = `phone-number text-gray-500`;
+        studentPhoneNumber.textContent = `📞 - ${student.phone}`;
+
+        const timeInfo = document.createElement("div");
+        timeInfo.className = "text-gray-500";
+        timeInfo.textContent = `${log.start_time} - ${log.end_time}`;
+
+        userRow.appendChild(studentInfo);
+        userRow.appendChild(studentPhoneNumber);
+        userRow.appendChild(timeInfo);
+
+        const studentLink = document.createElement("a");
+        studentLink.href = `/student/${student.id}/logs/`;
+        studentLink.className = "text-blue-500 hover:text-blue-700";
+        studentLink.textContent = "View Logs";
+
+        userRow.appendChild(studentLink);
+
+        dayColumn.appendChild(userRow);
+      });
     }
+
+    weeklySlots.appendChild(dayColumn);
+  }
+}
+
 
     function formatDate(date) {
       const options = { 
