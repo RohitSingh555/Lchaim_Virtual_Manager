@@ -83,11 +83,11 @@
         </a>
         {% endif %}
 
-        <a href="?{% if date_filter %}start_date={{ date_filter }}&{% endif %}{% if shift_filter %}shift={{ shift_filter }}&{% endif %}export=pdf"
+        <a href="?{% if date_filter %}start_date={{ date_filter }}&{% endif %}{% if shift_filter %}shift={{ shift_filter }}&{% endif %}{% if log_date_filter %}log_date={{ log_date_filter }}&{% endif %}export=pdf"
            class="flex items-center gap-2 bg-rose-600 text-white px-5 py-2.5 rounded-lg hover:bg-rose-700 shadow transition">
           <i class="fa-solid fa-file-pdf"></i> Export PDF
         </a>
-        <a href="?{% if date_filter %}start_date={{ date_filter }}&{% endif %}{% if shift_filter %}shift={{ shift_filter }}&{% endif %}export=excel"
+        <a href="?{% if date_filter %}start_date={{ date_filter }}&{% endif %}{% if shift_filter %}shift={{ shift_filter }}&{% endif %}{% if log_date_filter %}log_date={{ log_date_filter }}&{% endif %}export=excel"
            class="flex items-center gap-2 bg-emerald-600 text-white px-5 py-2.5 rounded-lg hover:bg-emerald-700 shadow transition">
           <i class="fa-solid fa-file-excel"></i> Export Excel
         </a>
@@ -131,31 +131,57 @@
     </div>
 
     <!-- Pagination -->
+  <!--  <div class="mt-8 flex justify-center gap-2 text-sm">-->
+  <!--      {% if students.has_previous %}-->
+  <!--        <a href="?page={{ students.previous_page_number }}-->
+  <!--                  {% if shift_filter %}&shift={{ shift_filter }}{% endif %}-->
+  <!--                  {% if date_filter %}&start_date={{ date_filter }}{% endif %}-->
+  <!--                  {% if log_date_filter %}&log_date={{ log_date_filter }}{% endif %}"-->
+  <!--           class="px-3 py-2 border border-slate-300 rounded-md hover:bg-slate-100 flex items-center">-->
+  <!--          <i class="fa-solid fa-chevron-left text-sm"></i>-->
+  <!--        </a>-->
+  <!--      {% endif %}-->
+      
+  <!--      <span class="px-4 py-2 border bg-slate-100 text-slate-700 rounded-md">{{ students.number }}</span>-->
+      
+  <!--      {% if students.has_next %}-->
+  <!--        <a href="?page={{ students.next_page_number }}-->
+  <!--                  {% if shift_filter %}&shift={{ shift_filter }}{% endif %}-->
+  <!--                  {% if date_filter %}&start_date={{ date_filter }}{% endif %}-->
+  <!--                  {% if log_date_filter %}&log_date={{ log_date_filter }}{% endif %}"-->
+  <!--           class="px-3 py-2 border border-slate-300 rounded-md hover:bg-slate-100 flex items-center">-->
+  <!--          <i class="fa-solid fa-chevron-right text-sm"></i>-->
+  <!--        </a>-->
+  <!--      {% endif %}-->
+  <!--    </div>-->
+      
+  <!--</div>-->
+  
+  
+<div class="text-center mt-4 text-sm text-gray-600">
+    Showing {{ students.start_index }} to {{ students.end_index }} of {{ students.paginator.count }} students |
+    Page {{ students.number }} of {{ students.paginator.num_pages }}
+</div>
+
+
+  <!-- Pagination -->
     <div class="mt-8 flex justify-center gap-2 text-sm">
         {% if students.has_previous %}
-          <a href="?page={{ students.previous_page_number }}
-                    {% if shift_filter %}&shift={{ shift_filter }}{% endif %}
-                    {% if date_filter %}&start_date={{ date_filter }}{% endif %}
-                    {% if log_date_filter %}&log_date={{ log_date_filter }}{% endif %}"
-             class="px-3 py-2 border border-slate-300 rounded-md hover:bg-slate-100 flex items-center">
-            <i class="fa-solid fa-chevron-left text-sm"></i>
-          </a>
+            <a href="?page={{ students.previous_page_number }}{% if shift_filter %}&shift={{ shift_filter }}{% endif %}{% if date_filter %}&start_date={{ date_filter }}{% endif %}{% if log_date_filter %}&log_date={{ log_date_filter }}{% endif %}"
+               class="px-3 py-2 border border-slate-300 rounded-md hover:bg-slate-100 flex items-center">
+                <i class="fa-solid fa-chevron-left text-sm"></i>
+            </a>
         {% endif %}
-      
+    
         <span class="px-4 py-2 border bg-slate-100 text-slate-700 rounded-md">{{ students.number }}</span>
-      
+    
         {% if students.has_next %}
-          <a href="?page={{ students.next_page_number }}
-                    {% if shift_filter %}&shift={{ shift_filter }}{% endif %}
-                    {% if date_filter %}&start_date={{ date_filter }}{% endif %}
-                    {% if log_date_filter %}&log_date={{ log_date_filter }}{% endif %}"
-             class="px-3 py-2 border border-slate-300 rounded-md hover:bg-slate-100 flex items-center">
-            <i class="fa-solid fa-chevron-right text-sm"></i>
-          </a>
+            <a href="?page={{ students.next_page_number }}{% if shift_filter %}&shift={{ shift_filter }}{% endif %}{% if date_filter %}&start_date={{ date_filter }}{% endif %}{% if log_date_filter %}&log_date={{ log_date_filter }}{% endif %}"
+               class="px-3 py-2 border border-slate-300 rounded-md hover:bg-slate-100 flex items-center">
+                <i class="fa-solid fa-chevron-right text-sm"></i>
+            </a>
         {% endif %}
-      </div>
-      
-  </div>
+    </div>
 
   <!-- JS to Enhance Filter Button -->
   <script>

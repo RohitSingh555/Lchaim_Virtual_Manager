@@ -329,19 +329,26 @@ def send_student_creation_email(student):
     <div class="email-container">
         <p>Dear {student.first_name},</p>
 
-        <p>Welcome to L'Chaim! We are excited to have you join us. Your orientation has been scheduled for <strong>{orientation_date} at 10:00 AM</strong>. During this session, we will cover important details to help you transition smoothly into your placement. <br> <strong>Orientation Topic:</strong> {orientation_description}.</p>
+        <p>Welcome to L’Chaim! We are thrilled to have you join us and look forward to supporting you throughout your placement.</p>
 
-        <p>Before you begin, it is essential that you familiarize yourself with our key policies and guidelines. Please find the attached training documents and review them carefully. Once you have read and understood them, kindly confirm your acknowledgment.</p>
+        <p>Your orientation has been scheduled for <strong>{orientation_date} at 10:00 AM</strong>, and will take place at <strong>L’Chaim Retirement Home</strong>.</p>
 
-        <p>If you have any questions or need further clarification, feel free to reach out.</p>
+        <p>During this session, we will walk you through important information to help ensure a smooth and successful start.</p>
 
-        <p>Wishing you the best learning experience and a successful journey at L'Chaim!</p>
+        <p><strong>Orientation Topic:</strong> {orientation_description}<br>
+        <strong>Date & Time:</strong> {orientation_date} at 10:00 AM<br>
+        <strong>Location:</strong> L’Chaim Retirement Home – 718 Sheppard Ave West, Toronto, Ontario</p>
 
-        <p>Kind regards,</p>
-        <p><strong>Judy</strong></p>
-        <p><strong>L'Chaim Administration Team</strong></p>
-<p>718 Sheppard Ave W, North York, ON M3H 2S6, Canada</p>
-<p><a href="mailto:lchaim@app.lchaimretirement.ca">lchaim@app.lchaimretirement.ca</a></p>
+        <p>Before your orientation, please take some time to review the attached training documents, which outline our key policies and guidelines. Once you’ve read and understood them, kindly confirm your acknowledgement by replying to this email.</p>
+
+        <p>If you have any questions or need further clarification, don’t hesitate to reach out—we’re here to help.</p>
+
+        <p>Wishing you a meaningful and enriching experience with us at L’Chaim!</p>
+
+        <p>Warm regards,</p>
+
+        <p><strong>Esther Davidov</strong><br>
+        Students Coordinator</p>
     </div>
 </body>
 
@@ -373,7 +380,7 @@ def send_student_creation_email(student):
         subject=subject_q,
         body=message,
         from_email=settings.DEFAULT_FROM_EMAIL,
-        to=[student.email],  
+        to=[student.email] + ([student.college_contact_person] if student.college_contact_person else [])
     )
     email.content_subtype = "html"
 

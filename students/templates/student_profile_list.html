@@ -278,6 +278,7 @@
         </th>
         
         <th class="px-4 py-3 text-center w-64">Weekdays Selected</th>
+        <th class="px-4 py-3 text-center w-64">Shift Assigned</th>
         <th class="px-4 py-3 text-center">Hours Requested</th>
         <th class="px-4 py-3 text-center">
             <a href="?sort_field=lchaim_orientation_date&sort_order={% if sort_field == 'lchaim_orientation_date' and sort_order == 'asc' %}desc{% else %}asc{% endif %}" class="hover:underline">
@@ -302,7 +303,17 @@
                             <td class="px-4 py-3 text-center">{{ profile.phone }}</td>
                             <td class="px-4 py-3 text-center">{{ profile.school }}</td>
                             <td class="px-4 py-3 text-center">{{ profile.weekdays_display }}</td>
-                            <td class="px-4 py-3 text-center">{{ profile.hours_requested }}</td>
+                            <td class="px-4 py-3 text-center align-middle">
+                                <div class="inline-block bg-gray-100 p-3 rounded-lg shadow-sm">
+                                    <p class="text-sm font-semibold text-indigo-600 mb-1">
+                                        {{ profile.assigned_shift.type }}
+                                    </p>
+                                    <p class="text-xs text-gray-700">
+                                        🕒 {{ profile.assigned_shift.start_time }} - {{ profile.assigned_shift.end_time }}
+                                    </p>
+                                </div>
+                            </td>
+                                                        <td class="px-4 py-3 text-center">{{ profile.hours_requested }}</td>
                             <td class="px-4 py-3 text-center">{{ profile.lchaim_orientation_date }}</td>
                             <td class="px-4 py-3 text-center">{{ profile.start_date|date:"Y-m-d" }}</td>
 

@@ -73,7 +73,7 @@ class StudentProfileForm(forms.ModelForm):
         model = StudentProfile
         fields = [
             'first_name', 'last_name', 'phone', 'email', 'lchaim_training_completed',
-            'college','start_date',
+            'college','start_date', 'college_contact_person',
             'hours_requested', 'shift_requested', 'lchaim_orientation_date', 'weekdays_selected',
             'skills_book_completed', 'police_check', 'med_docs', 'comments'
         ]
