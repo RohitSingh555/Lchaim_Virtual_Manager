@@ -82,7 +82,7 @@ def logout_view(request):
 
 from datetime import datetime, date, timedelta
 
-def get_shift_availability(user, start_date, shift_type, requested_hours, shift_requested, weekdays_selected):
+def get_shift_availability(user, start_date, shift_type, requested_hours):
     try:
         assigned_shift = Shift.objects.get(type__icontains=shift_type)
     except Shift.DoesNotExist:
@@ -99,7 +99,20 @@ def get_shift_availability(user, start_date, shift_type, requested_hours, shift_
 
     current_date = start_date
     working_days = 0
-
+    if shift_type.contains("Weekend"):
+        weekdays_selected = {
+            "Saturday": 5,
+            "Sunday": 6
+        }
+    else:
+        weekdays_selected = {
+            "Monday": 0,
+            "Tuesday": 1,
+            "Wednesday": 2,
+            "Thursday": 3,
+            "Friday": 4
+        }
+        
     selected_weekdays = set(weekdays_selected.values())
 
     while working_days < days_required:
@@ -121,7 +134,7 @@ def get_shift_availability(user, start_date, shift_type, requested_hours, shift_
         "start_date": start_date,
         "shift_type": shift_type,
         "requested_hours": requested_hours,
-        "shift_requested": shift_requested,
+        # "shift_requested": shift_requested,
         "weekdays_selected": list(selected_weekdays),
         "end_date": end_date,
     }
@@ -136,10 +149,9 @@ def shift_availability_api(request):
             start_date = datetime.strptime(data['start_date'], '%Y-%m-%d').date()
             shift_type = data['shift_type']
             requested_hours = int(data['requested_hours'])
-            shift_requested = data['shift_requested']
-            weekdays_selected = data['selected_weekdays']
+
             
-            availability = get_shift_availability(request.user, start_date, shift_type, requested_hours, shift_requested, weekdays_selected)
+            availability = get_shift_availability(request.user, start_date, shift_type, requested_hours)
             return JsonResponse(availability)
         
         except KeyError as e:
@@ -225,7 +237,10 @@ def create_student_profile(request):
 
                 current_date = start_date
                 working_days = 0
-
+                response_shift = get_shift_availability(request.user, start_date, assigned_shift.type, requested_hours)
+                if not response_shift.get("is_available"):
+                    messages.error(request, response_shift.get("message"))
+                    return render(request, 'create_profile.html', {'form': profile_form, 'shifts': shifts})
                 while working_days < days_required:
                     if current_date.weekday() in weekdays_selected:
                         if validate_shift_capacity(request.user, current_date, assigned_shift):

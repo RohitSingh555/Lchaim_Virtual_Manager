@@ -26,7 +26,8 @@
             min-height: 100vh;
             padding-top: 70px;
         }
-        .no-default-width{
+
+        .no-default-width {
             width: 10% !important;
         }
 
@@ -287,10 +288,10 @@
                 <label for="id_phone">Phone</label>
                 {{ form.phone }}
             </div>
-      <div class="form-group">
+            <div class="form-group">
                 <label for="id_college">College</label>
                 {{ form.college }}
-            </div>      
+            </div>
             <div class="form-group">
                 <label for="id_college_contact_person">College's Contact Person</label>
                 {{ form.college_contact_person }}
@@ -323,11 +324,11 @@
                             Note: Leave the following field empty if you don't want to select custom weekdays and would like to work for all weekdays from Monday to Friday.
                         </div>
                 </label> -->
-                    
-                    
-            
-                <!-- Custom Multi-Select Dropdown -->
-                <!-- <div class="relative">
+
+
+
+            <!-- Custom Multi-Select Dropdown -->
+            <!-- <div class="relative">
                     <button id="weekdaysDropdownButton" type="button" class="w-full px-4 py-2 text-left bg-white border border-gray-300 rounded-lg shadow-sm flex items-center justify-between focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                         <span>Select Weekdays</span>
                         <svg id="dropdownIcon" class="w-5 h-5 text-gray-600 transition-transform transform rotate-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -386,18 +387,18 @@
                 <input type="hidden" id="weekdaysSelected" name="weekdays_selected">
             </div> -->
 
-                       
+
             <div class="form-group">
                 <label for="id_shift_timing">Shift Timing</label>
                 <select id="id_shift_timing" name="shift_timing" class="form-control">
                     <option value="">-- Select Shift --</option>
                     {% for shift in shifts %}
-                        <option value="{{ shift.id }}">
-                            {{ shift.type }} - {{ shift.start_time|time:"g A" }} - {{ shift.end_time|time:"g A" }}
-                        </option>
+                    <option value="{{ shift.id }}">
+                        {{ shift.type }} - {{ shift.start_time|time:"g A" }} - {{ shift.end_time|time:"g A" }}
+                    </option>
                     {% endfor %}
                 </select>
-            </div> 
+            </div>
 
             <div class="form-row hidden">
                 <div class="form-group">
@@ -410,7 +411,7 @@
                 </div>
             </div>
 
-     
+
             <!-- <div class="form-group">
                 <label for="id_police_check">Police Check</label>
                 <div class="custom-switch">
@@ -423,45 +424,57 @@
                     {{ form.med_docs }}
                 </div>
             </div> -->
-            
-            
-            
+
+
+
             <div class="form-group mt-4">
                 <div class="bg-white border border-gray-300 rounded-lg p-3 mx-auto">
-                    <h4 class="text-base font-semibold text-gray-800 mb-2 text-left">Required Documents for Placement</h4>
+                    <h4 class="text-base font-semibold text-gray-800 mb-2 text-left">Required Documents for Placement
+                    </h4>
                     <ul class="space-y-1 text-sm text-gray-700">
                         <li class="flex items-center space-x-2">
-                            <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                            <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                                xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M5 13l4 4L19 7"></path>
                             </svg>
                             <span>COVID Vaccination</span>
                         </li>
                         <li class="flex items-center space-x-2">
-                            <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                            <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                                xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M5 13l4 4L19 7"></path>
                             </svg>
                             <span>Medical Certificate</span>
                         </li>
                         <li class="flex items-center space-x-2">
-                            <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                            <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                                xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M5 13l4 4L19 7"></path>
                             </svg>
                             <span>Police Check / Vulnerable Sector Check</span>
                         </li>
                         <li class="flex items-center space-x-2">
-                            <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                            <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                                xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M5 13l4 4L19 7"></path>
                             </svg>
                             <span>CPR or First Aid</span>
                         </li>
                         <li class="flex items-center space-x-2">
-                            <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                            <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                                xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M5 13l4 4L19 7"></path>
                             </svg>
                             <span>Mask Fit</span>
                         </li>
                     </ul>
-                    <p class="text-xs text-gray-600 mt-2">Please ensure that all documents are prepared before uploading.</p>
+                    <p class="text-xs text-gray-600 mt-2">Please ensure that all documents are prepared before
+                        uploading.</p>
                     <br>
                     <ul class="space-y-3 text-sm text-gray-700">
                         <!-- COVID Vaccination -->
@@ -470,46 +483,46 @@
                                 COVID Vaccination <span class="text-red-500">*</span>
                             </label>
                             <input type="file" id="covid_vaccination" name="covid_vaccination" required
-                                   class="border border-gray-300 rounded-lg p-2 w-full focus:ring focus:ring-blue-300" />
+                                class="border border-gray-300 rounded-lg p-2 w-full focus:ring focus:ring-blue-300" />
                         </li>
-                    
+
                         <!-- Medical Certificate -->
                         <li class="flex flex-col space-y-2">
                             <label class="font-medium text-gray-700" for="medical_certificate">
                                 Medical Certificate <span class="text-red-500">*</span>
                             </label>
                             <input type="file" id="medical_certificate" name="medical_certificate" required
-                                   class="border border-gray-300 rounded-lg p-2 w-full focus:ring focus:ring-blue-300" />
+                                class="border border-gray-300 rounded-lg p-2 w-full focus:ring focus:ring-blue-300" />
                         </li>
-                    
+
                         <!-- Police Check -->
                         <li class="flex flex-col space-y-2">
                             <label class="font-medium text-gray-700" for="police_check">
                                 Police Check / Vulnerable Sector Check <span class="text-red-500">*</span>
                             </label>
                             <input type="file" id="police_check" name="police_check" required
-                                   class="border border-gray-300 rounded-lg p-2 w-full focus:ring focus:ring-blue-300" />
+                                class="border border-gray-300 rounded-lg p-2 w-full focus:ring focus:ring-blue-300" />
                         </li>
-                    
+
                         <!-- CPR or First Aid -->
                         <li class="flex flex-col space-y-2">
                             <label class="font-medium text-gray-700" for="cpr_first_aid">
                                 CPR or First Aid <span class="text-red-500">*</span>
                             </label>
                             <input type="file" id="cpr_first_aid" name="cpr_first_aid" required
-                                   class="border border-gray-300 rounded-lg p-2 w-full focus:ring focus:ring-blue-300" />
+                                class="border border-gray-300 rounded-lg p-2 w-full focus:ring focus:ring-blue-300" />
                         </li>
-                    
+
                         <!-- Mask Fit (Not Required) -->
                         <li class="flex flex-col space-y-2">
                             <label class="font-medium text-gray-700" for="mask_fit">
                                 Mask Fit
                             </label>
                             <input type="file" id="mask_fit" name="mask_fit"
-                                   class="border border-gray-300 rounded-lg p-2 w-full focus:ring focus:ring-blue-300" />
+                                class="border border-gray-300 rounded-lg p-2 w-full focus:ring focus:ring-blue-300" />
                         </li>
                     </ul>
-                    
+
                 </div>
             </div>
             <br>
@@ -519,18 +532,18 @@
         </form>
     </div>
     <script>
-       document.getElementById("id_lchaim_orientation_date").addEventListener("change", function() {
-            let selectedOption = this.options[this.selectedIndex];  
-            let orientationText = selectedOption.textContent.trim(); 
-            
+        document.getElementById("id_lchaim_orientation_date").addEventListener("change", function () {
+            let selectedOption = this.options[this.selectedIndex];
+            let orientationText = selectedOption.textContent.trim();
+
             // Extract date using regex
             let dateMatch = orientationText.match(/\d{4}-\d{2}-\d{2}/);
             let orientationDate = dateMatch ? dateMatch[0] : "";
-        
+
             console.log("Extracted Orientation Date:", orientationDate);
-        
+
             let startDateInput = document.querySelector(".start-date");
-        
+
             if (startDateInput) {
                 if (orientationDate) {
                     let dateObj = new Date(orientationDate);
@@ -540,19 +553,20 @@
                     let nextDay = dateObj.toISOString().split("T")[0];
 
                     startDateInput.value = nextDay;
-                    startDateInput.setAttribute("min", nextDay); 
+                    startDateInput.setAttribute("min", nextDay);
                 } else {
                     startDateInput.removeAttribute("min");
-                    startDateInput.value = ""; 
+                    startDateInput.value = "";
                 }
             }
         });
-        
-        
+
+
     </script>
 
+    {% comment %}
     <script>
-            document.addEventListener("DOMContentLoaded", function () {
+        document.addEventListener("DOMContentLoaded", function () {
             const toggleButton = document.getElementById("toggleDropdown");
             const shiftAvailability = document.getElementById("shift-availability");
             const dropdownIcon = document.getElementById("dropdownIcon");
@@ -566,9 +580,9 @@
                     dropdownIcon.innerHTML = "&#9650;";
                 }
             });
-            
+
         });
-    </script>
+    </script> {% endcomment %}
     <!-- <script>
 
         document.addEventListener('DOMContentLoaded', function () {
@@ -627,60 +641,60 @@
     </script> -->
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            const shiftRequestedDropdown = document.getElementById('id_shift_requested');
+            //const shiftRequestedDropdown = document.getElementById('id_shift_requested');
             const shiftTimingDropdown = document.getElementById('id_shift_timing');
             const startDateInput = document.getElementById('id_start_date');
             const hoursRequestedInput = document.getElementById('id_hours_requested');
 
-            const shiftTimes = {
-                Weekdays: {
-                    'Morning': { start: '07:00', end: '15:00' },
-                    'Afternoon': { start: '15:00', end: '23:00' },
-                    'Night': { start: '23:00', end: '07:00' },
-                    'WeekendDay': { start: '07:00', end: '19:00' },
-                    'WeekendNight': { start: '19:00', end: '07:00' }
-                },
-                Weekends: {
-                    'WeekendDay': { start: '07:00', end: '19:00' },
-                    'WeekendNight': { start: '19:00', end: '07:00' },
-                    'Morning': { start: '07:00', end: '15:00' },
-                    'Afternoon': { start: '15:00', end: '23:00' },
-                    'Night': { start: '23:00', end: '07:00' },
-                }
-            };
+            // const shiftTimes = {
+            //     Weekdays: {
+            //         'Morning': { start: '07:00', end: '15:00' },
+            //         'Afternoon': { start: '15:00', end: '23:00' },
+            //         'Night': { start: '23:00', end: '07:00' },
+            //         'WeekendDay': { start: '07:00', end: '19:00' },
+            //         'WeekendNight': { start: '19:00', end: '07:00' }
+            //     },
+            //     Weekends: {
+            //         'WeekendDay': { start: '07:00', end: '19:00' },
+            //         'WeekendNight': { start: '19:00', end: '07:00' },
+            //         'Morning': { start: '07:00', end: '15:00' },
+            //         'Afternoon': { start: '15:00', end: '23:00' },
+            //         'Night': { start: '23:00', end: '07:00' },
+            //     }
+            // };
 
-            function updateShiftOptions() {
-                const selectedShiftRequested = shiftRequestedDropdown.value;
+            // function updateShiftOptions() {
+            //     const selectedShiftRequested = shiftRequestedDropdown.value;
 
-                shiftTimingDropdown.innerHTML = '';
+            //     shiftTimingDropdown.innerHTML = '';
 
-                if (shiftTimes[selectedShiftRequested]) {
-                    const shifts = shiftTimes[selectedShiftRequested];
-                    Object.keys(shifts).forEach(shift => {
-                        const option = document.createElement('option');
-                        option.value = shift;
-                        option.textContent = `${shift} (${shifts[shift].start} - ${shifts[shift].end})`;
-                        shiftTimingDropdown.appendChild(option);
-                    });
-                }
-            }
+            //     if (shiftTimes[selectedShiftRequested]) {
+            //         const shifts = shiftTimes[selectedShiftRequested];
+            //         Object.keys(shifts).forEach(shift => {
+            //             const option = document.createElement('option');
+            //             option.value = shift;
+            //             option.textContent = `${shift} (${shifts[shift].start} - ${shifts[shift].end})`;
+            //             shiftTimingDropdown.appendChild(option);
+            //         });
+            //     }
+            // }
             function fetchShiftAvailabilityOnChange() {
                 const startDate = startDateInput.value;
-                const shiftRequested = shiftRequestedDropdown.value;
+                // const shiftRequested = shiftRequestedDropdown.value;
                 const requestedHours = hoursRequestedInput.value;
                 const shiftType = shiftTimingDropdown.value;
 
-                if (startDate && shiftRequested && requestedHours && shiftType) {
-                    fetchShiftAvailability(startDate, shiftRequested, requestedHours, shiftType);
+                if (startDate && requestedHours && shiftType) {
+                    fetchShiftAvailability(startDate, requestedHours, shiftType);
                 }
             }
 
-            async function fetchShiftAvailability(startDate, shiftRequested, requestedHours, shiftType) {
+            async function fetchShiftAvailability(startDate, requestedHours, shiftType) {
                 try {
                     // Get the selected weekdays from the hidden input field
-                    const hiddenInput = document.getElementById("weekdaysSelected");
-                    const selectedWeekdays = hiddenInput.value ? JSON.parse(hiddenInput.value) : {};
-            
+
+
+
                     const response = await fetch('/api/shift-availability/', {
                         method: "POST",
                         headers: {
@@ -689,13 +703,12 @@
                         },
                         body: JSON.stringify({
                             start_date: startDate,
-                            shift_requested: shiftRequested,
                             requested_hours: requestedHours,
                             shift_type: shiftType,
-                            selected_weekdays: selectedWeekdays  // Pass selected weekdays here
+
                         })
                     });
-            
+
                     if (response.ok) {
                         const data = await response.json();
                         displayShiftAvailability(data);
@@ -706,7 +719,7 @@
                     console.error("Network error:", error);
                 }
             }
-            
+
 
             function displayShiftAvailability(data) {
                 const card = document.getElementById('shift-availability-card');
@@ -721,7 +734,7 @@
                 if (data.is_available) {
                     card.classList.add('available');
                     card.classList.remove('not-available');
-                    submitButton.disabled = false; 
+                    submitButton.disabled = false;
                 } else {
                     card.classList.add('not-available');
                     card.classList.remove('available');
@@ -758,7 +771,7 @@
             });
 
             shiftTimingDropdown.addEventListener('change', fetchShiftAvailabilityOnChange);
-            startDateInput.addEventListener('change', fetchShiftAvailabilityOnChange);
+            //startDateInput.addEventListener('change', fetchShiftAvailabilityOnChange);
             hoursRequestedInput.addEventListener('input', fetchShiftAvailabilityOnChange);
         });
     </script>
