@@ -730,6 +730,7 @@
                 document.getElementById('requested-hours').textContent = data.requested_hours;
                 document.getElementById('start-date').textContent = data.start_date;
                 document.getElementById('end-date').textContent = data.end_date;
+                console.log(data);
 
                 if (data.is_available) {
                     card.classList.add('available');
@@ -765,12 +766,9 @@
             if (closeBtn) {
                 closeBtn.addEventListener('click', closeNotification);
             }
-            shiftRequestedDropdown.addEventListener('change', function () {
-                updateShiftOptions();
-                fetchShiftAvailabilityOnChange();
-            });
-
+            let orientationDate = document.getElementById("id_lchaim_orientation_date")
             shiftTimingDropdown.addEventListener('change', fetchShiftAvailabilityOnChange);
+            orientationDate.addEventListener('change', fetchShiftAvailabilityOnChange);            
             //startDateInput.addEventListener('change', fetchShiftAvailabilityOnChange);
             hoursRequestedInput.addEventListener('input', fetchShiftAvailabilityOnChange);
         });

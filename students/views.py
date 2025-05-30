@@ -84,7 +84,8 @@ from datetime import datetime, date, timedelta
 
 def get_shift_availability(user, start_date, shift_type, requested_hours):
     try:
-        assigned_shift = Shift.objects.get(type__icontains=shift_type)
+        print('Shift type:', shift_type)    
+        assigned_shift = Shift.objects.get(id=shift_type)
     except Shift.DoesNotExist:
         return {"error": f"Shift type '{shift_type}' does not exist."}
 
@@ -99,7 +100,8 @@ def get_shift_availability(user, start_date, shift_type, requested_hours):
 
     current_date = start_date
     working_days = 0
-    if shift_type.contains("Weekend"):
+    shift_type = assigned_shift.type.lower()
+    if "weekend" in shift_type:
         weekdays_selected = {
             "Saturday": 5,
             "Sunday": 6
@@ -193,12 +195,13 @@ def create_student_profile(request):
                     StudentFile.objects.create(student=student_profile, file=file)
 
             shift_id = request.POST.get('shift_timing')
+            print("Shift ID:", shift_id)
             college_request_id = request.POST.get('college')
             college = College.objects.get(id=college_request_id)
             student_profile.school = college.name
 
             try:
-                assigned_shift = Shift.objects.get(id=int(shift_id))
+                assigned_shift = Shift.objects.get(id=shift_id)
                 student_profile.assigned_shift = assigned_shift
 
                 # ✅ New logic to auto-fill shift_requested and weekdays_selected
@@ -237,10 +240,6 @@ def create_student_profile(request):
 
                 current_date = start_date
                 working_days = 0
-                response_shift = get_shift_availability(request.user, start_date, assigned_shift.type, requested_hours)
-                if not response_shift.get("is_available"):
-                    messages.error(request, response_shift.get("message"))
-                    return render(request, 'create_profile.html', {'form': profile_form, 'shifts': shifts})
                 while working_days < days_required:
                     if current_date.weekday() in weekdays_selected:
                         if validate_shift_capacity(request.user, current_date, assigned_shift):

@@ -69,6 +69,12 @@ class StudentProfileForm(forms.ModelForm):
         required=True,  # Allow null selection
         label="College"
     )
+
+    college_contact_person = forms.CharField(
+        widget=forms.TextInput(attrs={'type': 'text'}),
+        required=False,
+        label="College's Contact Person"
+    )
     class Meta:
         model = StudentProfile
         fields = [

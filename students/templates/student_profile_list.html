@@ -306,11 +306,11 @@
                             <td class="px-4 py-3 text-center align-middle">
                                 <div class="inline-block bg-gray-100 p-3 rounded-lg shadow-sm">
                                     <p class="text-sm font-semibold text-indigo-600 mb-1">
-                                        {{ profile.assigned_shift.type }}
+                                     {{ profile.assigned_shift.get_type_display }}
                                     </p>
-                                    <p class="text-xs text-gray-700">
-                                        🕒 {{ profile.assigned_shift.start_time }} - {{ profile.assigned_shift.end_time }}
-                                    </p>
+                                    <!--<p class="text-xs text-gray-700">-->
+                                    <!--    🕒 {{ profile.assigned_shift.start_time }} - {{ profile.assigned_shift.end_time }}-->
+                                    <!--</p>-->
                                 </div>
                             </td>
                                                         <td class="px-4 py-3 text-center">{{ profile.hours_requested }}</td>

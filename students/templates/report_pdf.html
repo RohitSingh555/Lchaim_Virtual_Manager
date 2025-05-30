@@ -93,7 +93,7 @@
                 <td>{{ student.last_name }}</td>
                 <td>
                     {% if student.assigned_shift %}
-                        {{ student.assigned_shift.type }}
+                        {{ student.assigned_shift.get_type_display }}
                     {% else %}
                         <span class="not-assigned">Not Assigned</span>
                     {% endif %}

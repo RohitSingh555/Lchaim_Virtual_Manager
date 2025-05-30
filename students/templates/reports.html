@@ -63,7 +63,7 @@
           <option value="">All Shifts</option>
           {% for shift in shifts %}
             <option value="{{ shift.type }}" {% if shift.type == shift_filter %}selected{% endif %}>
-              {{ shift.type }}
+              {{ shift.get_type_display }}
             </option>
           {% endfor %}
         </select>
@@ -112,7 +112,7 @@
             <td class="px-6 py-4 font-medium text-slate-800">{{ student.last_name }}</td>
             <td class="px-6 py-4">
               {% if student.assigned_shift %}
-                <span class="text-slate-700">{{ student.assigned_shift.type }}</span>
+                <span class="text-slate-700">{{ student.assigned_shift.get_type_display }}</span>
               {% else %}
                 <span class="text-slate-400 italic"><i class="fa-solid fa-circle-xmark mr-1"></i>Not Assigned</span>
               {% endif %}

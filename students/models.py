@@ -56,7 +56,7 @@ class StudentProfile(models.Model):
     last_name = models.CharField(max_length=100)
     phone = models.CharField(max_length=15, default='')
     email = models.EmailField(unique=True)
-    college_contact_person = models.EmailField(default='', blank=True)
+    college_contact_person = models.TextField(default='', blank=True)
     school = models.CharField(max_length=100)
     college = models.ForeignKey(College, on_delete=models.SET_NULL, null=True, blank=True)
     lchaim_training_completed = models.BooleanField(default=False)
