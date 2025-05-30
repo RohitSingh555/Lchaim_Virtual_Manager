@@ -101,7 +101,7 @@ def get_shift_availability(user, start_date, shift_type, requested_hours):
     current_date = start_date
     working_days = 0
     shift_type = assigned_shift.type.lower()
-    if "weekend" in shift_type:
+    if "weekendday" in shift_type:
         weekdays_selected = {
             "Saturday": 5,
             "Sunday": 6
@@ -113,6 +113,14 @@ def get_shift_availability(user, start_date, shift_type, requested_hours):
             "Sunday": 6
         }
         weekdays_selected = [4, 5, 6]
+    elif "night" in shift_type:
+        weekdays_selected = {
+            "Monday": 0,
+            "Tuesday": 1,
+            "Wednesday": 2,
+            "Thursday": 3,
+        }
+        weekdays_selected = [0, 1, 2, 3]
     else:
         weekdays_selected = {
             "Monday": 0,
@@ -221,13 +229,22 @@ def create_student_profile(request):
                         "Sunday": 6
                     }
                     weekdays_selected = [4, 5, 6]
-                elif "weekend" in shift_type:
+                elif "weekendday" in shift_type:
                     student_profile.shift_requested = "Weekend"
                     student_profile.weekdays_selected = {
                         "Saturday": 5,
                         "Sunday": 6
                     }
                     weekdays_selected = [5, 6]
+                elif "night" in shift_type:
+                    student_profile.shift_requested = "Weekday"
+                    student_profile.weekdays_selected = {
+                        "Monday": 0,
+                        "Tuesday": 1,
+                        "Wednesday": 2,
+                        "Thursday": 3,
+                    }
+                    weekdays_selected = [0, 1, 2, 3]
                 else:
                     student_profile.shift_requested = "Weekday"
                     student_profile.weekdays_selected = {

@@ -401,16 +401,31 @@
 
 
             <div class="form-group">
-                <label for="id_shift_timing">Shift Timing</label>
-                <select id="id_shift_timing" name="shift_timing" class="form-control">
-                    <option value="">-- Select Shift --</option>
-                    {% for shift in shifts %}
-                    <option value="{{ shift.id }}">
-                        {{ shift.type }} - {{ shift.start_time|time:"g A" }} - {{ shift.end_time|time:"g A" }}
-                    </option>
-                    {% endfor %}
-                </select>
-            </div>
+    <label for="id_shift_timing">Shift Timing</label>
+    <select id="id_shift_timing" name="shift_timing" class="form-control">
+        <option value="">-- Select Shift --</option>
+        {% for shift in shifts %}
+            {% if shift.type == "WeekendDay" %}
+                <option value="{{ shift.id }}">
+                    WeekendDay - Sat & Sun - {{ shift.start_time|time:"g A" }} to {{ shift.end_time|time:"g A" }}
+                </option>
+            {% elif shift.type == "WeekendNight" %}
+                <option value="{{ shift.id }}">
+                    WeekendNight - Fri to Sun - {{ shift.start_time|time:"g A" }} to {{ shift.end_time|time:"g A" }}
+                </option>
+            {% elif shift.type == "Night" %}
+                <option value="{{ shift.id }}">
+                    WeekdayNight - Mon to Thu - {{ shift.start_time|time:"g A" }} to {{ shift.end_time|time:"g A" }}
+                </option>
+            {% else %}
+                <option value="{{ shift.id }}">
+                    {{ shift.type }} - Mon to Fri - {{ shift.start_time|time:"g A" }} to {{ shift.end_time|time:"g A" }}
+                </option>
+            {% endif %}
+        {% endfor %}
+    </select>
+</div>
+
 
             <div class="form-row hidden">
                 <div class="form-group">
