@@ -106,6 +106,13 @@ def get_shift_availability(user, start_date, shift_type, requested_hours):
             "Saturday": 5,
             "Sunday": 6
         }
+    elif "weekendnight" in shift_type:
+        weekdays_selected = {
+            "Friday": 4,
+            "Saturday": 5,
+            "Sunday": 6
+        }
+        weekdays_selected = [4, 5, 6]
     else:
         weekdays_selected = {
             "Monday": 0,
@@ -206,7 +213,15 @@ def create_student_profile(request):
 
                 # ✅ New logic to auto-fill shift_requested and weekdays_selected
                 shift_type = assigned_shift.type.lower()
-                if "weekend" in shift_type:
+                if "weekendnight" in shift_type:
+                    student_profile.shift_requested = "Weekend"
+                    student_profile.weekdays_selected = {
+                        "Friday": 4,
+                        "Saturday": 5,
+                        "Sunday": 6
+                    }
+                    weekdays_selected = [4, 5, 6]
+                elif "weekend" in shift_type:
                     student_profile.shift_requested = "Weekend"
                     student_profile.weekdays_selected = {
                         "Saturday": 5,
@@ -349,7 +364,6 @@ def send_student_creation_email(student):
 
         <p>During this session, we will walk you through important information to help ensure a smooth and successful start.</p>
 
-        <p><strong>Orientation Topic:</strong> {orientation_description}<br>
         <strong>Date & Time:</strong> {orientation_date} at 10:00 AM<br>
         <strong>Location:</strong> L’Chaim Retirement Home – 718 Sheppard Ave West, Toronto, Ontario</p>
 
@@ -391,11 +405,15 @@ def send_student_creation_email(student):
     excel_filename = f"{student.first_name}_{student.last_name}_schedule.xlsx"
 
     email = EmailMessage(
-        subject=subject_q,
-        body=message,
-        from_email=settings.DEFAULT_FROM_EMAIL,
-        to=[student.email] + ([student.college_contact_person] if student.college_contact_person else [])
-    )
+    subject=subject_q,
+    body=message,
+    from_email=settings.DEFAULT_FROM_EMAIL,
+    to=[
+        student.email,
+        student.college_contact_person_email
+    ] if student.college_contact_person_email else [student.email]
+)
+
     email.content_subtype = "html"
 
     email.attach(excel_filename, excel_file.read(), 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')

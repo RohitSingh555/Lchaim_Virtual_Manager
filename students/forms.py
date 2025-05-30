@@ -79,7 +79,7 @@ class StudentProfileForm(forms.ModelForm):
         model = StudentProfile
         fields = [
             'first_name', 'last_name', 'phone', 'email', 'lchaim_training_completed',
-            'college','start_date', 'college_contact_person',
+            'college','start_date', 'college_contact_person','college_contact_person_email',
             'hours_requested', 'shift_requested', 'lchaim_orientation_date', 'weekdays_selected',
             'skills_book_completed', 'police_check', 'med_docs', 'comments'
         ]
@@ -125,12 +125,12 @@ class StudentFileForm(forms.ModelForm):
 class OrientationDateForm(forms.ModelForm):
     class Meta:
         model = OrientationDate
-        fields = ['date', 'description']
+        fields = ['date', 'start_date']
         widgets = {
             'date': forms.DateInput(attrs={'type': 'date'}),
-            'description': forms.TextInput(attrs={'placeholder': 'Optional description'}),
+            'start_date': forms.DateInput(attrs={'type': 'date'}),
         }
         labels = {
             'date': 'Orientation Date',
-            'description': 'Description (optional)',
+            'start_date': 'Earliest Start Date ',
         }

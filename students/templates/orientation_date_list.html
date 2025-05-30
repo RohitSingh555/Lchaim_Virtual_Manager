@@ -38,7 +38,7 @@
                 <thead class="bg-gray-100">
                     <tr>
                         <th class="py-3 px-6 text-left text-sm font-semibold text-gray-700">Date</th>
-                        <th class="py-3 px-6 text-left text-sm font-semibold text-gray-700">Description</th>
+                        <th class="py-3 px-6 text-left text-sm font-semibold text-gray-700">Earliest Start Date</th>
                         {% if is_admin %}
                         <th class="py-3 px-6 text-left text-sm font-semibold text-gray-700">Actions</th>
                         {% endif %}
@@ -48,7 +48,7 @@
                     {% for date in dates %}
                         <tr class="border-t border-gray-200">
                             <td class="py-3 px-6 text-sm text-gray-800">{{ date.date }}</td>
-                            <td class="py-3 px-6 text-sm text-gray-800">{{ date.description }}</td>
+                            <td class="py-3 px-6 text-sm text-gray-800">{{ date.start_date }}</td>
                             {% if is_admin %}
                             <td class="py-3 px-6 text-sm text-gray-800">
                                 <a href="{% url 'edit_orientation_date' date.pk %}" class="text-blue-600 hover:text-blue-800 hover:underline mr-4">Edit</a>

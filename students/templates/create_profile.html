@@ -297,8 +297,20 @@
                 {{ form.college_contact_person }}
             </div>
             <div class="form-group">
+                <label for="id_college_contact_person_email">College's Contact Person Email</label>
+                {{ form.college_contact_person_email }}
+            </div>
+            <div class="form-group">
                 <label for="id_lchaim_orientation_date">Lchaim Orientation Date</label>
-                {{ form.lchaim_orientation_date }}
+                <select name="lchaim_orientation_date" id="id_lchaim_orientation_date" class="form-control">
+    <option value="">{{ form.fields.lchaim_orientation_date.empty_label }}</option>
+    {% for orientation in form.fields.lchaim_orientation_date.queryset %}
+        <option value="{{ orientation.id }}" data-start-date="{{ orientation.start_date|date:'Y-m-d' }}">
+            {{ orientation.date|date:'Y-m-d' }}
+        </option>
+    {% endfor %}
+</select>
+
             </div>
             <div class="form-group">
                 <label for="id_start_date">Start Date</label>
@@ -532,113 +544,31 @@
         </form>
     </div>
     <script>
-        document.getElementById("id_lchaim_orientation_date").addEventListener("change", function () {
-            let selectedOption = this.options[this.selectedIndex];
-            let orientationText = selectedOption.textContent.trim();
+document.addEventListener("DOMContentLoaded", function () {
+    const orientationSelect = document.getElementById("id_lchaim_orientation_date");
+    const startDateInput = document.querySelector(".start-date");
 
-            // Extract date using regex
-            let dateMatch = orientationText.match(/\d{4}-\d{2}-\d{2}/);
-            let orientationDate = dateMatch ? dateMatch[0] : "";
+    if (!orientationSelect || !startDateInput) return;
 
-            console.log("Extracted Orientation Date:", orientationDate);
+    orientationSelect.addEventListener("change", function () {
+        const selectedOption = orientationSelect.options[orientationSelect.selectedIndex];
+        const allowedStartDate = selectedOption.getAttribute("data-start-date");
 
-            let startDateInput = document.querySelector(".start-date");
+        if (allowedStartDate) {
+            startDateInput.setAttribute("min", allowedStartDate);
 
-            if (startDateInput) {
-                if (orientationDate) {
-                    let dateObj = new Date(orientationDate);
-
-                    dateObj.setDate(dateObj.getDate() + 1);
-
-                    let nextDay = dateObj.toISOString().split("T")[0];
-
-                    startDateInput.value = nextDay;
-                    startDateInput.setAttribute("min", nextDay);
-                } else {
-                    startDateInput.removeAttribute("min");
-                    startDateInput.value = "";
-                }
+            // If current value is too early, reset it
+            if (startDateInput.value && startDateInput.value < allowedStartDate) {
+                startDateInput.value = allowedStartDate;
             }
-        });
+        } else {
+            startDateInput.removeAttribute("min");
+        }
+    });
+});
+</script>
 
 
-    </script>
-
-    {% comment %}
-    <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            const toggleButton = document.getElementById("toggleDropdown");
-            const shiftAvailability = document.getElementById("shift-availability");
-            const dropdownIcon = document.getElementById("dropdownIcon");
-
-            toggleButton.addEventListener("click", function () {
-                if (shiftAvailability.style.maxHeight) {
-                    shiftAvailability.style.maxHeight = null;
-                    dropdownIcon.innerHTML = "&#9660;";
-                } else {
-                    shiftAvailability.style.maxHeight = shiftAvailability.scrollHeight + "px";
-                    dropdownIcon.innerHTML = "&#9650;";
-                }
-            });
-
-        });
-    </script> {% endcomment %}
-    <!-- <script>
-
-        document.addEventListener('DOMContentLoaded', function () {
-            const shiftRequestedDropdown = document.getElementById('id_shift_requested');
-            const shiftTimingDropdown = document.getElementById('id_shift_timing');
-
-            const shiftTimes = {
-                Weekdays: {
-                    'Morning': { start: '07:00', end: '15:00' },
-                    'Afternoon': { start: '15:00', end: '23:00' },
-                    'Night': { start: '23:00', end: '07:00' },
-                    'WeekendDay': { start: '07:00', end: '19:00' },
-                    'WeekendNight': { start: '19:00', end: '07:00' }
-                },
-                Weekends: {
-                    'WeekendDay': { start: '07:00', end: '19:00' },
-                    'WeekendNight': { start: '19:00', end: '07:00' },
-                    'Morning': { start: '07:00', end: '15:00' },
-                    'Afternoon': { start: '15:00', end: '23:00' },
-                    'Night': { start: '23:00', end: '07:00' },
-                }
-            };
-
-            function updateShiftOptions() {
-                const selectedShiftType = shiftRequestedDropdown.value;
-
-                shiftTimingDropdown.innerHTML = '';
-
-                if (shiftTimes[selectedShiftType]) {
-                    const shifts = shiftTimes[selectedShiftType];
-                    Object.keys(shifts).forEach(shift => {
-                        const option = document.createElement('option');
-                        option.value = shift;
-                        option.textContent = `${shift} (${shifts[shift].start} - ${shifts[shift].end})`;
-                        shiftTimingDropdown.appendChild(option);
-                    });
-                }
-            }
-
-            shiftRequestedDropdown.addEventListener('change', updateShiftOptions);
-
-            shiftTimingDropdown.addEventListener('change', function () {
-                const selectedShift = shiftTimingDropdown.value;
-                const selectedShiftType = shiftRequestedDropdown.value;
-
-                if (shiftTimes[selectedShiftType] && shiftTimes[selectedShiftType][selectedShift]) {
-                    document.getElementById('id_start_time').value = shiftTimes[selectedShiftType][selectedShift].start;
-                    document.getElementById('id_end_time').value = shiftTimes[selectedShiftType][selectedShift].end;
-                } else {
-                    document.getElementById('id_start_time').value = '';
-                    document.getElementById('id_end_time').value = '';
-                }
-            });
-        });
-
-    </script> -->
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             //const shiftRequestedDropdown = document.getElementById('id_shift_requested');
@@ -646,38 +576,6 @@
             const startDateInput = document.getElementById('id_start_date');
             const hoursRequestedInput = document.getElementById('id_hours_requested');
 
-            // const shiftTimes = {
-            //     Weekdays: {
-            //         'Morning': { start: '07:00', end: '15:00' },
-            //         'Afternoon': { start: '15:00', end: '23:00' },
-            //         'Night': { start: '23:00', end: '07:00' },
-            //         'WeekendDay': { start: '07:00', end: '19:00' },
-            //         'WeekendNight': { start: '19:00', end: '07:00' }
-            //     },
-            //     Weekends: {
-            //         'WeekendDay': { start: '07:00', end: '19:00' },
-            //         'WeekendNight': { start: '19:00', end: '07:00' },
-            //         'Morning': { start: '07:00', end: '15:00' },
-            //         'Afternoon': { start: '15:00', end: '23:00' },
-            //         'Night': { start: '23:00', end: '07:00' },
-            //     }
-            // };
-
-            // function updateShiftOptions() {
-            //     const selectedShiftRequested = shiftRequestedDropdown.value;
-
-            //     shiftTimingDropdown.innerHTML = '';
-
-            //     if (shiftTimes[selectedShiftRequested]) {
-            //         const shifts = shiftTimes[selectedShiftRequested];
-            //         Object.keys(shifts).forEach(shift => {
-            //             const option = document.createElement('option');
-            //             option.value = shift;
-            //             option.textContent = `${shift} (${shifts[shift].start} - ${shifts[shift].end})`;
-            //             shiftTimingDropdown.appendChild(option);
-            //         });
-            //     }
-            // }
             function fetchShiftAvailabilityOnChange() {
                 const startDate = startDateInput.value;
                 // const shiftRequested = shiftRequestedDropdown.value;

@@ -13,6 +13,7 @@ class College(models.Model):
     
 class OrientationDate(models.Model):
     date = models.DateField(unique=True)
+    start_date = models.DateField(null=True, blank=True)
     description = models.CharField(max_length=255, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)  
     updated_at = models.DateTimeField(auto_now=True)  
@@ -57,6 +58,7 @@ class StudentProfile(models.Model):
     phone = models.CharField(max_length=15, default='')
     email = models.EmailField(unique=True)
     college_contact_person = models.TextField(default='', blank=True)
+    college_contact_person_email = models.CharField(max_length=100, default='')
     school = models.CharField(max_length=100)
     college = models.ForeignKey(College, on_delete=models.SET_NULL, null=True, blank=True)
     lchaim_training_completed = models.BooleanField(default=False)
