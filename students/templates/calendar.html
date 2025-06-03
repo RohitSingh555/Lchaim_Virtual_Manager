@@ -8,6 +8,60 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/tooltip.js/1.3.3/tooltip.min.js"></script>
   <style>
+   .modal-overlay {
+  z-index: 9999;
+}
+.modal-content {
+  max-width: 600px;   /* Max width on large screens */
+  width: 90vw;        /* 90% of viewport width on smaller screens */
+  padding: 20px;
+  border-radius: 8px;
+  background: white;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  position: relative;
+  z-index: 9999;
+  margin: 0 auto;    /* Center horizontally */
+}
+
+.modal-container {
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.shift-list {
+  list-style: none;
+  padding-left: 0;
+  margin: 0;
+  font-size: 15px;
+}
+
+.shift-list li i {
+  min-width: 24px;
+  font-size: 18px;
+}
+table {
+  border-spacing: 0;
+  border-collapse: collapse;
+}
+
+th, td {
+  border-bottom: 1px solid #d1d5db; /* Tailwind's gray-300 */
+}
+
+th {
+  font-weight: 600;
+}
+
+tr:hover {
+  background-color: #f3f4f6; /* Tailwind's gray-100 */
+}
+
+td i {
+  min-width: 20px;
+  font-size: 16px;
+}
+
+
     .btn-blue {
       background-color: #3498db;
       color: white;
@@ -337,6 +391,8 @@
 </div>
 
   <script>
+    
+  let studentCountSummary = {};
     const calendarTitle = document.getElementById("calendarTitle");
     const prevWeek = document.getElementById("prevWeek");
     const nextWeek = document.getElementById("nextWeek");
@@ -367,17 +423,112 @@
     dayColumn.className = "day-column";
 
     const dayHeader = document.createElement("div");
-    dayHeader.textContent = `${formatDate(day)}`;
     dayHeader.className = "day-header";
+
+    const currentDayString = day.toISOString().split("T")[0];
+    dayHeader.textContent = `${formatDate(day)}`;
     dayColumn.appendChild(dayHeader);
 
-    const logsForThisDay = [];
 
+    const shiftInfo = {
+  "WeekendDay": {
+    label: "WeekendDay - Sat & Sun - 7 AM to 9 PM",
+    iconClass: "fa-calendar-day"
+  },
+  "WeekendNight": {
+    label: "WeekendNight - Fri to Sun - 9 PM to 6 AM",
+    iconClass: "fa-moon"
+  },
+  "Night": {
+    label: "WeekdayNight - Mon to Thu - 9 PM to 6 AM",
+    iconClass: "fa-moon"
+  },
+  "Morning": {
+    label: "Morning - Mon to Fri - 7 AM to 3 PM",
+    iconClass: "fa-sun"
+  },
+  "Afternoon": {
+    label: "Afternoon - Mon to Fri - 3 PM to 11 PM",
+    iconClass: "fa-cloud-sun"
+  },
+};
+
+function parseLocalDate(dateString) {
+  const [year, month, day] = dateString.split('-').map(Number);
+  return new Date(year, month - 1, day); // month is 0-based
+}
+    // Append fetched data below the day-header
+if (studentCountSummary[currentDayString]) {
+  const summaryDataWrapper = document.createElement("div");
+  summaryDataWrapper.className = "summary-wrapper mt-2 text-sm";
+
+  const summaryDataText = document.createElement("span");
+  summaryDataText.className = "summary-text cursor-pointer text-blue-600 flex items-center gap-1 select-none";
+  summaryDataText.innerHTML = `<i class="fas fa-info-circle"></i> View Summary`;
+const day = parseLocalDate(currentDayString);
+console.log("Parsed day:", day); // Debugging
+
+  // Format the date for display
+const formattedDate = day.toLocaleDateString('en-US', {
+  weekday: 'short',
+  month: 'short',
+  day: 'numeric',
+});
+
+  // Build modal content with a table
+  let modalContent = ` 
+  <h3 class="text-lg font-semibold mb-4">
+    Shift Summary for <span class="text-blue-500">${formattedDate}</span>
+  </h3>
+    <table class="w-full text-left border-collapse">
+      <thead>
+        <tr>
+          <th class="border-b border-gray-300 pb-2 text-blue-600">Shift</th>
+          <th class="border-b border-gray-300 pb-2 text-blue-600">Student Count</th>
+        </tr>
+      </thead>
+      <tbody>
+  `;
+
+  studentCountSummary[currentDayString].forEach(item => {
+    const [shiftType, count] = item.split(":").map(s => s.trim());
+    const info = shiftInfo[shiftType] || { label: shiftType, iconClass: "fa-clock" };
+    modalContent += `
+      <tr class="text-gray-700 hover:bg-gray-100">
+        <td class="py-2 flex items-center gap-2">
+          <i class="fas ${info.iconClass} text-blue-500 w-5"></i>
+          <span>${info.label}</span>
+        </td>
+        <td class="py-2 font-semibold">${count} ${count === '1' ? 'student' : 'students'}</td>
+      </tr>
+    `;
+  });
+
+  modalContent += `
+      </tbody>
+    </table>
+  `;
+
+  summaryDataText.addEventListener("click", () => {
+    const modal = createModal(modalContent);
+    document.body.appendChild(modal);
+  });
+
+  summaryDataWrapper.appendChild(summaryDataText);
+  dayColumn.appendChild(summaryDataWrapper);
+
+  console.log(`Appended data for ${currentDayString}:`, studentCountSummary[currentDayString]);
+} else {
+  console.log(`No data for ${currentDayString}`);
+}
+
+
+
+    const logsForThisDay = [];
     students.forEach(student => {
       student.logs.forEach(log => {
         const logDate = new Date(log.date).toISOString().split("T")[0];
-        const currentDayString = day.toISOString().split("T")[0];
-
+        
         if (logDate === currentDayString) {
           logsForThisDay.push({ ...log, student });
         }
@@ -414,7 +565,7 @@
 
         const timeInfo = document.createElement("div");
         timeInfo.className = "text-gray-500";
-        timeInfo.textContent = `${log.start_time} - ${log.end_time}`;
+        timeInfo.textContent = `${log.shift.start_time} - ${log.shift.end_time}`;
 
         userRow.appendChild(studentInfo);
         userRow.appendChild(studentPhoneNumber);
@@ -574,6 +725,62 @@ document.getElementById("summaryBtn").addEventListener("click", function(event) 
     toggleSummaryBox();
 });
 
+
+fetch('/api/student-counts-by-date-shift/')
+  .then(response => {
+    if (!response.ok) throw new Error('Network response was not ok');
+    return response.json();
+  })
+  .then(data => {
+    data.forEach(entry => {
+      const date = entry.start_date;
+      const shift = entry.assigned_shift__type;
+      if (!studentCountSummary[date]) {
+        studentCountSummary[date] = [];
+      }
+      studentCountSummary[date].push(`${shift}: ${entry.student_count}`);
+    });
+
+    console.log("Fetched studentCountSummary:", studentCountSummary); // Debugging
+
+    // Re-render calendar with fetched data
+    renderWeeklyCalendar(currentDate);
+  })
+  .catch(error => {
+    console.error('Fetch error:', error);
+  });
+function createModal(contentHtml) {
+  // Create overlay
+  const overlay = document.createElement("div");
+  overlay.className = "modal-overlay fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50";
+
+  // Create modal container
+  const modal = document.createElement("div");
+  modal.className = "modal-container bg-white rounded-lg shadow-xl max-w-xl w-full p-6 relative";
+
+  // Close button
+  const closeBtn = document.createElement("button");
+  closeBtn.className = "modal-close absolute top-3 right-3 text-gray-500 hover:text-gray-800 text-xl font-bold";
+  closeBtn.innerHTML = "&times;";
+  closeBtn.addEventListener("click", () => {
+    document.body.removeChild(overlay);
+  });
+
+  // Append close button and content
+  modal.appendChild(closeBtn);
+  modal.insertAdjacentHTML("beforeend", contentHtml);
+
+  overlay.appendChild(modal);
+
+  // Close modal on overlay click (optional)
+  overlay.addEventListener("click", e => {
+    if (e.target === overlay) {
+      document.body.removeChild(overlay);
+    }
+  });
+
+  return overlay;
+}
 
   </script>
 

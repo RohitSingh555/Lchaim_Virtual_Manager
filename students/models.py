@@ -25,9 +25,9 @@ class Shift(models.Model):
     SHIFT_TYPES = [
         ('Morning', 'Morning (7 AM - 3 PM)'),
         ('Afternoon', 'Afternoon (3 PM - 11 PM)'),
-        ('Night', 'Night (11 PM - 7 AM)'),
-        ('WeekendDay', 'Weekend Day (7 AM - 7 PM)'),
-        ('WeekendNight', 'Weekend Night (7 PM - 7 AM)'),
+        ('Night', 'Night (9 PM - 6 AM)'),
+        ('WeekendDay', 'Weekend Day (7 AM - 9 PM)'),
+        ('WeekendNight', 'Weekend Night (9 PM - 6 AM)'),
     ]
 
     type = models.CharField(max_length=12, choices=SHIFT_TYPES, unique=True)

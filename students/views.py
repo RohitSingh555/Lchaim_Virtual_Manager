@@ -1161,6 +1161,11 @@ def calendar_student_logs(request):
                 'end_time': log.end_time.strftime('%H:%M') if log.end_time else None,
                 'hours_worked': float(log.hours_worked) if isinstance(log.hours_worked, decimal.Decimal) else log.hours_worked,
                 'notes': log.notes or '',
+                'shift': {
+                    'type': log.shift.type if log.shift else None,
+                    'start_time': log.shift.start_time.strftime('%H:%M') if log.shift and log.shift.start_time else None,
+                    'end_time': log.shift.end_time.strftime('%H:%M') if log.shift and log.shift.end_time else None,
+                } if log.shift else None,
             })
 
         student_data.append({
@@ -1388,3 +1393,25 @@ def delete_log(request, log_id):
     
     # Redirect back to the student's details page or wherever necessary
     return redirect('student_details', student_id=log.student.id)
+
+def student_counts_by_date_and_shift(request):
+    # Filter only logs where status is Present to count actual attendance
+    data = (
+        VolunteerLog.objects
+        .filter(status='Present')  
+        .values('date', 'shift__type')
+        .annotate(student_count=Count('student', distinct=True))
+        .order_by('date', 'shift__type')
+    )
+
+    # Format response to match frontend expectations
+    formatted = [
+        {
+            "start_date": entry["date"].isoformat(),
+            "assigned_shift__type": entry["shift__type"],
+            "student_count": entry["student_count"]
+        }
+        for entry in data
+    ]
+
+    return JsonResponse(formatted, safe=False)

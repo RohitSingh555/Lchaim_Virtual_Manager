@@ -38,6 +38,7 @@ urlpatterns = [
     path('orientation-dates/edit/<int:pk>/', views.edit_orientation_date, name='edit_orientation_date'),
     path('orientation-dates/delete/<int:pk>/', views.delete_orientation_date, name='delete_orientation_date'),
     path('log/delete/<int:log_id>/', views.delete_log, name='delete_log'),
+    path('api/student-counts-by-date-shift/', views.student_counts_by_date_and_shift, name='student_counts_by_date_and_shift'),
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
