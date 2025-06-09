@@ -82,6 +82,18 @@ def logout_view(request):
 
 from datetime import datetime, date, timedelta
 
+
+
+def calculate_shift_total_time(start_time, end_time):
+    dt_start = datetime.combine(date.min, start_time)
+    dt_end = datetime.combine(date.min, end_time)
+    if dt_end < dt_start:
+        # Overnight shift: add one day to end time
+        dt_end += timedelta(days=1)
+    duration = dt_end - dt_start
+    hours = abs(duration.total_seconds()) / 3600
+    return hours
+
 def get_shift_availability(user, start_date, shift_type, requested_hours):
     try:
         print('Shift type:', shift_type)    
@@ -89,10 +101,11 @@ def get_shift_availability(user, start_date, shift_type, requested_hours):
     except Shift.DoesNotExist:
         return {"error": f"Shift type '{shift_type}' does not exist."}
 
-    shift_total_time = (
-        datetime.combine(date.min, assigned_shift.end_time)
-        - datetime.combine(date.min, assigned_shift.start_time)
-    ).seconds / 3600
+    # shift_total_time = (
+    #     datetime.combine(date.min, assigned_shift.end_time)
+    #     - datetime.combine(date.min, assigned_shift.start_time)
+    # ).seconds / 3600
+    shift_total_time = calculate_shift_total_time(assigned_shift.start_time,assigned_shift.end_time)
 
     days_required = (requested_hours // shift_total_time) + (
         1 if requested_hours % shift_total_time != 0 else 0
@@ -112,7 +125,7 @@ def get_shift_availability(user, start_date, shift_type, requested_hours):
             "Saturday": 5,
             "Sunday": 6
         }
-        weekdays_selected = [4, 5, 6]
+        # weekdays_selected = [4, 5, 6]
     elif "night" in shift_type:
         weekdays_selected = {
             "Monday": 0,
@@ -120,7 +133,7 @@ def get_shift_availability(user, start_date, shift_type, requested_hours):
             "Wednesday": 2,
             "Thursday": 3,
         }
-        weekdays_selected = [0, 1, 2, 3]
+        # weekdays_selected = [0, 1, 2, 3]
     else:
         weekdays_selected = {
             "Monday": 0,
@@ -155,6 +168,7 @@ def get_shift_availability(user, start_date, shift_type, requested_hours):
         "weekdays_selected": list(selected_weekdays),
         "end_date": end_date,
     }
+
 
 
 @csrf_exempt 
@@ -267,7 +281,8 @@ def create_student_profile(request):
                 start_time = assigned_shift.start_time
                 end_time = assigned_shift.end_time
 
-                shift_total_time = (datetime.combine(date.min, end_time) - datetime.combine(date.min, start_time)).seconds / 3600
+                # shift_total_time = (datetime.combine(date.min, end_time) - datetime.combine(date.min, start_time)).seconds / 3600
+                shift_total_time = calculate_shift_total_time(assigned_shift.start_time,assigned_shift.end_time)
                 days_required = int(requested_hours // shift_total_time) + (1 if requested_hours % shift_total_time != 0 else 0)
 
                 current_date = start_date
