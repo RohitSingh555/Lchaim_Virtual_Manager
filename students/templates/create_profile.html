@@ -598,6 +598,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 const shiftType = shiftTimingDropdown.value;
 
                 if (startDate && requestedHours && shiftType) {
+                    // closeNotification()
                     fetchShiftAvailability(startDate, requestedHours, shiftType);
                 }
             }
@@ -635,28 +636,42 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
             function displayShiftAvailability(data) {
+                console.log('---- display shift availablity ----')
+                
                 const card = document.getElementById('shift-availability-card');
                 const submitButton = document.querySelector('button[type="submit"]'); // Submit button
+                
+                // Always reset styles/classes before showing
+                card.classList.remove('active', 'available', 'not-available');
+                card.style.display = 'block';
 
                 const shiftMessage = document.querySelector('#shift-availability-card .shift-notification-content');
-                document.getElementById('shift-type').textContent = data.shift_type;
-                document.getElementById('requested-hours').textContent = data.requested_hours;
-                document.getElementById('start-date').textContent = data.start_date;
-                document.getElementById('end-date').textContent = data.end_date;
+                // console.log("shift-type:", document.getElementById('shift-type'));
+                // document.getElementById('shift-type').textContent = data.shift_type;
+                // document.getElementById('requested-hours').textContent = data.requested_hours;
+                // document.getElementById('start-date').textContent = data.start_date;
+                // document.getElementById('end-date').textContent = data.end_date;
                 console.log(data);
 
                 if (data.is_available) {
                     card.classList.add('available');
-                    card.classList.remove('not-available');
+                    // card.classList.remove('not-available');
                     submitButton.disabled = false;
+                     // Reset message in case previous "not available" message was shown
+                    shiftMessage.innerHTML = `
+                        <p><strong>Shift Type:</strong> ${data.shift_type}</p>
+                        <p><strong>Requested Hours:</strong> ${data.requested_hours} hrs</p>
+                        <p><strong>Start Date:</strong> ${data.start_date}</p>
+                        <p><strong>End Date:</strong> ${data.end_date}</p>
+                    `;
                 } else {
                     card.classList.add('not-available');
-                    card.classList.remove('available');
+                    // card.classList.remove('available');
                     shiftMessage.innerHTML = `<p><strong>Shift Unavailable:</strong> ${data.message}</p>`;
                     submitButton.disabled = true;
                 }
 
-                card.style.display = 'block';
+                // card.style.display = 'block';
 
                 setTimeout(() => {
                     card.classList.add('active');
@@ -682,7 +697,7 @@ document.addEventListener("DOMContentLoaded", function () {
             let orientationDate = document.getElementById("id_lchaim_orientation_date")
             shiftTimingDropdown.addEventListener('change', fetchShiftAvailabilityOnChange);
             orientationDate.addEventListener('change', fetchShiftAvailabilityOnChange);            
-            //startDateInput.addEventListener('change', fetchShiftAvailabilityOnChange);
+            startDateInput.addEventListener('change', fetchShiftAvailabilityOnChange);
             hoursRequestedInput.addEventListener('input', fetchShiftAvailabilityOnChange);
         });
     </script>
