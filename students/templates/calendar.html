@@ -431,18 +431,6 @@ td i {
 
 
     const shiftInfo = {
-  "WeekendDay": {
-    label: "WeekendDay - Sat & Sun - 7 AM to 9 PM",
-    iconClass: "fa-calendar-day"
-  },
-  "WeekendNight": {
-    label: "WeekendNight - Fri to Sun - 9 PM to 6 AM",
-    iconClass: "fa-moon"
-  },
-  "Night": {
-    label: "WeekdayNight - Mon to Thu - 9 PM to 6 AM",
-    iconClass: "fa-moon"
-  },
   "Morning": {
     label: "Morning - Mon to Fri - 7 AM to 3 PM",
     iconClass: "fa-sun"
@@ -450,6 +438,19 @@ td i {
   "Afternoon": {
     label: "Afternoon - Mon to Fri - 3 PM to 11 PM",
     iconClass: "fa-cloud-sun"
+  },
+  "WeekendDay": {
+    label: "WeekendDay - Sat & Sun - 7 AM to 9 PM",
+    iconClass: "fa-calendar-day"
+  },
+  
+  "Night": {
+    label: "WeekdayNight - Mon to Thu - 9 PM to 6 AM",
+    iconClass: "fa-moon"
+  },
+   "WeekendNight": {
+    label: "WeekendNight - Fri to Sun - 9 PM to 6 AM",
+    iconClass: "fa-moon"
   },
 };
 
@@ -466,14 +467,14 @@ if (studentCountSummary[currentDayString]) {
   summaryDataText.className = "summary-text cursor-pointer text-blue-600 flex items-center gap-1 select-none";
   summaryDataText.innerHTML = `<i class="fas fa-info-circle"></i> View Summary`;
 const day = parseLocalDate(currentDayString);
-console.log("Parsed day:", day); // Debugging
-
-  // Format the date for display
+const nextDay = new Date(day);
+nextDay.setDate(day.getDate() + 1);
 const formattedDate = day.toLocaleDateString('en-US', {
   weekday: 'short',
   month: 'short',
   day: 'numeric',
 });
+
 
   // Build modal content with a table
   let modalContent = ` 
@@ -490,19 +491,50 @@ const formattedDate = day.toLocaleDateString('en-US', {
       <tbody>
   `;
 
-  studentCountSummary[currentDayString].forEach(item => {
+//   studentCountSummary[currentDayString].forEach(item => {
+//     const [shiftType, count] = item.split(":").map(s => s.trim());
+//     const info = shiftInfo[shiftType] || { label: shiftType, iconClass: "fa-clock" };
+//     modalContent += `
+//       <tr class="text-gray-700 hover:bg-gray-100">
+//         <td class="py-2 flex items-center gap-2">
+//           <i class="fas ${info.iconClass} text-blue-500 w-5"></i>
+//           <span>${info.label}</span>
+//         </td>
+//         <td class="py-2 font-semibold">${count} ${count === '1' ? 'student' : 'students'}</td>
+//       </tr>
+//     `;
+//   });
+
+// Parse and sort the summary array
+const SHIFT_ORDER = ["Morning","WeekendDay", "Afternoon", "Night",  "WeekendNight"];
+
+
+const summaryArr = studentCountSummary[currentDayString]
+  .map(item => {
     const [shiftType, count] = item.split(":").map(s => s.trim());
-    const info = shiftInfo[shiftType] || { label: shiftType, iconClass: "fa-clock" };
-    modalContent += `
-      <tr class="text-gray-700 hover:bg-gray-100">
-        <td class="py-2 flex items-center gap-2">
-          <i class="fas ${info.iconClass} text-blue-500 w-5"></i>
-          <span>${info.label}</span>
-        </td>
-        <td class="py-2 font-semibold">${count} ${count === '1' ? 'student' : 'students'}</td>
-      </tr>
-    `;
+    return { shiftType, count };
+  })
+  .sort((a, b) => {
+    // If the shiftType is in SHIFT_ORDER, use its index; otherwise, put it at the end
+    const aIdx = SHIFT_ORDER.indexOf(a.shiftType);
+    const bIdx = SHIFT_ORDER.indexOf(b.shiftType);
+    return (aIdx === -1 ? 99 : aIdx) - (bIdx === -1 ? 99 : bIdx);
   });
+
+summaryArr.forEach(({shiftType, count}) => {
+  const info = shiftInfo[shiftType] || { label: shiftType, iconClass: "fa-clock" };
+  modalContent += `
+    <tr class="text-gray-700 hover:bg-gray-100">
+      <td class="py-2 flex items-center gap-2">
+        <i class="fas ${info.iconClass} text-blue-500 w-5"></i>
+        <span>${info.label}</span>
+      </td>
+      <td class="py-2 font-semibold">${count} ${count === '1' ? 'student' : 'students'}</td>
+    </tr>
+  `;
+});
+
+
 
   modalContent += `
       </tbody>
@@ -561,7 +593,7 @@ const formattedDate = day.toLocaleDateString('en-US', {
 
         const studentPhoneNumber = document.createElement("div");
         studentPhoneNumber.className = `phone-number text-gray-500`;
-        studentPhoneNumber.textContent = `📞 - ${student.phone}`;
+        studentPhoneNumber.textContent = `ðŸ“ž - ${student.phone}`;
 
         const timeInfo = document.createElement("div");
         timeInfo.className = "text-gray-500";
@@ -760,7 +792,7 @@ function createModal(contentHtml) {
 
   // Close button
   const closeBtn = document.createElement("button");
-  closeBtn.className = "modal-close absolute top-3 right-3 text-gray-500 hover:text-gray-800 text-xl font-bold";
+  closeBtn.className = "modal-close absolute top-3 right-3 text-gray-500 hover:text-gray-800 text-2xl font-bold";
   closeBtn.innerHTML = "&times;";
   closeBtn.addEventListener("click", () => {
     document.body.removeChild(overlay);
