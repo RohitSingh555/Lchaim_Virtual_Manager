@@ -101,72 +101,95 @@ def get_shift_availability(user, start_date, shift_type, requested_hours):
     except Shift.DoesNotExist:
         return {"error": f"Shift type '{shift_type}' does not exist."}
 
-    # shift_total_time = (
-    #     datetime.combine(date.min, assigned_shift.end_time)
-    #     - datetime.combine(date.min, assigned_shift.start_time)
-    # ).seconds / 3600
-    shift_total_time = calculate_shift_total_time(assigned_shift.start_time,assigned_shift.end_time)
-
+    shift_total_time = calculate_shift_total_time(assigned_shift.start_time, assigned_shift.end_time)
     days_required = (requested_hours // shift_total_time) + (
         1 if requested_hours % shift_total_time != 0 else 0
     )
 
-    current_date = start_date
-    working_days = 0
-    shift_type = assigned_shift.type.lower()
-    if "weekendday" in shift_type:
-        weekdays_selected = {
-            "Saturday": 5,
-            "Sunday": 6
-        }
-    elif "weekendnight" in shift_type:
-        weekdays_selected = {
-            "Friday": 4,
-            "Saturday": 5,
-            "Sunday": 6
-        }
-        # weekdays_selected = [4, 5, 6]
-    elif "night" in shift_type:
-        weekdays_selected = {
-            "Monday": 0,
-            "Tuesday": 1,
-            "Wednesday": 2,
-            "Thursday": 3,
-        }
-        # weekdays_selected = [0, 1, 2, 3]
+    shift_type_lower = assigned_shift.type.lower()
+    
+    # Define weekdays based on shift type
+    if "weekendday" in shift_type_lower:
+        weekdays_selected = {"Saturday": 5, "Sunday": 6}
+    elif "weekendnight" in shift_type_lower:
+        weekdays_selected = {"Friday": 4, "Saturday": 5, "Sunday": 6}
+    elif "night" in shift_type_lower:
+        weekdays_selected = {"Monday": 0, "Tuesday": 1, "Wednesday": 2, "Thursday": 3}
     else:
-        weekdays_selected = {
-            "Monday": 0,
-            "Tuesday": 1,
-            "Wednesday": 2,
-            "Thursday": 3,
-            "Friday": 4
-        }
+        weekdays_selected = {"Monday": 0, "Tuesday": 1, "Wednesday": 2, "Thursday": 3, "Friday": 4}
         
     selected_weekdays = set(weekdays_selected.values())
 
-    while working_days < days_required:
-        if current_date.weekday() in selected_weekdays:
-            if validate_shift_capacity(user, current_date, assigned_shift):
-                working_days += 1
+    # First, check if the requested start date works
+    temp_date = start_date
+    temp_working_days = 0
+    capacity_exceeded_date = None
+    
+    while temp_working_days < days_required:
+        if temp_date.weekday() in selected_weekdays:
+            if validate_shift_capacity(user, temp_date, assigned_shift):
+                temp_working_days += 1
             else:
-                return {
-                    "is_available": False,
-                    "message": f"Capacity exceeded on {current_date.strftime('%Y-%m-%d')} for {shift_type} shift.",
-                }
+                capacity_exceeded_date = temp_date
+                break
+        temp_date += timedelta(days=1)
 
-        current_date += timedelta(days=1)
-
-    end_date = current_date - timedelta(days=1)
-
+    # If original start date works, return success
+    if capacity_exceeded_date is None:
+        end_date = temp_date - timedelta(days=1)
+        return {
+            "is_available": True,
+            "start_date": start_date.strftime('%Y-%m-%d'),
+            "shift_type": assigned_shift.type,
+            "requested_hours": requested_hours,
+            "weekdays_selected": list(selected_weekdays),
+            "end_date": end_date.strftime('%Y-%m-%d'),
+        }
+    
+    # If original start date doesn't work, find next available date
+    next_available_date = capacity_exceeded_date + timedelta(days=1)
+    max_search_days = 365  # Limit search to avoid infinite loops
+    search_days = 0
+    
+    while search_days < max_search_days:
+        # Try starting from next_available_date
+        temp_date = next_available_date
+        temp_working_days = 0
+        can_complete_schedule = True
+        
+        while temp_working_days < days_required:
+            if temp_date.weekday() in selected_weekdays:
+                if validate_shift_capacity(user, temp_date, assigned_shift):
+                    temp_working_days += 1
+                else:
+                    can_complete_schedule = False
+                    break
+            temp_date += timedelta(days=1)
+        
+        if can_complete_schedule:
+            # Found a valid start date
+            end_date = temp_date - timedelta(days=1)
+            return {
+                "is_available": False,
+                "message": f"Capacity exceeded on {capacity_exceeded_date.strftime('%Y-%m-%d')} for {assigned_shift.type} shift.",
+                "next_available_start_date": next_available_date.strftime('%Y-%m-%d'),
+                "suggested_end_date": end_date.strftime('%Y-%m-%d'),
+                "shift_type": assigned_shift.type,
+                "requested_hours": requested_hours,
+                "weekdays_selected": list(selected_weekdays),
+            }
+        
+        # Move to next day and continue searching
+        next_available_date += timedelta(days=1)
+        search_days += 1
+    
+    # If no available date found within search limit
     return {
-        "is_available": True,
-        "start_date": start_date,
-        "shift_type": shift_type,
+        "is_available": False,
+        "message": f"Capacity exceeded on {capacity_exceeded_date.strftime('%Y-%m-%d')} for {assigned_shift.type} shift. No available slots found in the next {max_search_days} days.",
+        "shift_type": assigned_shift.type,
         "requested_hours": requested_hours,
-        # "shift_requested": shift_requested,
         "weekdays_selected": list(selected_weekdays),
-        "end_date": end_date,
     }
 
 

@@ -2,6 +2,7 @@ placement_portal/__pycache__/
 students/__pycache__/
 students/migrations/__pycache__/
 /env
+/venv
 /migrations
 */migrations/
 # Python

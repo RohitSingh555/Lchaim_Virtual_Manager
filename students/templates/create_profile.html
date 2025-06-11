@@ -585,116 +585,127 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            //const shiftRequestedDropdown = document.getElementById('id_shift_requested');
-            const shiftTimingDropdown = document.getElementById('id_shift_timing');
-            const startDateInput = document.getElementById('id_start_date');
-            const hoursRequestedInput = document.getElementById('id_hours_requested');
+        // Global variables and functions
+        let shiftTimingDropdown, startDateInput, hoursRequestedInput;
 
-            function fetchShiftAvailabilityOnChange() {
-                const startDate = startDateInput.value;
-                // const shiftRequested = shiftRequestedDropdown.value;
-                const requestedHours = hoursRequestedInput.value;
-                const shiftType = shiftTimingDropdown.value;
+        // Global function to handle "Use This Date" button clicks
+        function useNextAvailableDate(nextDate) {
+            startDateInput.value = nextDate;
+            
+            // Trigger the availability check again with the new date
+            fetchShiftAvailabilityOnChange();
+        }
 
-                if (startDate && requestedHours && shiftType) {
-                    // closeNotification()
-                    fetchShiftAvailability(startDate, requestedHours, shiftType);
-                }
+        function fetchShiftAvailabilityOnChange() {
+            const startDate = startDateInput.value;
+            const requestedHours = hoursRequestedInput.value;
+            const shiftType = shiftTimingDropdown.value;
+
+            if (startDate && requestedHours && shiftType) {
+                fetchShiftAvailability(startDate, requestedHours, shiftType);
             }
+        }
 
-            async function fetchShiftAvailability(startDate, requestedHours, shiftType) {
-                try {
-                    // Get the selected weekdays from the hidden input field
+        async function fetchShiftAvailability(startDate, requestedHours, shiftType) {
+            try {
+                const response = await fetch('/api/shift-availability/', {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": "{{ csrf_token }}"
+                    },
+                    body: JSON.stringify({
+                        start_date: startDate,
+                        requested_hours: requestedHours,
+                        shift_type: shiftType,
+                    })
+                });
 
-
-
-                    const response = await fetch('/api/shift-availability/', {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json",
-                            "X-CSRFToken": "{{ csrf_token }}"
-                        },
-                        body: JSON.stringify({
-                            start_date: startDate,
-                            requested_hours: requestedHours,
-                            shift_type: shiftType,
-
-                        })
-                    });
-
-                    if (response.ok) {
-                        const data = await response.json();
-                        displayShiftAvailability(data);
-                    } else {
-                        console.error("Error fetching shift availability:", response.statusText);
-                    }
-                } catch (error) {
-                    console.error("Network error:", error);
-                }
-            }
-
-
-            function displayShiftAvailability(data) {
-                console.log('---- display shift availablity ----')
-                
-                const card = document.getElementById('shift-availability-card');
-                const submitButton = document.querySelector('button[type="submit"]'); // Submit button
-                
-                // Always reset styles/classes before showing
-                card.classList.remove('active', 'available', 'not-available');
-                card.style.display = 'block';
-
-                const shiftMessage = document.querySelector('#shift-availability-card .shift-notification-content');
-                // console.log("shift-type:", document.getElementById('shift-type'));
-                // document.getElementById('shift-type').textContent = data.shift_type;
-                // document.getElementById('requested-hours').textContent = data.requested_hours;
-                // document.getElementById('start-date').textContent = data.start_date;
-                // document.getElementById('end-date').textContent = data.end_date;
-                console.log(data);
-
-                if (data.is_available) {
-                    card.classList.add('available');
-                    // card.classList.remove('not-available');
-                    submitButton.disabled = false;
-                     // Reset message in case previous "not available" message was shown
-                    shiftMessage.innerHTML = `
-                        <p><strong>Shift Type:</strong> ${data.shift_type}</p>
-                        <p><strong>Requested Hours:</strong> ${data.requested_hours} hrs</p>
-                        <p><strong>Start Date:</strong> ${data.start_date}</p>
-                        <p><strong>End Date:</strong> ${data.end_date}</p>
-                    `;
+                if (response.ok) {
+                    const data = await response.json();
+                    displayShiftAvailability(data);
                 } else {
-                    card.classList.add('not-available');
-                    // card.classList.remove('available');
-                    shiftMessage.innerHTML = `<p><strong>Shift Unavailable:</strong> ${data.message}</p>`;
-                    submitButton.disabled = true;
+                    console.error("Error fetching shift availability:", response.statusText);
                 }
+            } catch (error) {
+                console.error("Network error:", error);
+            }
+        }
 
-                // card.style.display = 'block';
+        function displayShiftAvailability(data) {
+            console.log('---- display shift availablity ----')
+            
+            const card = document.getElementById('shift-availability-card');
+            const submitButton = document.querySelector('button[type="submit"]');
+            
+            // Always reset styles/classes before showing
+            card.classList.remove('active', 'available', 'not-available');
+            card.style.display = 'block';
 
-                setTimeout(() => {
-                    card.classList.add('active');
-                }, 10);
-                setTimeout(() => {
-                    closeNotification();
-                }, 100000);
+            const shiftMessage = document.querySelector('#shift-availability-card .shift-notification-content');
+            console.log(data);
+
+            if (data.is_available) {
+                card.classList.add('available');
+                submitButton.disabled = false;
+                shiftMessage.innerHTML = `
+                    <p><strong>Shift Type:</strong> ${data.shift_type}</p>
+                    <p><strong>Requested Hours:</strong> ${data.requested_hours} hrs</p>
+                    <p><strong>Start Date:</strong> ${data.start_date}</p>
+                    <p><strong>End Date:</strong> ${data.end_date}</p>
+                `;
+            } else {
+                card.classList.add('not-available');
+                submitButton.disabled = true;
+                
+                let messageContent = `<p><strong>Shift Unavailable:</strong> ${data.message}</p>`;
+                
+                // Add next available date if provided
+                if (data.next_available_start_date) {
+                    messageContent += `
+                        <hr style="margin: 10px 0;">
+                        <p><strong>Next Available Start Date:</strong> ${data.next_available_start_date}</p>
+                        <p><strong>Suggested End Date:</strong> ${data.suggested_end_date}</p>
+                        <button type="button" onclick="useNextAvailableDate('${data.next_available_start_date}')" 
+                                style="background: #007bff; color: white; padding: 5px 10px; border: none; border-radius: 4px; margin-top: 5px; cursor: pointer;">
+                            Use This Date
+                        </button>
+                    `;
+                }
+                
+                shiftMessage.innerHTML = messageContent;
             }
 
-            function closeNotification() {
-                const card = document.getElementById('shift-availability-card');
-                card.classList.remove('active');
+            setTimeout(() => {
+                card.classList.add('active');
+            }, 10);
+            setTimeout(() => {
+                closeNotification();
+            }, 100000);
+        }
 
-                setTimeout(() => {
-                    card.style.display = 'none';
-                }, 500);
-            }
+        function closeNotification() {
+            const card = document.getElementById('shift-availability-card');
+            card.classList.remove('active');
 
+            setTimeout(() => {
+                card.style.display = 'none';
+            }, 500);
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            // Initialize global variables
+            shiftTimingDropdown = document.getElementById('id_shift_timing');
+            startDateInput = document.getElementById('id_start_date');
+            hoursRequestedInput = document.getElementById('id_hours_requested');
+            const orientationDate = document.getElementById("id_lchaim_orientation_date");
+
+            // Set up event listeners
             const closeBtn = document.getElementById('close-btn');
             if (closeBtn) {
                 closeBtn.addEventListener('click', closeNotification);
             }
-            let orientationDate = document.getElementById("id_lchaim_orientation_date")
+            
             shiftTimingDropdown.addEventListener('change', fetchShiftAvailabilityOnChange);
             orientationDate.addEventListener('change', fetchShiftAvailabilityOnChange);            
             startDateInput.addEventListener('change', fetchShiftAvailabilityOnChange);
