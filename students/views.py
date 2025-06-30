@@ -959,12 +959,15 @@ def log_volunteer_hours(request, pk):
 @admin_required
 def student_attendance(request):
     date_str = request.GET.get('date') or timezone.now().strftime('%Y-%m-%d')
+    shift_filter = request.GET.get('shift', '').strip()  # New: get shift filter from GET params
     try:
         selected_date = timezone.datetime.strptime(date_str, '%Y-%m-%d').date()
     except ValueError:
         selected_date = timezone.now().date()
 
     students = StudentProfile.objects.filter(status='Training')
+    if shift_filter:
+        students = students.filter(assigned_shift__type=shift_filter)
     student_logs = []
 
     for student in students:
@@ -980,16 +983,21 @@ def student_attendance(request):
 
         student_logs.append({'student': student, 'log': log})
 
+    # Get all available shifts for filter dropdown
+    from .models import Shift
+    all_shifts = Shift.objects.all()
+
+    context = {
+        'students': student_logs,
+        'selected_date': selected_date,
+        'all_shifts': all_shifts,
+        'shift_filter': shift_filter,
+    }
+
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest':  
-        return render(request, 'attendance/attendance_partial.html', {
-            'students': student_logs,
-            'selected_date': selected_date,
-        })
+        return render(request, 'attendance/attendance_partial.html', context)
     else: 
-        return render(request, 'attendance/attendance.html', {
-            'students': student_logs,
-            'selected_date': selected_date,
-        })
+        return render(request, 'attendance/attendance.html', context)
 
 def update_attendance(request, student_id, date):
     student = get_object_or_404(StudentProfile, id=student_id)

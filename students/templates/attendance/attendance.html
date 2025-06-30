@@ -10,6 +10,39 @@
     <script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
     <script src="https://weareoutman.github.io/clockpicker/dist/jquery-clockpicker.min.js"></script>
     <link rel="stylesheet" href="https://weareoutman.github.io/clockpicker/dist/jquery-clockpicker.min.css">
+    <style>
+        /* Highlight sorted column */
+        th.sorted-asc,
+        th.sorted-desc {
+            background-color: #2563eb !important;
+            color: #fff !important;
+        }
+
+        th.sorted-asc:after {
+            content: " ▲";
+            font-size: 0.9em;
+        }
+
+        th.sorted-desc:after {
+            content: " ▼";
+            font-size: 0.9em;
+        }
+
+        /* Make shift filter look better */
+        #shift-filter {
+            min-width: 140px;
+            background: #f1f5f9;
+            border: 1.5px solid #2563eb;
+            color: #1e293b;
+            font-weight: 500;
+        }
+
+        #shift-filter:focus {
+            border-color: #3b82f6;
+            outline: none;
+            box-shadow: 0 0 0 2px #3b82f6;
+        }
+    </style>
 </head>
 
 <body class="bg-gray-50 font-sans min-h-screen">
@@ -24,6 +57,16 @@
                     value="{{ selected_date|date:'Y-m-d' }}" onchange="updateDate(this)">
             </h1>
             <div class="flex items-center gap-2 w-full md:w-auto">
+                <!-- Shift Filter Dropdown -->
+                <form id="shift-filter-form" class="mr-2" onsubmit="return false;">
+                    <select id="shift-filter" name="shift"
+                        class="px-3 py-2 rounded transition">
+                        <option value="">All Shifts</option>
+                        {% for shift in all_shifts %}
+                            <option value="{{ shift.type }}" {% if shift_filter == shift.type %}selected{% endif %}>{{ shift.type }}</option>
+                        {% endfor %}
+                    </select>
+                </form>
                 <input
                     type="text"
                     name="search"
@@ -39,11 +82,12 @@
             <table class="w-full table-auto text-sm md:text-base" id="attendance-table">
                 <thead class="bg-blue-600 text-white">
                     <tr>
-                        <th class="px-4 py-2 text-left font-medium">Student Name</th>
-                        <th class="px-4 py-2 text-left font-medium">Status</th>
+                        <th class="px-4 py-2 text-left font-medium cursor-pointer" onclick="sortTable(0)">Student Name</th>
+                        <th class="px-4 py-2 text-left font-medium cursor-pointer" onclick="sortTable(1)">Shift</th>
+                        <th class="px-4 py-2 text-left font-medium cursor-pointer" onclick="sortTable(2)">Status</th>
                         <th class="px-4 py-2 text-left font-medium">From</th>
                         <th class="px-4 py-2 text-left font-medium">To</th>
-                        <th class="px-4 py-2 text-center font-medium">Hours</th>
+                        <th class="px-4 py-2 text-center font-medium cursor-pointer" onclick="sortTable(5)">Hours</th>
                         <th class="px-4 py-2 text-center font-medium">Toggle</th>
                         <th class="px-4 py-2 text-left font-medium">Remarks</th>
                     </tr>
@@ -52,6 +96,9 @@
                     {% for student_log in students %}
                     <tr class="border-b hover:bg-gray-50 transition student-row">
                         <td class="px-4 py-2">{{ student_log.student.first_name }} {{ student_log.student.last_name }}</td>
+                        <td class="px-4 py-2">
+                            {{ student_log.student.assigned_shift.type|default:"-" }}
+                        </td>
                         <td class="px-4 py-2">
                             <span class="status-text font-semibold"
                                 data-student-id="{{ student_log.student.id }}">
@@ -94,7 +141,7 @@
                     </tr>
                     {% empty %}
                     <tr class="no-students-row">
-                        <td colspan="7" class="text-center py-8 text-gray-400">No students found.</td>
+                        <td colspan="8" class="text-center py-8 text-gray-400">No students found.</td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -161,6 +208,13 @@
     fetchAttendanceData(attendanceDate);
     
     initializeEventListeners();
+
+    // Add change event for shift filter
+    $('#shift-filter').on('change', function() {
+        const selectedShift = $(this).val();
+        console.log("[LOG] Shift filter changed:", selectedShift);
+        updateDate(document.getElementById('attendance-date'));
+    });
 });
 
 
@@ -259,14 +313,17 @@
 
         function updateDate(input) {
             const selectedDate = input.value;
-            console.log("Selected date:", selectedDate);
+            const selectedShift = document.getElementById('shift-filter').value;
             localStorage.setItem('attendance-date', selectedDate);  
-            fetchAttendanceData(selectedDate);
+            fetchAttendanceData(selectedDate, selectedShift);
         }
 
-        function fetchAttendanceData(date) {
-            console.log(date);
-            fetch(`/attendance/?date=${date}`, {
+        function fetchAttendanceData(date, shift) {
+            let url = `/attendance/?date=${date}`;
+            if (shift && shift !== "") {
+                url += `&shift=${encodeURIComponent(shift)}`;
+            }
+            fetch(url, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
@@ -299,6 +356,12 @@
                     dateInput.value = date;
                 }
 
+                // Restore shift filter value after AJAX reload
+                const shiftFilter = document.getElementById('shift-filter');
+                if (shiftFilter && shift) {
+                    shiftFilter.value = shift;
+                }
+
                 initializeAttendancePage();
             })
             .catch(error => {
@@ -311,24 +374,43 @@
 
         function sortTable(columnIndex) {
             const table = document.getElementById("attendance-table");
-            const rows = Array.from(table.rows).slice(1);
-            const header = table.rows[0].cells[columnIndex];
-            const rowsSorted = rows.sort((rowA, rowB) => {
-                const cellA = rowA.cells[columnIndex].textContent.trim();
-                const cellB = rowB.cells[columnIndex].textContent.trim();
-                if (lastSortedColumn === columnIndex) {
-                    ascending = !ascending;
-                }
-                lastSortedColumn = columnIndex;
-                if (columnIndex === 1 || columnIndex === 4) { // Numeric or status columns
-                    const a = parseFloat(cellA);
-                    const b = parseFloat(cellB);
+            const rows = Array.from(table.tBodies[0].rows);
+            const headers = table.tHead.rows[0].cells;
+
+            // Logging
+            console.log("[LOG] Sorting column:", columnIndex);
+
+            // Remove previous sort highlight
+            for (let i = 0; i < headers.length; i++) {
+                headers[i].classList.remove('sorted-asc', 'sorted-desc');
+            }
+
+            if (lastSortedColumn === columnIndex) {
+                ascending = !ascending;
+            } else {
+                ascending = true;
+            }
+            lastSortedColumn = columnIndex;
+
+            // Highlight sorted column
+            headers[columnIndex].classList.add(ascending ? 'sorted-asc' : 'sorted-desc');
+
+            rows.sort((rowA, rowB) => {
+                let cellA = rowA.cells[columnIndex].textContent.trim();
+                let cellB = rowB.cells[columnIndex].textContent.trim();
+
+                // Numeric sort for hours column
+                if (columnIndex === 5) {
+                    const a = parseFloat(cellA) || 0;
+                    const b = parseFloat(cellB) || 0;
                     return ascending ? a - b : b - a;
                 }
+                // Alphabetical sort for name, shift, status
                 return ascending ? cellA.localeCompare(cellB) : cellB.localeCompare(cellA);
             });
 
-            rowsSorted.forEach(row => table.appendChild(row));
+            // Re-append sorted rows
+            rows.forEach(row => table.tBodies[0].appendChild(row));
         }
 
         // Ensure only one DOMContentLoaded handler and that it works after AJAX reloads
@@ -363,6 +445,35 @@
 
     document.addEventListener('DOMContentLoaded', function() {
         setupAttendanceSearch();
+        // Use event delegation to ensure the shift filter always works
+        document.body.addEventListener('change', function(event) {
+            var target = event.target;
+            if (target && target.id === 'shift-filter') {
+                var selectedShift = target.value.trim();
+                // Log for debugging
+                if (window.console) console.log("Shift filter changed:", selectedShift);
+                // Show/hide rows based on shift type in the table (frontend only, not case sensitive)
+                var rows = document.querySelectorAll('#attendance-table tbody tr.student-row');
+                let visibleCount = 0;
+                rows.forEach(function(row) {
+                    var shiftCell = row.cells[1];
+                    if (!shiftCell) return;
+                    var shiftText = shiftCell.textContent.trim();
+                    // Compare lowercased, ignore case and whitespace
+                    if (selectedShift === "" || shiftText.toLowerCase() === selectedShift.toLowerCase()) {
+                        row.style.display = "";
+                        visibleCount++;
+                    } else {
+                        row.style.display = "none";
+                    }
+                });
+                // Show/hide "No students found" row
+                var emptyRow = document.querySelector('#attendance-table tbody tr.no-students-row');
+                if (emptyRow) {
+                    emptyRow.style.display = visibleCount === 0 ? "" : "none";
+                }
+            }
+        });
     });
 
     function initializeAttendancePage() {
@@ -376,6 +487,4 @@
 </body>
 
 </html>
-</body>
-
 </html>
