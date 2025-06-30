@@ -548,8 +548,6 @@ summaryArr.forEach(({shiftType, count}) => {
 
   summaryDataWrapper.appendChild(summaryDataText);
   dayColumn.appendChild(summaryDataWrapper);
-
-  console.log(`Appended data for ${currentDayString}:`, studentCountSummary[currentDayString]);
 } else {
   console.log(`No data for ${currentDayString}`);
 }
@@ -652,8 +650,6 @@ summaryArr.forEach(({shiftType, count}) => {
       currentDate.setDate(currentDate.getDate() + 7);
       renderWeeklyCalendar(currentDate);
     });
-
-    renderWeeklyCalendar(currentDate);
 
     function openDateModal() {
       document.getElementById("date-selector-modal").classList.remove("hidden");
@@ -758,29 +754,32 @@ document.getElementById("summaryBtn").addEventListener("click", function(event) 
 });
 
 
-fetch('/api/student-counts-by-date-shift/')
-  .then(response => {
-    if (!response.ok) throw new Error('Network response was not ok');
-    return response.json();
-  })
-  .then(data => {
-    data.forEach(entry => {
-      const date = entry.start_date;
-      const shift = entry.assigned_shift__type;
-      if (!studentCountSummary[date]) {
-        studentCountSummary[date] = [];
-      }
-      studentCountSummary[date].push(`${shift}: ${entry.student_count}`);
-    });
+    // Fetch summary data, then render calendar
+    fetch('/api/student-counts-by-date-shift/')
+      .then(response => {
+        if (!response.ok) throw new Error('Network response was not ok');
+        return response.json();
+      })
+      .then(data => {
+        data.forEach(entry => {
+          const date = entry.start_date;
+          const shift = entry.assigned_shift__type;
+          if (!studentCountSummary[date]) {
+            studentCountSummary[date] = [];
+          }
+          studentCountSummary[date].push(`${shift}: ${entry.student_count}`);
+        });
 
-    console.log("Fetched studentCountSummary:", studentCountSummary); // Debugging
+        console.log("Fetched studentCountSummary:", studentCountSummary); // Debugging
 
-    // Re-render calendar with fetched data
-    renderWeeklyCalendar(currentDate);
-  })
-  .catch(error => {
-    console.error('Fetch error:', error);
-  });
+        // Render calendar only after summary data is loaded
+        renderWeeklyCalendar(currentDate);
+      })
+      .catch(error => {
+        console.error('Fetch error:', error);
+        // Still render calendar if fetch fails, but with no summary
+        renderWeeklyCalendar(currentDate);
+      });
 function createModal(contentHtml) {
   // Create overlay
   const overlay = document.createElement("div");
