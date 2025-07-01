@@ -94,6 +94,82 @@ def calculate_shift_total_time(start_time, end_time):
     hours = abs(duration.total_seconds()) / 3600
     return hours
 
+# def get_shift_availability(user, start_date, shift_type, requested_hours):
+#     try:
+#         print('Shift type:', shift_type)    
+#         assigned_shift = Shift.objects.get(id=shift_type)
+#     except Shift.DoesNotExist:
+#         return {"error": f"Shift type '{shift_type}' does not exist."}
+
+#     # shift_total_time = (
+#     #     datetime.combine(date.min, assigned_shift.end_time)
+#     #     - datetime.combine(date.min, assigned_shift.start_time)
+#     # ).seconds / 3600
+#     shift_total_time = calculate_shift_total_time(assigned_shift.start_time,assigned_shift.end_time)
+
+#     days_required = (requested_hours // shift_total_time) + (
+#         1 if requested_hours % shift_total_time != 0 else 0
+#     )
+
+#     current_date = start_date
+#     working_days = 0
+#     shift_type = assigned_shift.type.lower()
+#     if "weekendday" in shift_type:
+#         weekdays_selected = {
+#             "Saturday": 5,
+#             "Sunday": 6
+#         }
+#     elif "weekendnight" in shift_type:
+#         weekdays_selected = {
+#             "Friday": 4,
+#             "Saturday": 5,
+#             "Sunday": 6
+#         }
+#         # weekdays_selected = [4, 5, 6]
+#     elif "night" in shift_type:
+#         weekdays_selected = {
+#             "Monday": 0,
+#             "Tuesday": 1,
+#             "Wednesday": 2,
+#             "Thursday": 3,
+#         }
+#         # weekdays_selected = [0, 1, 2, 3]
+#     else:
+#         weekdays_selected = {
+#             "Monday": 0,
+#             "Tuesday": 1,
+#             "Wednesday": 2,
+#             "Thursday": 3,
+#             "Friday": 4
+#         }
+        
+#     selected_weekdays = set(weekdays_selected.values())
+
+#     while working_days < days_required:
+#         if current_date.weekday() in selected_weekdays:
+#             if validate_shift_capacity(user, current_date, assigned_shift):
+#                 working_days += 1
+#             else:
+#                 return {
+#                     "is_available": False,
+#                     "message": f"Capacity exceeded on {current_date.strftime('%Y-%m-%d')} for {shift_type} shift.",
+#                 }
+
+#         current_date += timedelta(days=1)
+
+#     end_date = current_date - timedelta(days=1)
+
+#     return {
+#         "is_available": True,
+#         "start_date": start_date,
+#         "shift_type": shift_type,
+#         "requested_hours": requested_hours,
+#         # "shift_requested": shift_requested,
+#         "weekdays_selected": list(selected_weekdays),
+#         "end_date": end_date,
+#     }
+
+
 def get_shift_availability(user, start_date, shift_type, requested_hours):
     try:
         print('Shift type:', shift_type)    
@@ -1461,3 +1537,21 @@ def student_counts_by_date_and_shift(request):
     ]
 
     return JsonResponse(formatted, safe=False)
+    
+
+from django.shortcuts import get_object_or_404, redirect
+from django.contrib import messages
+from django.views.decorators.http import require_POST
+from .models import StudentProfile
+
+@require_POST
+def update_start_date(request, pk):
+    profile = get_object_or_404(StudentProfile, pk=pk)
+    new_start_date = request.POST.get('new_start_date')
+    if new_start_date:
+        profile.start_date = new_start_date
+        profile.save()
+        messages.success(request, f"Start date updated for {profile.first_name} {profile.last_name}.")
+    else:
+        messages.error(request, "Invalid start date.")
+    return redirect('student_profile_list')

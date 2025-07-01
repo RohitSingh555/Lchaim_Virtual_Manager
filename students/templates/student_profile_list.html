@@ -18,6 +18,28 @@
         function closeDeleteModal() {
             document.getElementById('deleteModal').classList.add('hidden');
         }
+
+        function openEditStartDateModal(profileId, firstName, lastName, email, currentStartDate) {
+            const modal = document.getElementById('editStartDateModal');
+            const card = document.getElementById('editStartDateModalCard');
+            modal.classList.remove('hidden');
+            card.classList.remove('scale-95', 'opacity-0');
+            card.classList.add('animate-fade-in-up');
+            document.getElementById('editStartDateName').textContent = firstName + ' ' + lastName;
+            document.getElementById('editStartDateEmail').textContent = email;
+            document.getElementById('new_start_date').value = currentStartDate;
+            document.getElementById('editStartDateForm').action = '/students/update_start_date/' + profileId + '/';
+        }
+
+        function closeEditStartDateModal() {
+            const modal = document.getElementById('editStartDateModal');
+            const card = document.getElementById('editStartDateModalCard');
+            card.classList.remove('animate-fade-in-up');
+            card.classList.add('scale-95', 'opacity-0');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 200);
+        }
     </script>
 </head>
 
@@ -252,93 +274,116 @@
         
             <!-- Table Section -->
             <div class="bg-white shadow-lg rounded-lg mt-6 mx-auto overflow-x-auto">
-                <table class="min-w-full table-auto border-collapse">
-                   <thead class="bg-blue-800 text-white">
-    <tr>
-        <th class="px-4 py-3 text-center">
-            <a href="?sort_field=first_name&sort_order={% if sort_field == 'first_name' and sort_order == 'asc' %}desc{% else %}asc{% endif %}" class="hover:underline">
-                First Name {% if sort_field == "first_name" %}({{ sort_order|title }}){% endif %}
-            </a>
-        </th>
-        <th class="px-4 py-3 text-center">
-            <a href="?sort_field=last_name&sort_order={% if sort_field == 'last_name' and sort_order == 'asc' %}desc{% else %}asc{% endif %}" class="hover:underline">
-                Last Name {% if sort_field == "last_name" %}({{ sort_order|title }}){% endif %}
-            </a>
-        </th>
-        <th class="px-4 py-3 text-center">
-            <a href="?sort_field=email&sort_order={% if sort_field == 'email' and sort_order == 'asc' %}desc{% else %}asc{% endif %}" class="hover:underline">
-                Email {% if sort_field == "email" %}({{ sort_order|title }}){% endif %}
-            </a>
-        </th>
-        <th class="px-4 py-3 text-center">Phone</th>
-        <th class="px-4 py-3 text-center">
-            <a href="?sort_field=school&sort_order={% if sort_field == 'school' and sort_order == 'asc' %}desc{% else %}asc{% endif %}" class="hover:underline">
-                School {% if sort_field == "school" %}({{ sort_order|title }}){% endif %}
-            </a>
-        </th>
-        
-        <th class="px-4 py-3 text-center w-64">Weekdays Selected</th>
-        <th class="px-4 py-3 text-center w-64">Shift Assigned</th>
-        <th class="px-4 py-3 text-center">Hours Requested</th>
-        <th class="px-4 py-3 text-center">
-            <a href="?sort_field=lchaim_orientation_date&sort_order={% if sort_field == 'lchaim_orientation_date' and sort_order == 'asc' %}desc{% else %}asc{% endif %}" class="hover:underline">
-                Orientation Date {% if sort_field == "lchaim_orientation_date" %}({{ sort_order|title }}){% endif %}
-            </a>
-            
-        </th>
-        <th class="px-4 py-3 text-center">Start Date</th>
-
-        {% if is_admin %}
-        <th class="px-4 py-3 text-center">Actions</th>
-        {% endif %}
-    </tr>
-</thead>
-
+                <table class="min-w-full table-auto border-collapse whitespace-nowrap">
+                    <thead class="bg-blue-800 text-white">
+                        <tr>
+                            <th class="px-4 py-3 text-center whitespace-nowrap">
+                                <a href="?sort_field=first_name&sort_order={% if sort_field == 'first_name' and sort_order == 'asc' %}desc{% else %}asc{% endif %}" class="hover:underline">
+                                    First Name {% if sort_field == "first_name" %}({{ sort_order|title }}){% endif %}
+                                </a>
+                            </th>
+                            <th class="px-4 py-3 text-center whitespace-nowrap">
+                                <a href="?sort_field=last_name&sort_order={% if sort_field == 'last_name' and sort_order == 'asc' %}desc{% else %}asc{% endif %}" class="hover:underline">
+                                    Last Name {% if sort_field == "last_name" %}({{ sort_order|title }}){% endif %}
+                                </a>
+                            </th>
+                            <th class="px-4 py-3 text-center whitespace-nowrap">
+                                <a href="?sort_field=email&sort_order={% if sort_field == 'email' and sort_order == 'asc' %}desc{% else %}asc{% endif %}" class="hover:underline">
+                                    Email {% if sort_field == "email" %}({{ sort_order|title }}){% endif %}
+                                </a>
+                            </th>
+                            <th class="px-4 py-3 text-center whitespace-nowrap">Phone</th>
+                            <th class="px-4 py-3 text-center whitespace-nowrap">
+                                <a href="?sort_field=school&sort_order={% if sort_field == 'school' and sort_order == 'asc' %}desc{% else %}asc{% endif %}" class="hover:underline">
+                                    School {% if sort_field == "school" %}({{ sort_order|title }}){% endif %}
+                                </a>
+                            </th>
+                            <th class="px-4 py-3 text-center w-64 whitespace-nowrap">Weekdays Selected</th>
+                            <th class="px-4 py-3 text-center w-64 whitespace-nowrap">Shift Assigned</th>
+                            <th class="px-4 py-3 text-center whitespace-nowrap">Hours Requested</th>
+                            <th class="px-4 py-3 text-center whitespace-nowrap">
+                                <a href="?sort_field=lchaim_orientation_date&sort_order={% if sort_field == 'lchaim_orientation_date' and sort_order == 'asc' %}desc{% else %}asc{% endif %}" class="hover:underline">
+                                    Orientation Date {% if sort_field == "lchaim_orientation_date" %}({{ sort_order|title }}){% endif %}
+                                </a>
+                            </th>
+                            <th class="px-4 py-3 text-center whitespace-nowrap">Start Date</th>
+                            <th class="px-4 py-3 text-center whitespace-nowrap"></th>
+                            {% if is_admin %}
+                            <th class="px-4 py-3 text-center whitespace-nowrap">Actions</th>
+                            {% endif %}
+                        </tr>
+                    </thead>
                     <tbody>
                         {% for profile in page_obj %}
                         <tr class="border-b hover:bg-gray-100 transition duration-200">
-                            <td class="px-4 py-3 text-center">{{ profile.first_name }}</td>
-                            <td class="px-4 py-3 text-center">{{ profile.last_name }}</td>
-                            <td class="px-4 py-3 text-center">{{ profile.email }}</td>
-                            <td class="px-4 py-3 text-center">{{ profile.phone }}</td>
-                            <td class="px-4 py-3 text-center">{{ profile.school }}</td>
-                            <td class="px-4 py-3 text-center">{{ profile.weekdays_display }}</td>
-                            <td class="px-4 py-3 text-center align-middle">
-                                <div class="inline-block bg-gray-100 p-3 rounded-lg shadow-sm">
-                                    <p class="text-sm font-semibold text-indigo-600 mb-1">
-                                     {{ profile.assigned_shift.get_type_display }}
-                                    </p>
-                                    <!--<p class="text-xs text-gray-700">-->
-                                    <!--    🕒 {{ profile.assigned_shift.start_time }} - {{ profile.assigned_shift.end_time }}-->
-                                    <!--</p>-->
-                                </div>
-                            </td>
-                                                        <td class="px-4 py-3 text-center">{{ profile.hours_requested }}</td>
-                            <td class="px-4 py-3 text-center">{{ profile.lchaim_orientation_date }}</td>
-                            <td class="px-4 py-3 text-center">{{ profile.start_date|date:"Y-m-d" }}</td>
-
-                            
-                            {% if is_admin %}
-                            <td class="px-6 py-4 text-center">
-                                <div class="flex items-center justify-center space-x-2">
-                                    <a href="{% url 'update_student_profile' profile.pk %}" 
-                                       class="bg-yellow-500 text-white px-3 py-2 md:px-2 md:py-1 text-sm rounded-md inline-flex items-center justify-center space-x-1 hover:bg-yellow-600 transition ease-in-out duration-200">
-                                        <i class="fas fa-pen"></i><span>Edit</span>
-                                    </a>
-                                    <button onclick="openDeleteModal({{ profile.pk }})" 
-                                        class="bg-red-500 text-white px-3 py-2 md:px-2 md:py-1 text-sm rounded-md inline-flex items-center justify-center space-x-1 hover:bg-red-600 transition ease-in-out duration-200">
-                                        <i class="fas fa-trash"></i><span>Delete</span>
-                                    </button>
-                                </div>
-                            </td>
-                            
-                            {% endif %}
-                        </tr>
-                        {% endfor %}
-                    </tbody>
+        <td class="px-4 py-3 text-center whitespace-nowrap break-all">{{ profile.first_name }}</td>
+        <td class="px-4 py-3 text-center whitespace-nowrap break-all">{{ profile.last_name }}</td>
+        <td class="px-4 py-3 text-center whitespace-nowrap break-all">{{ profile.email }}</td>
+        <td class="px-4 py-3 text-center whitespace-nowrap break-all">{{ profile.phone }}</td>
+        <td class="px-4 py-3 text-center whitespace-nowrap break-all">{{ profile.school }}</td>
+        <td class="px-4 py-3 text-center whitespace-nowrap break-all">{{ profile.weekdays_display }}</td>
+        <td class="px-4 py-3 text-center align-middle whitespace-nowrap break-all">
+            <div class="inline-block bg-gray-100 p-3 rounded-lg shadow-sm">
+                <p class="text-sm font-semibold text-indigo-600 mb-1 whitespace-nowrap break-all">
+                 {{ profile.assigned_shift.get_type_display }}
+                </p>
+            </div>
+        </td>
+        <td class="px-4 py-3 text-center whitespace-nowrap break-all">{{ profile.hours_requested }}</td>
+        <td class="px-4 py-3 text-center whitespace-nowrap break-all">{{ profile.lchaim_orientation_date }}</td>
+        <td class="px-4 py-3 text-center whitespace-nowrap break-all">{{ profile.start_date|date:"Y-m-d" }}</td>
+        <td class="px-4 py-3 text-center whitespace-nowrap">
+            {% if is_admin %}
+            <button onclick="openEditStartDateModal('{{ profile.pk }}', '{{ profile.first_name|escapejs }}', '{{ profile.last_name|escapejs }}', '{{ profile.email|escapejs }}', '{{ profile.start_date|date:"Y-m-d" }}')" 
+                class="text-blue-600 hover:text-blue-900">
+                <i class="fas fa-edit fa-lg"></i>
+            </button>
+            {% endif %}
+        </td>
+        {% if is_admin %}
+        <td class="px-6 py-4 text-center whitespace-nowrap">
+            <div class="flex items-center justify-center space-x-2">
+                <a href="{% url 'update_student_profile' profile.pk %}" 
+                   class="bg-yellow-500 text-white px-3 py-2 md:px-2 md:py-1 text-sm rounded-md inline-flex items-center justify-center space-x-1 hover:bg-yellow-600 transition ease-in-out duration-200">
+                    <i class="fas fa-pen"></i><span>Edit</span>
+                </a>
+                <button onclick="openDeleteModal({{ profile.pk }})" 
+                    class="bg-red-500 text-white px-3 py-2 md:px-2 md:py-1 text-sm rounded-md inline-flex items-center justify-center space-x-1 hover:bg-red-600 transition ease-in-out duration-200">
+                    <i class="fas fa-trash"></i><span>Delete</span>
+                </button>
+            </div>
+        </td>
+        {% endif %}
+    </tr>
+    {% endfor %}
+</tbody>
                 </table>
             </div>
-
+            <style>
+    /* Ensure table responsiveness and prevent text breaking into multiple lines */
+    table {
+        table-layout: auto;
+        width: 100%;
+    }
+    th, td {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        word-break: break-all;
+        max-width: 220px;
+    }
+    @media (max-width: 1024px) {
+        th, td {
+            max-width: 120px;
+        }
+    }
+    @media (max-width: 640px) {
+        th, td {
+            max-width: 80px;
+            font-size: 12px;
+        }
+    }
+</style>
                     <!-- Pagination -->
                     <div class="mt-6 flex justify-center">
                         <ul class="flex items-center space-x-2">
@@ -433,6 +478,81 @@
         </div>
     </div>
 
+    <!-- Edit Start Date Modal -->
+    <div id="editStartDateModal" class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center hidden z-50">
+  <div id="editStartDateModalCard"
+    class="bg-white rounded-2xl shadow-2xl w-full max-w-lg p-8 relative transform transition-all duration-300 scale-95 opacity-0 animate-fade-in-up">
+
+    <!-- Close Button -->
+    <button onclick="closeEditStartDateModal()" class="absolute top-3 right-3 text-gray-500 hover:text-red-500 text-3xl transition">
+      <i class="fas fa-times-circle"></i>
+    </button>
+
+    <!-- Header -->
+    <div class="flex flex-col items-center">
+      <div class="bg-teal-100 rounded-full p-4 mb-4 shadow-inner">
+        <i class="fas fa-calendar-day text-teal-600 text-3xl"></i>
+      </div>
+      <h3 class="text-2xl font-bold text-gray-800 mb-1">Edit Start Date</h3>
+      <p class="text-gray-500 text-center text-sm mb-6">
+        Change the student's start date and confirm your changes below.
+      </p>
+    </div>
+
+    <!-- Form -->
+    <form id="editStartDateForm" method="POST" action="" class="space-y-5">
+      {% csrf_token %}
+      <div>
+        <label class="block font-medium text-gray-700 mb-1">Name</label>
+        <span id="editStartDateName" class="block text-gray-900 font-semibold"></span>
+      </div>
+      <div>
+        <label class="block font-medium text-gray-700 mb-1">Email</label>
+        <span id="editStartDateEmail" class="block text-gray-900 font-semibold"></span>
+      </div>
+      <div>
+        <label for="new_start_date" class="block font-medium text-gray-700 mb-1">New Start Date</label>
+        <input type="date" id="new_start_date" name="new_start_date"
+          class="w-full border border-teal-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-teal-500 focus:outline-none shadow-sm transition"
+          required>
+      </div>
+      <div class="text-center text-sm text-teal-700 font-semibold bg-teal-50 border border-teal-200 rounded-lg px-4 py-2">
+        <i class="fas fa-info-circle mr-2"></i>Are you sure you want to change the start date?
+      </div>
+      <div class="flex justify-center gap-4 pt-4">
+        <button type="button" onclick="closeEditStartDateModal()"
+          class="bg-gray-100 text-gray-700 px-5 py-2 rounded-lg hover:bg-gray-200 transition font-medium shadow">
+          <i class="fas fa-times mr-2"></i>Cancel
+        </button>
+        <button type="submit"
+          class="bg-teal-600 text-white px-5 py-2 rounded-lg hover:bg-teal-700 transition font-semibold shadow">
+          <i class="fas fa-check mr-2"></i>Confirm
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+</div>
+
+<style>
+@keyframes fade-in-up {
+    0% {
+        opacity: 0;
+        transform: translateY(40px) scale(0.95);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+.animate-fade-in-up {
+    animation: fade-in-up 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+</style>
+</body>
+
+</html>
 </body>
 
 </html>

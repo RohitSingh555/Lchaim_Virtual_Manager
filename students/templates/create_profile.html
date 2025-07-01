@@ -233,6 +233,22 @@
             background-color: #dc3545;
             color: white;
         }
+
+        /* Style for read-only input fields */
+        input[readonly] {
+            background-color: #f1f1f1 !important;
+            cursor: not-allowed;
+            border: 1px solid #d1d5db !important;
+            color: #888 !important;
+            pointer-events: none;
+        }
+
+        input[readonly]:hover,
+        input[readonly]:focus {
+            background-color: #e9ecef !important;
+            border-color: #b0b0b0 !important;
+            cursor: not-allowed;
+        }
     </style>
 </head>
 
@@ -305,7 +321,7 @@
                 <select name="lchaim_orientation_date" id="id_lchaim_orientation_date" class="form-control">
     <option value="">{{ form.fields.lchaim_orientation_date.empty_label }}</option>
     {% for orientation in form.fields.lchaim_orientation_date.queryset %}
-        <option value="{{ orientation.id }}" data-start-date="{{ orientation.start_date|date:'Y-m-d' }}">
+        <option value="{{ orientation.id }}" data-start-date="{{ orientation.date|date:'Y-m-d' }}">
             {{ orientation.date|date:'Y-m-d' }}
         </option>
     {% endfor %}
@@ -314,7 +330,7 @@
             </div>
             <div class="form-group">
                 <label for="id_start_date">Start Date</label>
-                <input type="date" id="id_start_date" name="start_date" class="form-control start-date">
+                <input type="date" id="id_start_date" name="start_date" class="form-control start-date" readonly>
             </div>
             <div class="form-group hidden">
                 <label for="id_shift_requested">Shift Requested</label>
@@ -572,12 +588,18 @@ document.addEventListener("DOMContentLoaded", function () {
         if (allowedStartDate) {
             startDateInput.setAttribute("min", allowedStartDate);
 
-            // If current value is too early, reset it
-            if (startDateInput.value && startDateInput.value < allowedStartDate) {
-                startDateInput.value = allowedStartDate;
-            }
+            // Automatically set start date to orientation date + 1 day
+            const orientationDateObj = new Date(allowedStartDate);
+            orientationDateObj.setDate(orientationDateObj.getDate() + 1);
+            const nextDay = orientationDateObj.toISOString().split('T')[0];
+            startDateInput.value = nextDay;
+            // Trigger change event for downstream logic (if any)
+            startDateInput.dispatchEvent(new Event('change', { bubbles: true }));
+
         } else {
             startDateInput.removeAttribute("min");
+            startDateInput.value = "";
+            startDateInput.dispatchEvent(new Event('change', { bubbles: true }));
         }
     });
 });
