@@ -321,7 +321,7 @@
                 <select name="lchaim_orientation_date" id="id_lchaim_orientation_date" class="form-control">
     <option value="">{{ form.fields.lchaim_orientation_date.empty_label }}</option>
     {% for orientation in form.fields.lchaim_orientation_date.queryset %}
-        <option value="{{ orientation.id }}" data-start-date="{{ orientation.date|date:'Y-m-d' }}">
+        <option value="{{ orientation.id }}" data-start-date="{{ orientation.start_date|date:'Y-m-d' }}">
             {{ orientation.date|date:'Y-m-d' }}
         </option>
     {% endfor %}
