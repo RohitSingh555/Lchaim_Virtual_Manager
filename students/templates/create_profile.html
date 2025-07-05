@@ -130,6 +130,298 @@
             margin-top: 2rem;
         }
 
+        /* Loading Spinner */
+        .loading-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.9);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #3182ce;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Upload Progress */
+        .upload-progress {
+            width: 80%;
+            max-width: 500px;
+            margin: 20px auto;
+            display: block;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background-color: #f3f3f3;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background-color: #3182ce;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .progress-text {
+            text-align: center;
+            font-size: 14px;
+            color: #333;
+        }
+
+        /* Modern File Upload */
+        .file-upload-container {
+            position: relative;
+            width: 100%;
+            min-height: 120px;
+            border: 2px dashed #cbd5e0;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            transition: all 0.3s ease;
+            background: #f8fafc;
+            cursor: pointer;
+            margin-bottom: 15px;
+        }
+
+        .file-upload-container:hover,
+        .file-upload-container.dragover {
+            border-color: #3182ce;
+            background: #ebf8ff;
+        }
+
+        .file-upload-container input[type="file"] {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .upload-icon {
+            font-size: 24px;
+            color: #3182ce;
+            margin-bottom: 10px;
+        }
+
+        .upload-text {
+            color: #4a5568;
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+
+        .upload-hint {
+            color: #718096;
+            font-size: 12px;
+        }
+
+        .file-preview {
+            display: flex;
+            align-items: center;
+            padding: 8px;
+            background: white;
+            border-radius: 4px;
+            margin-top: 10px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .file-name {
+            flex-grow: 1;
+            margin-left: 8px;
+            font-size: 13px;
+            color: #2d3748;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .remove-file {
+            background: none;
+            border: none;
+            color: #e53e3e;
+            cursor: pointer;
+            padding: 4px 8px;
+            font-size: 14px;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+        }
+
+        .remove-file:hover {
+            background-color: #fed7d7;
+        }
+
+        .required-indicator {
+            color: #e53e3e;
+            margin-left: 4px;
+        }
+
+        /* Required Document List */
+        .required-docs-list {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f8fafc;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .required-docs-list h4 {
+            color: #2d3748;
+            margin-bottom: 12px;
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .required-docs-list ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .required-docs-list li {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+            color: #4a5568;
+            font-size: 14px;
+        }
+
+        .required-docs-list li svg {
+            margin-right: 8px;
+            flex-shrink: 0;
+        }
+
+        .doc-status {
+            margin-left: auto;
+            font-size: 12px;
+            padding: 2px 8px;
+            border-radius: 12px;
+            background: #edf2f7;
+            color: #718096;
+        }
+
+        .doc-status.uploaded {
+            background: #c6f6d5;
+            color: #2f855a;
+        }
+
+        /* Form Validation */
+        .error-shake {
+            animation: shake 0.5s;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+            20%, 40%, 60%, 80% { transform: translateX(5px); }
+        }
+
+        .validation-error {
+            border-color: #dc3545 !important;
+            box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25) !important;
+        }
+
+        /* Error Modal */
+        .error-modal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            z-index: 10000;
+            max-width: 400px;
+            width: 90%;
+        }
+
+        .error-modal-backdrop {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 9999;
+        }
+
+        .error-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .error-modal-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #dc3545;
+        }
+
+        .error-modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #666;
+        }
+
+        .error-modal-content {
+            margin-bottom: 20px;
+        }
+
+        .error-modal-button {
+            width: 100%;
+            padding: 10px;
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .error-modal-button:hover {
+            background: #c82333;
+        }
+
         .custom-switch input[type="checkbox"] {
             width: 2.5rem;
             height: 1.5rem;
@@ -254,6 +546,30 @@
 
 <body>
     {% include 'navbar.html' %}
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay">
+        <div class="loading-spinner"></div>
+        <div class="upload-progress">
+            <div class="progress-bar">
+                <div class="progress-fill"></div>
+            </div>
+            <div class="progress-text">Uploading files... 0%</div>
+        </div>
+    </div>
+
+    <!-- Error Modal -->
+    <div class="error-modal-backdrop"></div>
+    <div class="error-modal">
+        <div class="error-modal-header">
+            <div class="error-modal-title">Form Validation Error</div>
+            <button class="error-modal-close">&times;</button>
+        </div>
+        <div class="error-modal-content">
+            Please select a shift timing before submitting the form.
+        </div>
+        <button class="error-modal-button">OK</button>
+    </div>
 
     <div id="shift-availability-card" class="shift-notification-card">
         <div class="shift-notification-header">
@@ -440,6 +756,9 @@
             {% endif %}
         {% endfor %}
     </select>
+    <div id="shift-timing-error" style="color: #dc3545; font-size: 0.95em; margin-top: 5px; display: none;">
+        Please select a shift timing.
+    </div>
 </div>
 
 
@@ -472,100 +791,106 @@
 
             <div class="form-group mt-4">
                 <div class="bg-white border border-gray-300 rounded-lg p-3 mx-auto">
-                    <h4 class="text-base font-semibold text-gray-800 mb-2 text-left">Required Documents for Placement
-                    </h4>
-                    <ul class="space-y-1 text-sm text-gray-700">
-                        <li class="flex items-center space-x-2">
-                            <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                                xmlns="http://www.w3.org/2000/svg">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M5 13l4 4L19 7"></path>
-                            </svg>
-                            <span>COVID Vaccination</span>
-                        </li>
-                        <li class="flex items-center space-x-2">
-                            <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                                xmlns="http://www.w3.org/2000/svg">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M5 13l4 4L19 7"></path>
-                            </svg>
-                            <span>Medical Certificate</span>
-                        </li>
-                        <li class="flex items-center space-x-2">
-                            <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                                xmlns="http://www.w3.org/2000/svg">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M5 13l4 4L19 7"></path>
-                            </svg>
-                            <span>Police Check / Vulnerable Sector Check</span>
-                        </li>
-                        <li class="flex items-center space-x-2">
-                            <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                                xmlns="http://www.w3.org/2000/svg">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M5 13l4 4L19 7"></path>
-                            </svg>
-                            <span>CPR or First Aid</span>
-                        </li>
-                        <li class="flex items-center space-x-2">
-                            <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                                xmlns="http://www.w3.org/2000/svg">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M5 13l4 4L19 7"></path>
-                            </svg>
-                            <span>Mask Fit</span>
-                        </li>
-                    </ul>
-                    <p class="text-xs text-gray-600 mt-2">Please ensure that all documents are prepared before
-                        uploading.</p>
-                    <br>
-                    <ul class="space-y-3 text-sm text-gray-700">
-                        <!-- COVID Vaccination -->
-                        <li class="flex flex-col space-y-2">
-                            <label class="font-medium text-gray-700" for="covid_vaccination">
-                                COVID Vaccination <span class="text-red-500">*</span>
-                            </label>
-                            <input type="file" id="covid_vaccination" name="covid_vaccination" required
-                                class="border border-gray-300 rounded-lg p-2 w-full focus:ring focus:ring-blue-300" />
-                        </li>
+                    <div class="required-docs-list">
+                        <h4>Required Documents for Placement</h4>
+                        <ul id="docs-status-list">
+                            <li>
+                                <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <circle cx="12" cy="12" r="10" stroke-width="2"/>
+                                </svg>
+                                <span>COVID Vaccination</span>
+                                <span class="doc-status" id="covid-status">Pending</span>
+                            </li>
+                            <li>
+                                <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <circle cx="12" cy="12" r="10" stroke-width="2"/>
+                                </svg>
+                                <span>Medical Certificate</span>
+                                <span class="doc-status" id="medical-status">Pending</span>
+                            </li>
+                            <li>
+                                <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <circle cx="12" cy="12" r="10" stroke-width="2"/>
+                                </svg>
+                                <span>Police Check / Vulnerable Sector Check</span>
+                                <span class="doc-status" id="police-status">Pending</span>
+                            </li>
+                            <li>
+                                <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <circle cx="12" cy="12" r="10" stroke-width="2"/>
+                                </svg>
+                                <span>CPR or First Aid</span>
+                                <span class="doc-status" id="cpr-status">Pending</span>
+                            </li>
+                            <li>
+                                <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <circle cx="12" cy="12" r="10" stroke-width="2"/>
+                                </svg>
+                                <span>Mask Fit</span>
+                                <span class="doc-status" id="mask-status">Optional</span>
+                            </li>
+                        </ul>
+                    </div>
 
-                        <!-- Medical Certificate -->
-                        <li class="flex flex-col space-y-2">
-                            <label class="font-medium text-gray-700" for="medical_certificate">
-                                Medical Certificate <span class="text-red-500">*</span>
-                            </label>
-                            <input type="file" id="medical_certificate" name="medical_certificate" required
-                                class="border border-gray-300 rounded-lg p-2 w-full focus:ring focus:ring-blue-300" />
-                        </li>
+                    <!-- COVID Vaccination -->
+                    <div class="file-upload-container" id="covid-upload">
+                        <input type="file" id="covid_vaccination" name="covid_vaccination" required accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"/>
+                        <div class="upload-icon">📄</div>
+                        <div class="upload-text">COVID Vaccination<span class="required-indicator">*</span></div>
+                        <div class="upload-hint">Drag and drop or click to upload</div>
+                        <div id="covid-preview" class="file-preview" style="display: none;">
+                            <span class="file-name"></span>
+                            <button type="button" class="remove-file">&times;</button>
+                        </div>
+                    </div>
 
-                        <!-- Police Check -->
-                        <li class="flex flex-col space-y-2">
-                            <label class="font-medium text-gray-700" for="police_check">
-                                Police Check / Vulnerable Sector Check <span class="text-red-500">*</span>
-                            </label>
-                            <input type="file" id="police_check" name="police_check" required
-                                class="border border-gray-300 rounded-lg p-2 w-full focus:ring focus:ring-blue-300" />
-                        </li>
+                    <!-- Medical Certificate -->
+                    <div class="file-upload-container" id="medical-upload">
+                        <input type="file" id="medical_certificate" name="medical_certificate" required accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"/>
+                        <div class="upload-icon">📄</div>
+                        <div class="upload-text">Medical Certificate<span class="required-indicator">*</span></div>
+                        <div class="upload-hint">Drag and drop or click to upload</div>
+                        <div id="medical-preview" class="file-preview" style="display: none;">
+                            <span class="file-name"></span>
+                            <button type="button" class="remove-file">&times;</button>
+                        </div>
+                    </div>
 
-                        <!-- CPR or First Aid -->
-                        <li class="flex flex-col space-y-2">
-                            <label class="font-medium text-gray-700" for="cpr_first_aid">
-                                CPR or First Aid <span class="text-red-500">*</span>
-                            </label>
-                            <input type="file" id="cpr_first_aid" name="cpr_first_aid" required
-                                class="border border-gray-300 rounded-lg p-2 w-full focus:ring focus:ring-blue-300" />
-                        </li>
+                    <!-- Police Check -->
+                    <div class="file-upload-container" id="police-upload">
+                        <input type="file" id="police_check" name="police_check" required accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"/>
+                        <div class="upload-icon">📄</div>
+                        <div class="upload-text">Police Check / Vulnerable Sector Check<span class="required-indicator">*</span></div>
+                        <div class="upload-hint">Drag and drop or click to upload</div>
+                        <div id="police-preview" class="file-preview" style="display: none;">
+                            <span class="file-name"></span>
+                            <button type="button" class="remove-file">&times;</button>
+                        </div>
+                    </div>
 
-                        <!-- Mask Fit (Not Required) -->
-                        <li class="flex flex-col space-y-2">
-                            <label class="font-medium text-gray-700" for="mask_fit">
-                                Mask Fit
-                            </label>
-                            <input type="file" id="mask_fit" name="mask_fit"
-                                class="border border-gray-300 rounded-lg p-2 w-full focus:ring focus:ring-blue-300" />
-                        </li>
-                    </ul>
+                    <!-- CPR or First Aid -->
+                    <div class="file-upload-container" id="cpr-upload">
+                        <input type="file" id="cpr_first_aid" name="cpr_first_aid" required accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"/>
+                        <div class="upload-icon">📄</div>
+                        <div class="upload-text">CPR or First Aid<span class="required-indicator">*</span></div>
+                        <div class="upload-hint">Drag and drop or click to upload</div>
+                        <div id="cpr-preview" class="file-preview" style="display: none;">
+                            <span class="file-name"></span>
+                            <button type="button" class="remove-file">&times;</button>
+                        </div>
+                    </div>
 
+                    <!-- Mask Fit -->
+                    <div class="file-upload-container" id="mask-upload">
+                        <input type="file" id="mask_fit" name="mask_fit" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"/>
+                        <div class="upload-icon">📄</div>
+                        <div class="upload-text">Mask Fit</div>
+                        <div class="upload-hint">Drag and drop or click to upload (Optional)</div>
+                        <div id="mask-preview" class="file-preview" style="display: none;">
+                            <span class="file-name"></span>
+                            <button type="button" class="remove-file">&times;</button>
+                        </div>
+                    </div>
                 </div>
             </div>
             <br>
@@ -609,6 +934,139 @@ document.addEventListener("DOMContentLoaded", function () {
     <script>
         // Global variables and functions
         let shiftTimingDropdown, startDateInput, hoursRequestedInput;
+        const loadingOverlay = document.querySelector('.loading-overlay');
+        const progressBar = document.querySelector('.progress-fill');
+        const progressText = document.querySelector('.progress-text');
+        const errorModal = document.querySelector('.error-modal');
+        const errorModalBackdrop = document.querySelector('.error-modal-backdrop');
+        const errorModalClose = document.querySelector('.error-modal-close');
+        const errorModalButton = document.querySelector('.error-modal-button');
+        const form = document.querySelector('form');
+
+        // File upload handling
+        const fileUploadContainers = document.querySelectorAll('.file-upload-container');
+        const requiredFiles = ['covid_vaccination', 'medical_certificate', 'police_check', 'cpr_first_aid'];
+
+        function handleFile(file, containerId, inputId) {
+            const container = document.getElementById(containerId);
+            const preview = container.querySelector('.file-preview');
+            const fileName = preview.querySelector('.file-name');
+            const statusElement = document.getElementById(containerId.replace('-upload', '-status'));
+
+            if (file) {
+                fileName.textContent = file.name;
+                preview.style.display = 'flex';
+                container.classList.add('has-file');
+                statusElement.textContent = 'Ready';
+                statusElement.classList.add('uploaded');
+            } else {
+                preview.style.display = 'none';
+                container.classList.remove('has-file');
+                statusElement.textContent = inputId === 'mask_fit' ? 'Optional' : 'Pending';
+                statusElement.classList.remove('uploaded');
+            }
+        }
+
+        fileUploadContainers.forEach(container => {
+            const input = container.querySelector('input[type="file"]');
+            const preview = container.querySelector('.file-preview');
+            const removeBtn = preview.querySelector('.remove-file');
+            const containerId = container.id;
+
+            // Drag and drop events
+            container.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                container.classList.add('dragover');
+            });
+
+            container.addEventListener('dragleave', () => {
+                container.classList.remove('dragover');
+            });
+
+            container.addEventListener('drop', (e) => {
+                e.preventDefault();
+                container.classList.remove('dragover');
+                const file = e.dataTransfer.files[0];
+                if (file) {
+                    input.files = e.dataTransfer.files;
+                    handleFile(file, containerId, input.id);
+                }
+            });
+
+            // File input change
+            input.addEventListener('change', () => {
+                const file = input.files[0];
+                handleFile(file, containerId, input.id);
+            });
+
+            // Remove file
+            removeBtn.addEventListener('click', () => {
+                input.value = '';
+                handleFile(null, containerId, input.id);
+            });
+        });
+
+        // Function to show error modal
+        function showErrorModal() {
+            errorModal.style.display = 'block';
+            errorModalBackdrop.style.display = 'block';
+            shiftTimingDropdown.classList.add('validation-error', 'error-shake');
+        }
+
+        // Function to hide error modal
+        function hideErrorModal() {
+            errorModal.style.display = 'none';
+            errorModalBackdrop.style.display = 'none';
+            shiftTimingDropdown.classList.remove('validation-error');
+        }
+
+        // Function to show loading overlay
+        function showLoading() {
+            loadingOverlay.style.display = 'flex';
+            document.querySelector('.upload-progress').style.display = 'block';
+        }
+
+        // Function to hide loading overlay
+        function hideLoading() {
+            loadingOverlay.style.display = 'none';
+            progressBar.style.width = '0%';
+            progressText.textContent = 'Uploading files... 0%';
+        }
+
+        // Function to update progress
+        function updateProgress(percent) {
+            progressBar.style.width = `${percent}%`;
+            progressText.textContent = `Uploading files... ${percent}%`;
+        }
+
+        // Function to simulate file upload progress
+        function simulateFileUpload() {
+            const uploadedFiles = Array.from(document.querySelectorAll('input[type="file"]'))
+                .filter(input => input.files.length > 0);
+
+            const totalFiles = uploadedFiles.length;
+            if (totalFiles === 0) {
+                form.submit();
+                return;
+            }
+
+            const progressPerFile = 100 / totalFiles;
+            let currentFile = 0;
+
+            const uploadInterval = setInterval(() => {
+                if (currentFile >= totalFiles) {
+                    clearInterval(uploadInterval);
+                    setTimeout(() => {
+                        form.submit();
+                    }, 500);
+                    return;
+                }
+
+                const progress = Math.min(((currentFile + 1) * progressPerFile), 100);
+                updateProgress(Math.round(progress));
+                currentFile++;
+            }, 800);
+        }
 
         // Global function to handle "Use This Date" button clicks
         function useNextAvailableDate(nextDate) {
@@ -728,10 +1186,44 @@ document.addEventListener("DOMContentLoaded", function () {
                 closeBtn.addEventListener('click', closeNotification);
             }
             
+            // Error modal event listeners
+            errorModalClose.addEventListener('click', hideErrorModal);
+            errorModalButton.addEventListener('click', hideErrorModal);
+            errorModalBackdrop.addEventListener('click', hideErrorModal);
+            
+            // Form submission handler
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                if (!shiftTimingDropdown.value) {
+                    showErrorModal();
+                    return;
+                }
+
+                // Check required files
+                const missingFiles = requiredFiles.filter(fileId => {
+                    const input = document.getElementById(fileId);
+                    return input && input.required && !input.files.length;
+                });
+
+                if (missingFiles.length > 0) {
+                    alert('Please upload all required documents before submitting.');
+                    return;
+                }
+
+                showLoading();
+                simulateFileUpload();
+            });
+            
             shiftTimingDropdown.addEventListener('change', fetchShiftAvailabilityOnChange);
             orientationDate.addEventListener('change', fetchShiftAvailabilityOnChange);            
             startDateInput.addEventListener('change', fetchShiftAvailabilityOnChange);
             hoursRequestedInput.addEventListener('input', fetchShiftAvailabilityOnChange);
+
+            // Remove validation error class when shift is selected
+            shiftTimingDropdown.addEventListener('change', function() {
+                this.classList.remove('validation-error');
+            });
         });
     </script>
 
