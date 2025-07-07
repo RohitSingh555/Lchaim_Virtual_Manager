@@ -332,7 +332,7 @@ def create_student_profile(request):
                 assigned_shift = Shift.objects.get(id=shift_id)
                 student_profile.assigned_shift = assigned_shift
 
-                # ✅ New logic to auto-fill shift_requested and weekdays_selected
+                # âœ… New logic to auto-fill shift_requested and weekdays_selected
                 shift_type = assigned_shift.type.lower()
                 if "weekendnight" in shift_type:
                     student_profile.shift_requested = "Weekend"
@@ -489,24 +489,24 @@ def send_student_creation_email(student):
     <div class="email-container">
         <p>Dear {student.first_name},</p>
 
-        <p>Welcome to L’Chaim! We are thrilled to have you join us and look forward to supporting you throughout your placement.</p>
+        <p>Welcome to Lâ€™Chaim! We are thrilled to have you join us and look forward to supporting you throughout your placement.</p>
 
-        <p>Your orientation has been scheduled for <strong>{orientation_date} at 10:00 AM</strong>, and will take place at <strong>L’Chaim Retirement Home</strong>.</p>
+        <p>Your orientation has been scheduled for <strong>{orientation_date} at 10:00 AM</strong>, and will take place at <strong>Lâ€™Chaim Retirement Home</strong>.</p>
 
         <p>During this session, we will walk you through important information to help ensure a smooth and successful start.</p>
         <p>Students may only begin their placement after the agreement has been signed.</p>
 
 <p style="padding-bottom:10px;">To get started with your placement, make sure to fill up the linked form below.</p>
-        <p style="padding-bottom:10px;">👉 <strong>Student Placement Agreement Link:</strong> <a href="https://ca.services.docusign.net/webforms-ux/v1.0/forms/0ac38e69c9497d30b239f01304055e6d" target="_blank">Click here.</a></p>
+        <p style="padding-bottom:10px;">ðŸ‘‰ <strong>Student Placement Agreement Link:</strong> <a href="https://ca.services.docusign.net/webforms-ux/v1.0/forms/ae58e83ba452d7d8605aaf046d9e9f27" target="_blank">Click here.</a></p>
 
         <strong>Orientation Date & Time:</strong> {orientation_date} at 10:00 AM<br>
-        <strong>Placement Location:</strong> L’Chaim Retirement Home – 718 Sheppard Ave West, Toronto, Ontario</p>
+        <strong>Placement Location:</strong> Lâ€™Chaim Retirement Home â€“ 718 Sheppard Ave West, Toronto, Ontario</p>
 
-        <p>Before your orientation, please take some time to review the attached training documents, which outline our key policies and guidelines. Once you’ve read and understood them, kindly confirm your acknowledgement by replying to this email.</p>
+        <p>Before your orientation, please take some time to review the attached training documents, which outline our key policies and guidelines. Once youâ€™ve read and understood them, kindly confirm your acknowledgement by replying to this email.</p>
 
-        <p>If you have any questions or need further clarification, don’t hesitate to reach out—we’re here to help.</p>
+        <p>If you have any questions or need further clarification, donâ€™t hesitate to reach outâ€”weâ€™re here to help.</p>
 
-        <p>Wishing you a meaningful and enriching experience with us at L’Chaim!</p>
+        <p>Wishing you a meaningful and enriching experience with us at Lâ€™Chaim!</p>
 
         <p>Warm regards,</p>
 
