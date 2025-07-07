@@ -574,7 +574,7 @@
     <div id="shift-availability-card" class="shift-notification-card">
         <div class="shift-notification-header">
             <span class="notification-title">Shift Availability</span>
-            <button class="close-btn" id="close-btn">×</button>
+            <button class="close-btn" id="close-btn">Ã—</button>
         </div>
         <div class="shift-notification-content">
             <p><strong>Shift Type:</strong> <span id="shift-type"></span></p>
@@ -646,7 +646,7 @@
             </div>
             <div class="form-group">
                 <label for="id_start_date">Start Date</label>
-                <input type="date" id="id_start_date" name="start_date" class="form-control start-date" readonly>
+                <input type="date" id="id_start_date" name="start_date" class="form-control start-date">
             </div>
             <div class="form-group hidden">
                 <label for="id_shift_requested">Shift Requested</label>
@@ -835,7 +835,7 @@
                     <!-- COVID Vaccination -->
                     <div class="file-upload-container" id="covid-upload">
                         <input type="file" id="covid_vaccination" name="covid_vaccination" required accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"/>
-                        <div class="upload-icon">📄</div>
+                        <div class="upload-icon">ðŸ“„</div>
                         <div class="upload-text">COVID Vaccination<span class="required-indicator">*</span></div>
                         <div class="upload-hint">Drag and drop or click to upload</div>
                         <div id="covid-preview" class="file-preview" style="display: none;">
@@ -847,7 +847,7 @@
                     <!-- Medical Certificate -->
                     <div class="file-upload-container" id="medical-upload">
                         <input type="file" id="medical_certificate" name="medical_certificate" required accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"/>
-                        <div class="upload-icon">📄</div>
+                        <div class="upload-icon">ðŸ“„</div>
                         <div class="upload-text">Medical Certificate<span class="required-indicator">*</span></div>
                         <div class="upload-hint">Drag and drop or click to upload</div>
                         <div id="medical-preview" class="file-preview" style="display: none;">
@@ -859,7 +859,7 @@
                     <!-- Police Check -->
                     <div class="file-upload-container" id="police-upload">
                         <input type="file" id="police_check" name="police_check" required accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"/>
-                        <div class="upload-icon">📄</div>
+                        <div class="upload-icon">ðŸ“„</div>
                         <div class="upload-text">Police Check / Vulnerable Sector Check<span class="required-indicator">*</span></div>
                         <div class="upload-hint">Drag and drop or click to upload</div>
                         <div id="police-preview" class="file-preview" style="display: none;">
@@ -871,7 +871,7 @@
                     <!-- CPR or First Aid -->
                     <div class="file-upload-container" id="cpr-upload">
                         <input type="file" id="cpr_first_aid" name="cpr_first_aid" required accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"/>
-                        <div class="upload-icon">📄</div>
+                        <div class="upload-icon">ðŸ“„</div>
                         <div class="upload-text">CPR or First Aid<span class="required-indicator">*</span></div>
                         <div class="upload-hint">Drag and drop or click to upload</div>
                         <div id="cpr-preview" class="file-preview" style="display: none;">
@@ -883,7 +883,7 @@
                     <!-- Mask Fit -->
                     <div class="file-upload-container" id="mask-upload">
                         <input type="file" id="mask_fit" name="mask_fit" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"/>
-                        <div class="upload-icon">📄</div>
+                        <div class="upload-icon">ðŸ“„</div>
                         <div class="upload-text">Mask Fit</div>
                         <div class="upload-hint">Drag and drop or click to upload (Optional)</div>
                         <div id="mask-preview" class="file-preview" style="display: none;">
@@ -913,11 +913,8 @@ document.addEventListener("DOMContentLoaded", function () {
         if (allowedStartDate) {
             startDateInput.setAttribute("min", allowedStartDate);
 
-            // Automatically set start date to orientation date + 1 day
-            const orientationDateObj = new Date(allowedStartDate);
-            orientationDateObj.setDate(orientationDateObj.getDate() + 1);
-            const nextDay = orientationDateObj.toISOString().split('T')[0];
-            startDateInput.value = nextDay;
+            // Set start date to orientation date (no +1 day)
+            startDateInput.value = allowedStartDate;
             // Trigger change event for downstream logic (if any)
             startDateInput.dispatchEvent(new Event('change', { bubbles: true }));
 
@@ -1278,6 +1275,9 @@ document.addEventListener("DOMContentLoaded", function () {
         });
         
         </script> -->
+</body>
+
+</html>
 </body>
 
 </html>
