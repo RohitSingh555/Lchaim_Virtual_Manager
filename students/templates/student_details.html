@@ -238,8 +238,8 @@
                                 {% csrf_token %}
                                 <input type="hidden" name="log_id" value="{{ log.id }}">
                                 <input type="hidden" name="action" value="toggle">
-                                <button type="button" onclick="openModal({{ log.id }})"
-                                    class="text-red-500 hover:text-red-700 font-semibold">Mark as Absent</button>
+                                {% comment %} <button type="button" onclick="openModal({{ log.id }})"
+                                    class="text-red-500 hover:text-red-700 font-semibold">Mark as Absent</button> {% endcomment %}
                             </form>
                             {% else %}
                             <span class="text-gray-500">Absent</span>

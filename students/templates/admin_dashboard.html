@@ -1,0 +1,103 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-50 min-h-screen">
+    {% include 'navbar.html' %}
+    <div class="max-w-6xl mx-auto px-4 py-10">
+        <h1 class="text-3xl font-bold text-blue-900 mb-8 flex items-center gap-3">
+            <i class="fas fa-tachometer-alt text-blue-500"></i> Admin Dashboard
+        </h1>
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
+            <div class="bg-white rounded-xl shadow p-6 flex flex-col items-center">
+                <div class="text-3xl text-blue-500 mb-2"><i class="fas fa-users"></i></div>
+                <div class="text-2xl font-bold">{{ total_profiles }}</div>
+                <div class="text-gray-500">Total Student Profiles</div>
+            </div>
+            <div class="bg-white rounded-xl shadow p-6 flex flex-col items-center">
+                <div class="text-3xl text-green-500 mb-2"><i class="fas fa-user-plus"></i></div>
+                <div class="text-2xl font-bold">{{ profiles_created_today|default:'N/A' }}</div>
+                <div class="text-gray-500">Profiles Created Today</div>
+            </div>
+            <div class="bg-white rounded-xl shadow p-6 flex flex-col items-center">
+                <div class="text-3xl text-indigo-500 mb-2"><i class="fas fa-calendar-alt"></i></div>
+                <div class="text-2xl font-bold">{{ total_shifts }}</div>
+                <div class="text-gray-500">Total Shifts</div>
+            </div>
+            <div class="bg-white rounded-xl shadow p-6 flex flex-col items-center">
+                <div class="text-3xl text-yellow-500 mb-2"><i class="fas fa-user-shield"></i></div>
+                <div class="text-2xl font-bold">{{ total_admins }}</div>
+                <div class="text-gray-500">Total Admins</div>
+            </div>
+        </div>
+        <div class="bg-white rounded-xl shadow p-6 mt-8">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-4 gap-4">
+                <h2 class="text-xl font-semibold text-blue-800 flex items-center gap-2">
+                    <i class="fas fa-history"></i> Recent Activity Logs
+                </h2>
+                <div class="flex flex-wrap gap-2 items-center">
+                    <span class="text-gray-500 text-sm">Total Logs: <span class="font-bold text-blue-700">{{ total_logs }}</span></span>
+                    <form method="get" class="flex flex-wrap gap-2 items-center">
+                        <input type="text" name="search" value="{{ search }}" placeholder="Search..." class="border border-gray-300 rounded px-2 py-1 text-sm focus:ring focus:border-blue-400" />
+                        <select name="action_type" class="border border-gray-300 rounded px-2 py-1 text-sm focus:ring focus:border-blue-400">
+                            <option value="">All Actions</option>
+                            {% for value, label in action_types %}
+                                <option value="{{ value }}" {% if action_type == value %}selected{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                        <select name="sort" class="border border-gray-300 rounded px-2 py-1 text-sm focus:ring focus:border-blue-400">
+                            <option value="-created_at" {% if sort == '-created_at' %}selected{% endif %}>Newest First</option>
+                            <option value="created_at" {% if sort == 'created_at' %}selected{% endif %}>Oldest First</option>
+                            <option value="profile__first_name" {% if sort == 'profile__first_name' %}selected{% endif %}>Profile Name (A-Z)</option>
+                            <option value="-profile__first_name" {% if sort == '-profile__first_name' %}selected{% endif %}>Profile Name (Z-A)</option>
+                        </select>
+                        <button type="submit" class="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 text-sm"><i class="fas fa-search"></i></button>
+                    </form>
+                </div>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="min-w-full text-sm text-left">
+                    <thead>
+                        <tr class="bg-blue-50">
+                            <th class="py-2 px-3 font-semibold">#</th>
+                            <th class="py-2 px-3 font-semibold">Action</th>
+                            <th class="py-2 px-3 font-semibold">Profile</th>
+                            <th class="py-2 px-3 font-semibold">Created By</th>
+                            <th class="py-2 px-3 font-semibold">When</th>
+                            <th class="py-2 px-3 font-semibold">Shift Type</th>
+                            <th class="py-2 px-3 font-semibold">Shift Capacity</th>
+                            <th class="py-2 px-3 font-semibold">Start Date</th>
+                            <th class="py-2 px-3 font-semibold">End Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for log in logs %}
+                        <tr class="border-b hover:bg-blue-50 transition">
+                            <td class="py-2 px-3">{{ forloop.counter }}</td>
+                            <td class="py-2 px-3">{{ log.get_action_type_display }}</td>
+                            <td class="py-2 px-3">
+                                <a href="{% url 'student_details' log.profile.id %}" class="text-blue-600 hover:underline">{{ log.profile.first_name }} {{ log.profile.last_name }}</a>
+                            </td>
+                            <td class="py-2 px-3">{{ log.created_by.username|default:'-' }}</td>
+                            <td class="py-2 px-3">{{ log.created_at|date:'M d, Y H:i' }}</td>
+                            <td class="py-2 px-3">{{ log.shift_type|default:'-' }}</td>
+                            <td class="py-2 px-3">{{ log.shift_capacity|default:'-' }}</td>
+                            <td class="py-2 px-3">{{ log.start_date|date:'Y-m-d'|default:'-' }}</td>
+                            <td class="py-2 px-3">{{ log.end_date|date:'Y-m-d'|default:'-' }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="9" class="py-4 text-center text-gray-400">No activity logs found.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</body>
+</html> 

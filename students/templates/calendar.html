@@ -155,17 +155,21 @@ td i {
 
     .calendar-header {
       display: flex;
-      padding:20px;
+      padding: 18px 0 18px 0;
       justify-content: space-between;
       align-items: center;
       background-color: #fff;
-      border-bottom: 2px solid #e2e8f0;
+      border-bottom: 1.5px solid #e5e7eb;
       z-index: 10;
+      border-radius: 0.5rem 0.5rem 0 0;
+      margin-bottom: 0.5rem;
     }
 
     .calendar-title {
-      font-size: 1.5rem;
-      font-weight: 600;
+      font-size: 1.2rem;
+      font-weight: 500;
+      color: #2563eb;
+      letter-spacing: 0.01em;
     }
 
     .calendar-slots {
@@ -174,29 +178,42 @@ td i {
       grid-gap: 1px;
       width: 100%;
       flex-grow: 1;
-      overflow-y: auto;
-  transform: rotateX(180deg);
+      overflow-x: auto;
+      min-width: 900px;
+      background: #f3f4f6;
     }
-
     .day-column {
       display: flex;
       flex-direction: column;
       height: 100%;
-      transform: rotateX(180deg);
+      background: #fff;
+      border-radius: 0.5rem;
+      border: 1px solid #e5e7eb;
+      margin: 2px;
+      min-width: 130px;
+      transition: box-shadow 0.2s;
     }
-
+    .day-column.today {
+      border: 2px solid #60a5fa;
+      background: #f0f6ff;
+      box-shadow: 0 2px 8px 0 #60a5fa11;
+    }
     .day-header {
       display: flex;
-      justify-content: center;
       align-items: center;
-      background-color: #f3f4f6;
-      padding: 5px;
-      font-size: 0.875rem;
+      justify-content: center;
+      background: #f3f4f6;
+      color: #2563eb;
+      font-size: 1rem;
       font-weight: 600;
-      border-bottom: 2px solid #e2e8f0;
-      min-width: 100px;
+      padding: 8px 0;
+      border-radius: 0.5rem 0.5rem 0 0;
+      gap: 0.4rem;
     }
-
+    .day-header .day-icon {
+      font-size: 1.1rem;
+      color: #a5b4fc;
+    }
     .day-content {
       padding: 8px;
       overflow-y: auto;
@@ -219,125 +236,242 @@ td i {
     }
 
     .log-item {
-  display: flex;
-  cursor: pointer;
-  justify-content: space-between;
-  align-items: center;
-  padding: 12px;
-  font-weight: 500;
-  font-size: 0.875rem;
-  border-radius: 8px;
-  margin-bottom: 8px;
-  flex-direction: column;
-  transition: background-color 0.3s ease, transform 0.3s ease;
-  background-color: #ffffff;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-}
-
-.log-item:hover {
-  background-color: #f1f5f9;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-}
-
-.log-item > div:first-child {
-  font-size: 1rem;
-  font-weight: 600;
-  color: #2d3748; /* Dark text */
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.log-item > div:nth-child(2) {
-  font-size: 0.875rem;
-  color: #4a5568; /* Subtle gray */
-  font-weight: 400;
-  text-align: right;
-  padding-left: 12px;
-  white-space: nowrap;
-}
-
-@media (max-width: 768px) {
-  .log-item {
-    flex-direction: column;
-    justify-content: flex-start;
-    align-items: flex-start;
-  }
-
-  .log-item > div:first-child {
-    margin-bottom: 4px;
-  }
-
-  .log-item > div:nth-child(2) {
-    margin-top: 4px;
-  }
-}
-
-
-    .no-data {
       display: flex;
-      justify-content: center;
+      flex-direction: column;
       align-items: center;
-      height: 100%;
-      color: #6b7280;
-      font-size: 0.875rem;
+      justify-content: flex-start;
+      background: #f9fafb;
+      border-radius: 1.2rem;
+      margin: 14px 6px 0 6px; /* reduced margin */
+      padding: 12px 10px 10px 10px; /* reduced padding */
+      transition: box-shadow 0.18s, transform 0.18s;
+      cursor: pointer;
+      border-left: none;
+      border: 1.2px solid #e5e7eb;
+      box-shadow: 0 2px 12px 0 #2563eb0a;
+      z-index: 1;
+      position: relative;
+      min-width: 0;
     }
-
-    /* Make everything responsive */
-    @media (max-width: 768px) {
-      .calendar-title {
-        font-size: 1.25rem;
-      }
-
+    .log-item + .log-item {
+      margin-top: 16px; /* reduced gap between cards */
+      border-top: 1px solid #e5e7eb;
+    }
+    .log-item:hover {
+      box-shadow: 0 8px 32px 0 #2563eb18;
+      transform: translateY(-3px) scale(1.025);
+      background: #f3f6fa;
+    }
+    .shift-icon {
+      font-size: 1.3rem; /* reduced from 2.1rem */
+      margin-bottom: 6px;
+      color: #60a5fa;
+      background: #e0edfa;
+      border-radius: 9999px;
+      padding: 5px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      margin-left: auto;
+      margin-right: auto;
+      box-shadow: 0 2px 6px #2563eb11;
+    }
+    .status-dot-corner {
+      position: absolute;
+      top: 14px;
+      right: 18px;
+      width: 13px;
+      height: 13px;
+      border-radius: 50%;
+      background: #d1fae5;
+      border: 2px solid #fff;
+      box-shadow: 0 1px 3px #0001;
+      z-index: 2;
+    }
+    .status-dot-corner.absent {
+      background: #fee2e2;
+    }
+    .status-dot-corner.present {
+      background: #34d399;
+    }
+    .log-student-name {
+      font-size: 0.98rem; /* slightly smaller */
+      font-weight: 600;
+      color: #2563eb;
+      text-align: center;
+      margin-top: 4px;
+      margin-bottom: 1px;
+      word-break: break-word;
+    }
+    .log-hours {
+      font-size: 0.90rem;
+      color: #64748b;
+      text-align: center;
+      margin-bottom: 1px;
+    }
+    .log-phone {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #60a5fa;
+      font-size: 0.89rem;
+      margin-bottom: 1px;
+      gap: 0.2rem;
+    }
+    .log-time {
+      color: #64748b;
+      font-size: 0.89rem;
+      text-align: center;
+      margin-bottom: 1px;
+    }
+    .log-item .tooltip {
+      visibility: hidden;
+      opacity: 0;
+      background: #2563eb;
+      color: #fff;
+      text-align: left;
+      border-radius: 0.5rem;
+      padding: 8px 12px;
+      position: absolute;
+      z-index: 10;
+      left: 100%;
+      top: 50%;
+      transform: translateY(-50%);
+      min-width: 180px;
+      box-shadow: 0 2px 8px #2563eb33;
+      transition: opacity 0.2s;
+      font-size: 0.95rem;
+    }
+    .log-item:hover .tooltip {
+      visibility: visible;
+      opacity: 1;
+    }
+    .phone-icon {
+      color: #60a5fa;
+      margin-right: 4px;
+      font-size: 1.1rem;
+      vertical-align: middle;
+    }
+    .nav-btn {
+      background: #e0edfa;
+      color: #2563eb;
+      border: none;
+      border-radius: 9999px;
+      padding: 8px 18px;
+      font-size: 1rem;
+      font-weight: 500;
+      box-shadow: 0 2px 8px #2563eb11;
+      transition: background 0.15s, color 0.15s, box-shadow 0.15s;
+      outline: none;
+      cursor: pointer;
+    }
+    .nav-btn:hover {
+      background: #2563eb;
+      color: #fff;
+      box-shadow: 0 4px 16px #2563eb22;
+    }
+    @media (max-width: 900px) {
       .calendar-slots {
-        grid-template-columns: repeat(7, 1fr);
+        min-width: 700px;
+      }
+      .day-column {
+        min-width: 100px;
       }
     }
-
-    @media (max-width: 480px) {
-      .calendar-header {
-        flex-direction: column;
-        align-items: flex-start;
-      }
-
+    @media (max-width: 600px) {
       .calendar-slots {
-        grid-template-columns: repeat(2, 1fr);
+        min-width: 500px;
       }
-
-      .calendar-title {
-        font-size: 1.125rem;
-      }
-
-      .day-header {
-        font-size: 0.75rem;
+      .day-column {
+        min-width: 80px;
       }
     }
-
-    .glassmorphism {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(12px);
-            border-radius: 12px;
-            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            color: black !important;
-        }
-
-        /* Floating Effect */
-        .floating {
-            animation: floatUp 0.3s ease-out forwards;
-        }
-
-        @keyframes floatUp {
-            from {
-                transform: translateY(20px);
-                opacity: 0;
-            }
-            to {
-                transform: translateY(0);
-                opacity: 1;
-            }
-        }
+    .summary-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      background: #e0edfa;
+      color: #2563eb;
+      border: none;
+      border-radius: 9999px;
+      padding: 4px 14px;
+      font-size: 0.95rem;
+      font-weight: 500;
+      margin: 8px auto 0 auto;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s, box-shadow 0.15s;
+      box-shadow: 0 1px 4px #2563eb11;
+    }
+    .summary-btn:hover {
+      background: #2563eb;
+      color: #fff;
+      box-shadow: 0 2px 8px #2563eb22;
+    }
+    #summaryBox {
+      background: rgba(255, 255, 255, 0.25);
+      backdrop-filter: blur(12px) saturate(180%);
+      -webkit-backdrop-filter: blur(12px) saturate(180%);
+      border-radius: 1.5rem;
+      box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.18);
+      border: 1.5px solid rgba(255, 255, 255, 0.25);
+      padding: 2rem 1.5rem 1.5rem 1.5rem;
+      width: 320px;
+      min-width: 0;
+      color: #222;
+      z-index: 10000;
+      background-image: linear-gradient(135deg, #e0edfa 0%, #f8fafc 100%);
+    }
+    #summaryBox h2 {
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: #2563eb;
+      margin-bottom: 1.2rem;
+      display: flex;
+      align-items: center;
+      gap: 0.7rem;
+      letter-spacing: 0.01em;
+    }
+    #summaryContent {
+      margin-top: 0.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    .summary-pill {
+      display: flex;
+      align-items: center;
+      gap: 0.7rem;
+      background: #f3f6fa;
+      border-radius: 9999px;
+      padding: 0.5rem 1.1rem;
+      font-size: 1rem;
+      font-weight: 500;
+      color: #2563eb;
+      box-shadow: 0 2px 8px #2563eb11;
+      transition: background 0.18s;
+    }
+    .summary-pill .summary-icon {
+      font-size: 1.1rem;
+      color: #34d399;
+    }
+    .summary-pill .summary-date {
+      font-weight: 600;
+      color: #222;
+    }
+    .summary-pill .summary-count {
+      color: #64748b;
+      font-size: 0.98rem;
+      margin-left: 0.5rem;
+    }
+    @media (max-width: 600px) {
+      #summaryBox {
+        width: 95vw;
+        left: 2vw;
+        padding: 1.2rem 0.5rem 1rem 0.5rem;
+      }
+    }
   </style>
 </head>
 
@@ -348,9 +482,9 @@ td i {
 
   <div class="calendar-container mx-auto">
     <div class="calendar-header">
-      <button id="prevWeek" class="text-white bg-blue-300 hover:bg-blue-600 px-4 py-2 rounded-lg shadow-md transition duration-300">Previous Week</button>
+      <button id="prevWeek" class="nav-btn">&#8592; Previous</button>
       <h1 id="calendarTitle" class="calendar-title"></h1>
-      <button id="nextWeek" class="text-white bg-blue-300 hover:bg-blue-600 px-4 py-2 rounded-lg shadow-md transition duration-300">Next Week</button>
+      <button id="nextWeek" class="nav-btn">Next &#8594;</button>
     </div>
     <div class="px-4 pt-4">
       <div class="calendar-slots" id="weeklySlots"></div>
@@ -385,9 +519,9 @@ td i {
 </button>
 
 <!-- Floating Summary Box (Initially Hidden) -->
-<div id="summaryBox" class="hidden fixed bottom-20 left-8 glassmorphism shadow-xl rounded-lg p-4 w-72 transition-opacity opacity-0 floating text-white">
-    <h2 class="text-xl font-bold flex items-center gap-2"><i class="fas fa-calendar-alt"></i> Weekly Summary</h2>
-    <div id="summaryContent" class="text-black-50 mt-2"></div>
+<div id="summaryBox" class="hidden fixed bottom-20 left-8 glassmorphism shadow-xl rounded-lg p-4 w-72 transition-opacity opacity-0 floating">
+    <h2><i class="fas fa-calendar-alt"></i> Weekly Summary</h2>
+    <div id="summaryContent"></div>
 </div>
 
   <script>
@@ -415,158 +549,119 @@ td i {
 
   weeklySlots.innerHTML = "";
 
+  // Build an array of 7 ISO date strings for the week (robust to timezone)
+  const weekDates = [];
+  const baseYear = startOfWeek.getFullYear();
+  const baseMonth = startOfWeek.getMonth();
+  const baseDate = startOfWeek.getDate();
   for (let i = 0; i < 7; i++) {
-    const day = new Date(startOfWeek);
-    day.setDate(startOfWeek.getDate() + i);
+    const day = new Date(baseYear, baseMonth, baseDate + i);
+    weekDates.push(day.toISOString().split('T')[0]);
+  }
+  // Debug logs
+  console.log("Start of week (should be Monday):", startOfWeek.toDateString());
+  console.log("Week dates:", weekDates);
 
+  // For each date, render a column
+  weekDates.forEach(currentDayString => {
+    const day = new Date(currentDayString);
+    const isToday = (new Date().toDateString() === day.toDateString());
     const dayColumn = document.createElement("div");
-    dayColumn.className = "day-column";
+    dayColumn.className = "day-column" + (isToday ? " today" : "");
 
+    // Day header with icon
     const dayHeader = document.createElement("div");
     dayHeader.className = "day-header";
-
-    const currentDayString = day.toISOString().split("T")[0];
-    dayHeader.textContent = `${formatDate(day)}`;
+    const dayIcons = [
+      'fa-sun', 'fa-moon', 'fa-cloud-sun', 'fa-calendar-day', 'fa-moon', 'fa-sun', 'fa-calendar-day'
+    ];
+    const icon = document.createElement("i");
+    icon.className = `fas day-icon ${dayIcons[day.getDay()]}`;
+    dayHeader.appendChild(icon);
+    dayHeader.appendChild(document.createTextNode(`${formatDate(day)}`));
     dayColumn.appendChild(dayHeader);
 
+    // --- summary logic ---
+    if (studentCountSummary[currentDayString]) {
+      const summaryDataWrapper = document.createElement("div");
+      summaryDataWrapper.className = "summary-wrapper mt-2 text-sm flex justify-center";
+      const summaryBtn = document.createElement("button");
+      summaryBtn.className = "summary-btn";
+      summaryBtn.innerHTML = `<i class='fas fa-info-circle'></i> View Summary`;
+      summaryBtn.addEventListener("click", () => {
+        // Build modal content with a table
+        const day = new Date(currentDayString);
+        const formattedDate = day.toLocaleDateString('en-US', {
+          weekday: 'short', month: 'short', day: 'numeric',
+        });
+        let modalContent = `
+          <h3 class='text-lg font-semibold mb-4'>
+            Shift Summary for <span class='text-blue-500'>${formattedDate}</span>
+          </h3>
+          <table class='w-full text-left border-collapse'>
+            <thead>
+              <tr>
+                <th class='border-b border-gray-300 pb-2 text-blue-600'>Shift</th>
+                <th class='border-b border-gray-300 pb-2 text-blue-600'>Student Count</th>
+              </tr>
+            </thead>
+            <tbody>
+        `;
+        const SHIFT_ORDER = ["Morning","WeekendDay", "Afternoon", "Night",  "WeekendNight"];
+        const shiftInfo = {
+          "Morning": { label: "Morning - Mon to Fri - 7 AM to 3 PM", iconClass: "fa-sun" },
+          "Afternoon": { label: "Afternoon - Mon to Fri - 3 PM to 11 PM", iconClass: "fa-cloud-sun" },
+          "WeekendDay": { label: "WeekendDay - Sat & Sun - 7 AM to 9 PM", iconClass: "fa-calendar-day" },
+          "Night": { label: "WeekdayNight - Mon to Thu - 9 PM to 6 AM", iconClass: "fa-moon" },
+          "WeekendNight": { label: "WeekendNight - Fri to Sun - 9 PM to 6 AM", iconClass: "fa-moon" },
+        };
+        const summaryArr = studentCountSummary[currentDayString]
+          .map(item => {
+            const [shiftType, count] = item.split(":").map(s => s.trim());
+            return { shiftType, count };
+          })
+          .sort((a, b) => {
+            const aIdx = SHIFT_ORDER.indexOf(a.shiftType);
+            const bIdx = SHIFT_ORDER.indexOf(b.shiftType);
+            return (aIdx === -1 ? 99 : aIdx) - (bIdx === -1 ? 99 : bIdx);
+          });
+        summaryArr.forEach(({shiftType, count}) => {
+          const info = shiftInfo[shiftType] || { label: shiftType, iconClass: "fa-clock" };
+          modalContent += `
+            <tr class='text-gray-700 hover:bg-gray-100'>
+              <td class='py-2 flex items-center gap-2'>
+                <i class='fas ${info.iconClass} text-blue-500 w-5'></i>
+                <span>${info.label}</span>
+              </td>
+              <td class='py-2 font-semibold'>${count} ${count === '1' ? 'student' : 'students'}</td>
+            </tr>
+          `;
+        });
+        modalContent += `</tbody></table>`;
+        const modal = createModal(modalContent);
+        document.body.appendChild(modal);
+      });
+      summaryDataWrapper.appendChild(summaryBtn);
+      dayColumn.appendChild(summaryDataWrapper);
+    }
 
-    const shiftInfo = {
-  "Morning": {
-    label: "Morning - Mon to Fri - 7 AM to 3 PM",
-    iconClass: "fa-sun"
-  },
-  "Afternoon": {
-    label: "Afternoon - Mon to Fri - 3 PM to 11 PM",
-    iconClass: "fa-cloud-sun"
-  },
-  "WeekendDay": {
-    label: "WeekendDay - Sat & Sun - 7 AM to 9 PM",
-    iconClass: "fa-calendar-day"
-  },
-  
-  "Night": {
-    label: "WeekdayNight - Mon to Thu - 9 PM to 6 AM",
-    iconClass: "fa-moon"
-  },
-   "WeekendNight": {
-    label: "WeekendNight - Fri to Sun - 9 PM to 6 AM",
-    iconClass: "fa-moon"
-  },
-};
-
-function parseLocalDate(dateString) {
-  const [year, month, day] = dateString.split('-').map(Number);
-  return new Date(year, month - 1, day); // month is 0-based
-}
-    // Append fetched data below the day-header
-if (studentCountSummary[currentDayString]) {
-  const summaryDataWrapper = document.createElement("div");
-  summaryDataWrapper.className = "summary-wrapper mt-2 text-sm";
-
-  const summaryDataText = document.createElement("span");
-  summaryDataText.className = "summary-text cursor-pointer text-blue-600 flex items-center gap-1 select-none";
-  summaryDataText.innerHTML = `<i class="fas fa-info-circle"></i> View Summary`;
-const day = parseLocalDate(currentDayString);
-const nextDay = new Date(day);
-nextDay.setDate(day.getDate() + 1);
-const formattedDate = day.toLocaleDateString('en-US', {
-  weekday: 'short',
-  month: 'short',
-  day: 'numeric',
-});
-
-
-  // Build modal content with a table
-  let modalContent = ` 
-  <h3 class="text-lg font-semibold mb-4">
-    Shift Summary for <span class="text-blue-500">${formattedDate}</span>
-  </h3>
-    <table class="w-full text-left border-collapse">
-      <thead>
-        <tr>
-          <th class="border-b border-gray-300 pb-2 text-blue-600">Shift</th>
-          <th class="border-b border-gray-300 pb-2 text-blue-600">Student Count</th>
-        </tr>
-      </thead>
-      <tbody>
-  `;
-
-//   studentCountSummary[currentDayString].forEach(item => {
-//     const [shiftType, count] = item.split(":").map(s => s.trim());
-//     const info = shiftInfo[shiftType] || { label: shiftType, iconClass: "fa-clock" };
-//     modalContent += `
-//       <tr class="text-gray-700 hover:bg-gray-100">
-//         <td class="py-2 flex items-center gap-2">
-//           <i class="fas ${info.iconClass} text-blue-500 w-5"></i>
-//           <span>${info.label}</span>
-//         </td>
-//         <td class="py-2 font-semibold">${count} ${count === '1' ? 'student' : 'students'}</td>
-//       </tr>
-//     `;
-//   });
-
-// Parse and sort the summary array
-const SHIFT_ORDER = ["Morning","WeekendDay", "Afternoon", "Night",  "WeekendNight"];
-
-
-const summaryArr = studentCountSummary[currentDayString]
-  .map(item => {
-    const [shiftType, count] = item.split(":").map(s => s.trim());
-    return { shiftType, count };
-  })
-  .sort((a, b) => {
-    // If the shiftType is in SHIFT_ORDER, use its index; otherwise, put it at the end
-    const aIdx = SHIFT_ORDER.indexOf(a.shiftType);
-    const bIdx = SHIFT_ORDER.indexOf(b.shiftType);
-    return (aIdx === -1 ? 99 : aIdx) - (bIdx === -1 ? 99 : bIdx);
-  });
-
-summaryArr.forEach(({shiftType, count}) => {
-  const info = shiftInfo[shiftType] || { label: shiftType, iconClass: "fa-clock" };
-  modalContent += `
-    <tr class="text-gray-700 hover:bg-gray-100">
-      <td class="py-2 flex items-center gap-2">
-        <i class="fas ${info.iconClass} text-blue-500 w-5"></i>
-        <span>${info.label}</span>
-      </td>
-      <td class="py-2 font-semibold">${count} ${count === '1' ? 'student' : 'students'}</td>
-    </tr>
-  `;
-});
-
-
-
-  modalContent += `
-      </tbody>
-    </table>
-  `;
-
-  summaryDataText.addEventListener("click", () => {
-    const modal = createModal(modalContent);
-    document.body.appendChild(modal);
-  });
-
-  summaryDataWrapper.appendChild(summaryDataText);
-  dayColumn.appendChild(summaryDataWrapper);
-} else {
-  console.log(`No data for ${currentDayString}`);
-}
-
-
-
+    // Always render logs or 'No data' for each day
     const logsForThisDay = [];
     students.forEach(student => {
       student.logs.forEach(log => {
         const logDate = new Date(log.date).toISOString().split("T")[0];
-        
         if (logDate === currentDayString) {
           logsForThisDay.push({ ...log, student });
         }
       });
     });
 
-    // Sort logs by start_time
-    logsForThisDay.sort((a, b) => a.start_time.localeCompare(b.start_time));
+    // Sort logs by start_time, guard against null
+    logsForThisDay.sort((a, b) => {
+      if (!a.start_time) return 1;
+      if (!b.start_time) return -1;
+      return a.start_time.localeCompare(b.start_time);
+    });
 
     if (logsForThisDay.length === 0) {
       const emptySlot = document.createElement("div");
@@ -577,43 +672,63 @@ summaryArr.forEach(({shiftType, count}) => {
       logsForThisDay.forEach(({ student, ...log }) => {
         const userRow = document.createElement("div");
         userRow.className = "log-item";
-
-        const studentInfo = document.createElement("div");
-        studentInfo.className = "flex items-center text-gray-700";
-
+        // Status dot in top-right corner
         const statusDot = document.createElement("span");
-        statusDot.className = "status-dot " + (log.status === "Present" ? "status-green" : "status-red");
-        studentInfo.appendChild(statusDot);
-
-        const studentName = document.createElement("span");
-        studentName.textContent = `${student.name} (${log.hours_worked} hrs)`;
-        studentInfo.appendChild(studentName);
-
-        const studentPhoneNumber = document.createElement("div");
-        studentPhoneNumber.className = `phone-number text-gray-500`;
-        studentPhoneNumber.textContent = `ðŸ“ž - ${student.phone}`;
-
-        const timeInfo = document.createElement("div");
-        timeInfo.className = "text-gray-500";
-        timeInfo.textContent = `${log.shift.start_time} - ${log.shift.end_time}`;
-
-        userRow.appendChild(studentInfo);
-        userRow.appendChild(studentPhoneNumber);
-        userRow.appendChild(timeInfo);
-
+        statusDot.className = "status-dot-corner " + (log.status === "Present" ? "present" : "absent");
+        userRow.appendChild(statusDot);
+        // Shift icon at top center
+        const shiftIcons = {
+          "Morning": "<i class='fas fa-sun'></i>",
+          "Afternoon": "<i class='fas fa-cloud-sun'></i>",
+          "Night": "<i class='fas fa-moon'></i>",
+          "WeekendDay": "<i class='fas fa-calendar-day'></i>",
+          "WeekendNight": "<i class='fas fa-moon'></i>",
+        };
+        let shiftType = log.shift && log.shift.type ? log.shift.type : "";
+        const shiftIconDiv = document.createElement("div");
+        shiftIconDiv.className = "shift-icon";
+        shiftIconDiv.innerHTML = shiftIcons[shiftType] || "<i class='fas fa-clock'></i>";
+        userRow.appendChild(shiftIconDiv);
+        // Student name
+        const studentName = document.createElement("div");
+        studentName.className = "log-student-name";
+        studentName.textContent = `${student.name}`;
+        userRow.appendChild(studentName);
+        // Hours
+        const hoursDiv = document.createElement("div");
+        hoursDiv.className = "log-hours";
+        hoursDiv.textContent = `${log.hours_worked} hrs`;
+        userRow.appendChild(hoursDiv);
+        // Phone with icon
+        const phoneDiv = document.createElement("div");
+        phoneDiv.className = "log-phone";
+        phoneDiv.innerHTML = `<i class='fas fa-phone-alt'></i> ${student.phone}`;
+        userRow.appendChild(phoneDiv);
+        // Time info
+        const timeDiv = document.createElement("div");
+        timeDiv.className = "log-time";
+        timeDiv.textContent = log.shift
+          ? `${log.shift.start_time || ''} - ${log.shift.end_time || ''}`
+          : '';
+        userRow.appendChild(timeDiv);
+        // Tooltip for notes
+        if (log.notes) {
+          const tooltip = document.createElement("div");
+          tooltip.className = "tooltip";
+          tooltip.textContent = log.notes;
+          userRow.appendChild(tooltip);
+        }
+        // View logs link
         const studentLink = document.createElement("a");
         studentLink.href = `/student/${student.id}/logs/`;
-        studentLink.className = "text-blue-500 hover:text-blue-700";
+        studentLink.className = "text-blue-500 hover:text-blue-700 block text-center mt-2";
         studentLink.textContent = "View Logs";
-
         userRow.appendChild(studentLink);
-
         dayColumn.appendChild(userRow);
       });
     }
-
     weeklySlots.appendChild(dayColumn);
-  }
+  });
 }
 
 
@@ -696,11 +811,10 @@ summaryArr.forEach(({shiftType, count}) => {
 function displaySummary(summary) {
     let summaryContainer = document.getElementById("summaryContent");
     summaryContainer.innerHTML = "";
-
     summary.forEach(item => {
-        const entry = document.createElement("p");
-        entry.classList.add("mb-2", "font-medium", "flex", "items-center", "gap-2");
-        entry.innerHTML = `<i class="fas fa-check-circle text-green-400"></i> <strong>${item.day}:</strong> ${item.count} Student(s)`;
+        const entry = document.createElement("div");
+        entry.className = "summary-pill";
+        entry.innerHTML = `<i class='fas fa-check-circle summary-icon'></i> <span class='summary-date'>${item.day}:</span> <span class='summary-count'>${item.count} Student(s)</span>`;
         summaryContainer.appendChild(entry);
     });
 }

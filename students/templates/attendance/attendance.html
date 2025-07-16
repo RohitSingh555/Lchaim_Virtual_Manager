@@ -11,36 +11,54 @@
     <script src="https://weareoutman.github.io/clockpicker/dist/jquery-clockpicker.min.js"></script>
     <link rel="stylesheet" href="https://weareoutman.github.io/clockpicker/dist/jquery-clockpicker.min.css">
     <style>
-        /* Highlight sorted column */
         th.sorted-asc,
         th.sorted-desc {
-            background-color: #2563eb !important;
-            color: #fff !important;
+            background-color: #e5e7eb !important;
+            color: #1e293b !important;
         }
-
         th.sorted-asc:after {
             content: " ▲";
             font-size: 0.9em;
         }
-
         th.sorted-desc:after {
             content: " ▼";
             font-size: 0.9em;
         }
-
-        /* Make shift filter look better */
         #shift-filter {
-            min-width: 140px;
-            background: #f1f5f9;
-            border: 1.5px solid #2563eb;
-            color: #1e293b;
+            min-width: 120px;
+            background: #f9fafb;
+            border: 1px solid #2563eb;
+            color: #334155;
             font-weight: 500;
         }
-
         #shift-filter:focus {
-            border-color: #3b82f6;
+            border-color: #2563eb;
             outline: none;
-            box-shadow: 0 0 0 2px #3b82f6;
+            box-shadow: 0 0 0 2px #2563eb22;
+        }
+        .classic-table th, .classic-table td {
+            border: 1px solid #e5e7eb;
+        }
+        .classic-table tbody tr:nth-child(even) {
+            background-color: #f9fafb;
+        }
+        .classic-table tbody tr:nth-child(odd) {
+            background-color: #fff;
+        }
+        .classic-table thead th {
+            background-color: #e0edfa;
+            color: #2563eb;
+            font-weight: 600;
+            border-bottom: 2px solid #2563eb;
+        }
+        .filter-card {
+            background: #f8fbff;
+            border: 1.5px solid #2563eb;
+            box-shadow: 0 2px 8px 0 #2563eb11;
+        }
+        .search-input:focus {
+            border-color: #2563eb;
+            box-shadow: 0 0 0 2px #2563eb33;
         }
     </style>
 </head>
@@ -49,38 +67,220 @@
     {% include 'navbar.html' %}
 
     <div class="container mx-auto mt-16 px-4 lg:px-12 py-6">
-        <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
-            <h1 class="text-2xl md:text-3xl font-bold text-blue-900 mb-4 md:mb-0">
-                Attendance for
-                <input type="date" id="attendance-date"
-                    class="text-xl md:text-2xl font-semibold text-blue-900 bg-transparent border-b border-blue-300 focus:outline-none"
-                    value="{{ selected_date|date:'Y-m-d' }}" onchange="updateDate(this)">
-            </h1>
-            <div class="flex items-center gap-2 w-full md:w-auto">
-                <!-- Shift Filter Dropdown -->
-                <form id="shift-filter-form" class="mr-2" onsubmit="return false;">
+        <!-- Beautiful Attendance Page Header -->
+        <div class="flex flex-col items-center justify-center mb-8">
+            <div class="flex items-center gap-3">
+                <div class="bg-blue-100 rounded-full p-3 flex items-center justify-center">
+                    <svg class="w-8 h-8 text-blue-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 17l4 4 4-4m-4-5v9" /><rect width="20" height="12" x="2" y="7" rx="2"/><path stroke-linecap="round" stroke-linejoin="round" d="M16 3H8a2 2 0 00-2 2v2h12V5a2 2 0 00-2-2z"/></svg>
+                </div>
+                <h1 class="text-3xl md:text-4xl font-extrabold text-blue-800 tracking-tight">Attendance</h1>
+            </div>
+            <p class="mt-2 text-base text-gray-500 text-center max-w-xl">Easily track, review, and manage student attendance. Use the filters below to view and update attendance records for any date or shift.</p>
+        </div>
+
+        <!-- Enhanced Filter Card -->
+        <div class="filter-card rounded-lg px-6 py-4 flex flex-col md:flex-row md:items-center md:justify-between mb-6 gap-4">
+            <div class="flex items-center gap-3">
+                <span class="text-lg font-semibold text-blue-800">Attendance for</span>
+                <form id="attendance-filter-form" method="get" action="" class="flex items-center gap-2">
+                    <input type="date" name="date" id="attendance-date"
+                        class="text-base font-medium text-gray-700 bg-white border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                        value="{{ selected_date|date:'Y-m-d' }}"
+                        onchange="document.getElementById('attendance-filter-form').submit();">
                     <select id="shift-filter" name="shift"
-                        class="px-3 py-2 rounded transition">
+                        class="px-2 py-1 rounded transition"
+                        onchange="document.getElementById('attendance-filter-form').submit();">
                         <option value="">All Shifts</option>
                         {% for shift in all_shifts %}
                             <option value="{{ shift.type }}" {% if shift_filter == shift.type %}selected{% endif %}>{{ shift.type }}</option>
                         {% endfor %}
                     </select>
                 </form>
+            </div>
+            <div class="flex items-center gap-2 w-full md:w-auto">
                 <input
                     type="text"
                     name="search"
                     id="attendance-search-input"
                     placeholder="Search by name..."
-                    class="w-full md:w-64 px-3 py-2 rounded border border-gray-300 focus:ring-2 focus:ring-blue-400 focus:outline-none bg-white text-gray-700 transition"
+                    class="search-input w-full md:w-64 px-3 py-2 rounded border border-gray-300 focus:ring-2 focus:ring-blue-200 focus:outline-none bg-white text-gray-700 transition"
                     autocomplete="off"
                 >
             </div>
         </div>
 
-        <div class="overflow-x-auto bg-white border border-gray-200 rounded-lg shadow">
-            <table class="w-full table-auto text-sm md:text-base" id="attendance-table">
-                <thead class="bg-blue-600 text-white">
+        <!-- Minimal Dashboard Section -->
+        <div class="flex flex-col sm:flex-row gap-4 mb-8">
+            <div class="flex items-center bg-gray-100 border border-gray-200 rounded-lg px-5 py-3 flex-1 min-w-[120px]">
+                <svg class="w-6 h-6 text-green-500 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg>
+                <span class="text-lg font-semibold text-gray-700">Present:</span>
+                <span class="ml-2 text-xl font-bold text-green-700">{{ present_count }}</span>
+            </div>
+            <div class="flex items-center bg-gray-100 border border-gray-200 rounded-lg px-5 py-3 flex-1 min-w-[120px]">
+                <svg class="w-6 h-6 text-red-500 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                <span class="text-lg font-semibold text-gray-700">Absent:</span>
+                <span class="ml-2 text-xl font-bold text-red-700">{{ absent_count }}</span>
+            </div>
+            <div class="flex items-center bg-gray-100 border border-gray-200 rounded-lg px-5 py-3 flex-1 min-w-[120px]">
+                <svg class="w-6 h-6 text-blue-500 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" /><path stroke-linecap="round" stroke-linejoin="round" d="M8 12h4v4" /></svg>
+                <span class="text-lg font-semibold text-gray-700">Total:</span>
+                <span class="ml-2 text-xl font-bold text-blue-700">{{ total_count }}</span>
+            </div>
+        </div>
+
+        <!-- Add Extended Entry Button -->
+        <div class="flex justify-end mb-4">
+            <button onclick="openExtendedModal()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded shadow flex items-center gap-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                Add Extended Entry
+            </button>
+        </div>
+
+        <!-- Extended Entry Modal -->
+        <div id="extendedModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 hidden">
+            <div class="bg-white rounded-lg shadow-2xl w-full max-w-lg p-8 relative animate-fade-in">
+                <button onclick="closeExtendedModal()" class="absolute top-3 right-3 text-gray-400 hover:text-gray-700 text-2xl font-bold">&times;</button>
+                <div class="flex items-center gap-3 mb-6">
+                    <div class="bg-blue-100 rounded-full p-2 flex items-center justify-center">
+                        <svg class="w-7 h-7 text-blue-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                    </div>
+                    <h2 class="text-2xl font-bold text-blue-800">Add Extended Volunteer Entry</h2>
+                </div>
+                <form id="extendedEntryForm" class="space-y-4">
+                    <div>
+                        <label for="modal-student" class="block text-sm font-semibold text-gray-700 mb-1">Student</label>
+                        <input type="text" id="modal-student-search" placeholder="Search student..." class="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-200 focus:outline-none mb-2">
+                        <select id="modal-student" name="student_id" class="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-200 focus:outline-none">
+                            <option value="">Select a student</option>
+                            {% for student in all_students %}
+                                <option value="{{ student.id }}">{{ student.first_name }} {{ student.last_name }} ({{ student.email }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div>
+                        <label for="modal-date" class="block text-sm font-semibold text-gray-700 mb-1">Date</label>
+                        <input type="date" id="modal-date" name="date" class="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-200 focus:outline-none" value="{{ selected_date|date:'Y-m-d' }}">
+                    </div>
+                    <div>
+                        <label for="modal-shift" class="block text-sm font-semibold text-gray-700 mb-1">Shift</label>
+                        <select id="modal-shift" name="shift_id" class="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-200 focus:outline-none">
+                            <option value="">Select a shift</option>
+                            {% for shift in all_shifts %}
+                                <option value="{{ shift.id }}">{{ shift.type }} ({{ shift.start_time|time:'H:i' }} - {{ shift.end_time|time:'H:i' }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="flex gap-3">
+                        <div class="flex-1">
+                            <label for="modal-start-time" class="block text-sm font-semibold text-gray-700 mb-1">Start Time</label>
+                            <input type="time" id="modal-start-time" name="start_time" class="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-200 focus:outline-none">
+                        </div>
+                        <div class="flex-1">
+                            <label for="modal-end-time" class="block text-sm font-semibold text-gray-700 mb-1">End Time</label>
+                            <input type="time" id="modal-end-time" name="end_time" class="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-200 focus:outline-none">
+                        </div>
+                    </div>
+                    <div>
+                        <label for="modal-hours-worked" class="block text-sm font-semibold text-gray-700 mb-1">Hours Worked</label>
+                        <input type="number" step="0.01" id="modal-hours-worked" name="hours_worked" class="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-200 focus:outline-none bg-gray-100" placeholder="e.g. 7.5" readonly>
+                    </div>
+                    <div>
+                        <label for="modal-notes" class="block text-sm font-semibold text-gray-700 mb-1">Notes</label>
+                        <textarea id="modal-notes" name="notes" rows="2" class="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-200 focus:outline-none"></textarea>
+                    </div>
+                    <div class="flex justify-end pt-2">
+                        <button type="button" onclick="submitExtendedEntry()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded shadow">Add Entry</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <style>
+        @keyframes fade-in {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in { animation: fade-in 0.3s ease; }
+        </style>
+
+        <script>
+        // Modal logic
+        function openExtendedModal() {
+            document.getElementById('extendedModal').classList.remove('hidden');
+            document.body.classList.add('overflow-hidden');
+        }
+        function closeExtendedModal() {
+            document.getElementById('extendedModal').classList.add('hidden');
+            document.body.classList.remove('overflow-hidden');
+            document.getElementById('extendedEntryForm').reset();
+        }
+
+        // Searchable student dropdown
+        const studentSearch = document.getElementById('modal-student-search');
+        const studentSelect = document.getElementById('modal-student');
+        if (studentSearch && studentSelect) {
+            studentSearch.addEventListener('input', function() {
+                const filter = this.value.toLowerCase();
+                for (let i = 0; i < studentSelect.options.length; i++) {
+                    const option = studentSelect.options[i];
+                    if (i === 0) continue; // skip placeholder
+                    const text = option.text.toLowerCase();
+                    option.style.display = text.includes(filter) ? '' : 'none';
+                }
+            });
+        }
+
+        // AJAX submit
+        function submitExtendedEntry() {
+            const form = document.getElementById('extendedEntryForm');
+            const studentId = document.getElementById('modal-student').value;
+            const date = document.getElementById('modal-date').value;
+            const shiftId = document.getElementById('modal-shift').value;
+            const startTime = document.getElementById('modal-start-time').value;
+            const endTime = document.getElementById('modal-end-time').value;
+            const hoursWorked = document.getElementById('modal-hours-worked').value;
+            const notes = document.getElementById('modal-notes').value;
+            const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+            if (!studentId || !date || !shiftId || !startTime || !endTime || !hoursWorked) {
+                alert('Please fill in all required fields.');
+                return;
+            }
+
+            fetch('/attendance/add-extended-log/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken
+                },
+                body: JSON.stringify({
+                    student_id: studentId,
+                    date: date,
+                    shift_id: shiftId,
+                    start_time: startTime,
+                    end_time: endTime,
+                    hours_worked: hoursWorked,
+                    notes: notes
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    closeExtendedModal();
+                    location.reload();
+                } else {
+                    alert('Error: ' + (data.error || 'Could not add entry.'));
+                }
+            })
+            .catch(error => {
+                alert('Request failed: ' + error);
+            });
+        }
+        </script>
+
+        <div class="overflow-x-auto bg-white border border-gray-200 rounded-lg shadow-sm">
+            <table class="w-full table-auto text-sm md:text-base classic-table" id="attendance-table">
+                <thead>
                     <tr>
                         <th class="px-4 py-2 text-left font-medium cursor-pointer" onclick="sortTable(0)">Student Name</th>
                         <th class="px-4 py-2 text-left font-medium cursor-pointer" onclick="sortTable(1)">Shift</th>
@@ -94,8 +294,16 @@
                 </thead>
                 <tbody>
                     {% for student_log in students %}
-                    <tr class="border-b hover:bg-gray-50 transition student-row">
-                        <td class="px-4 py-2">{{ student_log.student.first_name }} {{ student_log.student.last_name }}</td>
+                    <tr class="student-row hover:bg-blue-50 transition">
+                        <td class="px-4 py-2">
+                            {{ student_log.student.first_name }} {{ student_log.student.last_name }}
+                            {% if student_log.log.extended %}
+                                <span class="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-800" title="Extended Entry">
+                                    <svg class="w-4 h-4 mr-1 text-blue-500 inline" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                                    Extended
+                                </span>
+                            {% endif %}
+                        </td>
                         <td class="px-4 py-2">
                             {{ student_log.student.assigned_shift.type|default:"-" }}
                         </td>
@@ -106,12 +314,12 @@
                             </span>
                         </td>
                         <td class="px-4 py-2">
-                            <input type="text" name="time" class="from-time clockpicker w-full p-1 border border-gray-200 rounded focus:ring-2 focus:ring-blue-300"
+                            <input type="text" name="time" class="from-time clockpicker w-full p-1 border border-gray-200 rounded focus:ring-2 focus:ring-blue-100"
                                 data-student-id="{{ student_log.student.id }}" placeholder="From"
                                 value="{{ student_log.log.start_time|time:'H:i' }}" onchange="calculateAndSaveHours(this)">
                         </td>
                         <td class="px-4 py-2">
-                            <input type="text" name="time" class="to-time clockpicker w-full p-1 border border-gray-200 rounded focus:ring-2 focus:ring-blue-300"
+                            <input type="text" name="time" class="to-time clockpicker w-full p-1 border border-gray-200 rounded focus:ring-2 focus:ring-blue-100"
                                 data-student-id="{{ student_log.student.id }}" placeholder="To"
                                 value="{{ student_log.log.end_time|time:'H:i' }}" onchange="calculateAndSaveHours(this)">
                         </td>
@@ -128,13 +336,13 @@
                                        data-student-id="{{ student_log.student.id }}"
                                        {% if student_log.log.status == 'Present' %} checked {% endif %}
                                        onchange="toggleStatus(this)">
-                                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-500 rounded-full peer peer-checked:bg-green-500 transition-colors duration-300"></div>
+                                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-200 rounded-full peer peer-checked:bg-green-500 transition-colors duration-300"></div>
                                 <div class="absolute ml-1 mt-1 w-4 h-4 bg-white rounded-full shadow transform peer-checked:translate-x-5 transition-transform duration-300"></div>
                                 <span class="sr-only">Toggle Present/Absent</span>
                             </label>
                         </td>
                         <td class="px-4 py-2">
-                            <textarea name="notes" class="remarks-field w-full p-1 border border-gray-200 rounded focus:ring-2 focus:ring-blue-300"
+                            <textarea name="notes" class="remarks-field w-full p-1 border border-gray-200 rounded focus:ring-2 focus:ring-blue-100"
                                 data-student-id="{{ student_log.student.id }}"
                                 oninput="saveAttendance(this)">{{ student_log.log.notes }}</textarea>
                         </td>
@@ -157,73 +365,15 @@
                 autoclose: true,
                 default: 'now',
                 donetext: 'Select',
-                init: function() { 
-                    console.log("Clockpicker initiated");
-                },
-                beforeShow: function() {
-                    console.log("before show");
-                },
-                afterShow: function() {
-                    console.log("after show");
-                },
-                beforeHide: function() {
-                    console.log("before hide");
-                },
-                afterHide: function() {
-                    console.log("after hide");
-                },
-                beforeHourSelect: function() {
-                    console.log("before hour selected");
-                },
-                afterHourSelect: function() {
-                    console.log("after hour selected");
-                },
-                beforeDone: function() {
-                    console.log("before done");
-                },
-                afterDone: function() {
-                    console.log("after done");
-                }
             });
         }
-
-        function initializeEventListeners() {
-            $(document).on('click', '.status-toggle-toggle', toggleStatus);
-            // Other event listeners...
-        }
-
         $(document).ready(function() {
-    // Initialize clock picker
-    initializeClockPicker();
-
-    // Check localStorage for stored date
-    const storedDate = localStorage.getItem('attendance-date');
-    const today = new Date().toISOString().split('T')[0];  // Get the current date
-
-    // Use stored date if available, otherwise use current date
-    const attendanceDate = storedDate ? storedDate : today;
-    $('#attendance-date').val(attendanceDate);  // Set the value of the date input
-
-    // Fetch attendance data for the determined date
-    fetchAttendanceData(attendanceDate);
-    
-    initializeEventListeners();
-
-    // Add change event for shift filter
-    $('#shift-filter').on('change', function() {
-        const selectedShift = $(this).val();
-        console.log("[LOG] Shift filter changed:", selectedShift);
-        updateDate(document.getElementById('attendance-date'));
-    });
-});
-
+            initializeClockPicker();
+        });
 
         function toggleStatus(checkbox) {
             const studentId = checkbox.getAttribute('data-student-id');
             const statusText = document.querySelector(`.status-text[data-student-id="${studentId}"]`);
-            // Find the parent label and the switch background
-            const label = checkbox.closest('label');
-            const switchBg = label.querySelector('div.w-11');
             if (checkbox.checked) {
                 statusText.textContent = 'Present';
                 statusText.classList.add('text-green-600');
@@ -236,42 +386,25 @@
             saveAttendance(checkbox);
         }
 
-    function calculateAndSaveHours(input) {
-    console.log(input);
-    const studentId = input.getAttribute('data-student-id');
-    const fromTimeInput = document.querySelector(`input[data-student-id="${studentId}"].from-time`);
-    const toTimeInput = document.querySelector(`input[data-student-id="${studentId}"].to-time`);
-    const hoursWorkedSpan = document.querySelector(`.hours-worked[data-student-id="${studentId}"]`);
-
-    if (!fromTimeInput || !toTimeInput || !hoursWorkedSpan) {
-        console.error('Missing time input or hours element for student ID:', studentId);
-        return;
-    }
-
-    const fromTime = fromTimeInput.value;
-    const toTime = toTimeInput.value;
-    console.log(fromTime);  // From Time
-    console.log(toTime);    // To Time
-
-    if (fromTime && toTime) {
-        const fromDateTime = new Date(`1970-01-01T${fromTime}:00`);
-        const toDateTime = new Date(`1970-01-01T${toTime}:00`);
-
-        // Calculate the time difference
-        const durationInMs = toDateTime - fromDateTime;  // in milliseconds
-        const durationInHours = Math.abs(durationInMs / 1000 / 3600);  // Convert to hours
-
-        // Format and display the result
-        hoursWorkedSpan.textContent = durationInHours;  // Show 2 decimal places
-        console.log(durationInHours);
-        saveAttendance(fromTimeInput, toTimeInput, durationInHours);
-        location.reload();
-    }
-}
-
-
-
-
+        function calculateAndSaveHours(input) {
+            const studentId = input.getAttribute('data-student-id');
+            const fromTimeInput = document.querySelector(`input[data-student-id="${studentId}"].from-time`);
+            const toTimeInput = document.querySelector(`input[data-student-id="${studentId}"].to-time`);
+            const hoursWorkedSpan = document.querySelector(`.hours-worked[data-student-id="${studentId}"]`);
+            if (!fromTimeInput || !toTimeInput || !hoursWorkedSpan) {
+                return;
+            }
+            const fromTime = fromTimeInput.value;
+            const toTime = toTimeInput.value;
+            if (fromTime && toTime) {
+                const fromDateTime = new Date(`1970-01-01T${fromTime}:00`);
+                const toDateTime = new Date(`1970-01-01T${toTime}:00`);
+                const durationInMs = toDateTime - fromDateTime;
+                const durationInHours = Math.abs(durationInMs / 1000 / 3600);
+                hoursWorkedSpan.textContent = durationInHours;
+                saveAttendance(fromTimeInput, toTimeInput, durationInHours);
+            }
+        }
 
         function saveAttendance(input) {
             const studentId = input.getAttribute('data-student-id');
@@ -282,13 +415,11 @@
             const hoursWorkedSpan = document.querySelector(`.hours-worked[data-student-id="${studentId}"]`);
             const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
             let attendanceDate = document.getElementById('attendance-date').value;
-
             const newStatus = statusCheckbox.checked ? 'Present' : 'Absent';
             const startTime = fromTimeInput.value;
             const endTime = toTimeInput.value;
             const remarks = remarksField.value;
             const hoursWorked = hoursWorkedSpan.textContent || 0;
-
             if (!attendanceDate || attendanceDate === "") {
                 attendanceDate = new Date().toISOString().split('T')[0];
             }
@@ -300,7 +431,6 @@
             formData.append('hours_worked', hoursWorked);
             formData.append('student_id', studentId);
             formData.append('csrfmiddlewaretoken', csrfToken);
-
             fetch(`/attendance/update/${studentId}/${attendanceDate}/`, {
                 method: 'POST',
                 body: formData
@@ -311,180 +441,87 @@
             });
         }
 
-        function updateDate(input) {
-            const selectedDate = input.value;
-            const selectedShift = document.getElementById('shift-filter').value;
-            localStorage.setItem('attendance-date', selectedDate);  
-            fetchAttendanceData(selectedDate, selectedShift);
-        }
-
-        function fetchAttendanceData(date, shift) {
-            let url = `/attendance/?date=${date}`;
-            if (shift && shift !== "") {
-                url += `&shift=${encodeURIComponent(shift)}`;
-            }
-            fetch(url, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-            })
-            .then(response => response.text())
-            .then(html => {
-                const container = document.querySelector('.container');
-                container.innerHTML = html;
-
-                // Only run this block if checkboxes exist
-                const checkboxes = document.querySelectorAll('input[type="checkbox"].status-toggle-toggle');
-                checkboxes.forEach(checkbox => {
-                    const studentId = checkbox.getAttribute('data-student-id');
-                    const statusTextElem = document.querySelector(`.status-text[data-student-id="${studentId}"]`);
-                    if (!statusTextElem) return; // Prevent error if not found
-
-                    const statusText = statusTextElem.textContent.trim();
-
-                    // The new toggle does not use .relative/.dot, so skip that logic
-                    if (statusText === 'Present') {
-                        checkbox.checked = true;
-                    } else {
-                        checkbox.checked = false;
-                    }
-                });
-
-                const dateInput = document.getElementById('attendance-date');
-                if (dateInput && dateInput.value !== date) {
-                    dateInput.value = date;
-                }
-
-                // Restore shift filter value after AJAX reload
-                const shiftFilter = document.getElementById('shift-filter');
-                if (shiftFilter && shift) {
-                    shiftFilter.value = shift;
-                }
-
-                initializeAttendancePage();
-            })
-            .catch(error => {
-                console.error('Failed to fetch attendance data:', error);
-            });
-        }
-
+        // Table sorting and search remain for UI enhancement
         let lastSortedColumn = -1;
         let ascending = true;
-
         function sortTable(columnIndex) {
             const table = document.getElementById("attendance-table");
             const rows = Array.from(table.tBodies[0].rows);
             const headers = table.tHead.rows[0].cells;
-
-            // Logging
-            console.log("[LOG] Sorting column:", columnIndex);
-
-            // Remove previous sort highlight
             for (let i = 0; i < headers.length; i++) {
                 headers[i].classList.remove('sorted-asc', 'sorted-desc');
             }
-
             if (lastSortedColumn === columnIndex) {
                 ascending = !ascending;
             } else {
                 ascending = true;
             }
             lastSortedColumn = columnIndex;
-
-            // Highlight sorted column
             headers[columnIndex].classList.add(ascending ? 'sorted-asc' : 'sorted-desc');
-
             rows.sort((rowA, rowB) => {
                 let cellA = rowA.cells[columnIndex].textContent.trim();
                 let cellB = rowB.cells[columnIndex].textContent.trim();
-
-                // Numeric sort for hours column
                 if (columnIndex === 5) {
                     const a = parseFloat(cellA) || 0;
                     const b = parseFloat(cellB) || 0;
                     return ascending ? a - b : b - a;
                 }
-                // Alphabetical sort for name, shift, status
                 return ascending ? cellA.localeCompare(cellB) : cellB.localeCompare(cellA);
             });
-
-            // Re-append sorted rows
             rows.forEach(row => table.tBodies[0].appendChild(row));
         }
-
-        // Ensure only one DOMContentLoaded handler and that it works after AJAX reloads
-    function setupAttendanceSearch() {
-        const searchInput = document.getElementById('attendance-search-input');
-        const table = document.getElementById('attendance-table');
-        if (searchInput && table) {
-            searchInput.addEventListener('input', function() {
-                const filter = this.value.trim().toLowerCase();
-                const rows = table.querySelectorAll('tbody tr.student-row');
-                let visibleCount = 0;
-                rows.forEach(row => {
-                    // Always use the first cell (Student Name column)
-                    const nameCell = row.querySelector('td');
-                    if (!nameCell) return;
-                    const name = nameCell.textContent.trim().toLowerCase();
-                    if (filter === "" || name.includes(filter)) {
-                        row.style.display = "";
-                        visibleCount++;
-                    } else {
-                        row.style.display = "none";
+        function setupAttendanceSearch() {
+            const searchInput = document.getElementById('attendance-search-input');
+            const table = document.getElementById('attendance-table');
+            if (searchInput && table) {
+                searchInput.addEventListener('input', function() {
+                    const filter = this.value.trim().toLowerCase();
+                    const rows = table.querySelectorAll('tbody tr.student-row');
+                    let visibleCount = 0;
+                    rows.forEach(row => {
+                        const nameCell = row.querySelector('td');
+                        if (!nameCell) return;
+                        const name = nameCell.textContent.trim().toLowerCase();
+                        if (filter === "" || name.includes(filter)) {
+                            row.style.display = "";
+                            visibleCount++;
+                        } else {
+                            row.style.display = "none";
+                        }
+                    });
+                    const emptyRow = table.querySelector('tbody tr.no-students-row');
+                    if (emptyRow) {
+                        emptyRow.style.display = visibleCount === 0 ? "" : "none";
                     }
                 });
-                // Show/hide "No students found" row
-                const emptyRow = table.querySelector('tbody tr.no-students-row');
-                if (emptyRow) {
-                    emptyRow.style.display = visibleCount === 0 ? "" : "none";
-                }
-            });
-        }
-    }
-
-    document.addEventListener('DOMContentLoaded', function() {
-        setupAttendanceSearch();
-        // Use event delegation to ensure the shift filter always works
-        document.body.addEventListener('change', function(event) {
-            var target = event.target;
-            if (target && target.id === 'shift-filter') {
-                var selectedShift = target.value.trim();
-                // Log for debugging
-                if (window.console) console.log("Shift filter changed:", selectedShift);
-                // Show/hide rows based on shift type in the table (frontend only, not case sensitive)
-                var rows = document.querySelectorAll('#attendance-table tbody tr.student-row');
-                let visibleCount = 0;
-                rows.forEach(function(row) {
-                    var shiftCell = row.cells[1];
-                    if (!shiftCell) return;
-                    var shiftText = shiftCell.textContent.trim();
-                    // Compare lowercased, ignore case and whitespace
-                    if (selectedShift === "" || shiftText.toLowerCase() === selectedShift.toLowerCase()) {
-                        row.style.display = "";
-                        visibleCount++;
-                    } else {
-                        row.style.display = "none";
-                    }
-                });
-                // Show/hide "No students found" row
-                var emptyRow = document.querySelector('#attendance-table tbody tr.no-students-row');
-                if (emptyRow) {
-                    emptyRow.style.display = visibleCount === 0 ? "" : "none";
-                }
             }
+        }
+        document.addEventListener('DOMContentLoaded', function() {
+            setupAttendanceSearch();
         });
-    });
 
-    function initializeAttendancePage() {
-        // Initialize clock picker for time input fields
-        initializeClockPicker();
-        // Setup search again after AJAX reload
-        setupAttendanceSearch();
-        // Add additional event listeners if needed
-    }
+        // Auto-calculate hours worked in modal
+        function updateModalHoursWorked() {
+            const start = document.getElementById('modal-start-time').value;
+            const end = document.getElementById('modal-end-time').value;
+            const hoursInput = document.getElementById('modal-hours-worked');
+            if (start && end) {
+                const [sh, sm] = start.split(':').map(Number);
+                const [eh, em] = end.split(':').map(Number);
+                let startMinutes = sh * 60 + sm;
+                let endMinutes = eh * 60 + em;
+                // Handle overnight
+                if (endMinutes < startMinutes) endMinutes += 24 * 60;
+                const diff = endMinutes - startMinutes;
+                const hours = (diff / 60).toFixed(2);
+                hoursInput.value = hours;
+            } else {
+                hoursInput.value = '';
+            }
+        }
+        document.getElementById('modal-start-time').addEventListener('input', updateModalHoursWorked);
+        document.getElementById('modal-end-time').addEventListener('input', updateModalHoursWorked);
     </script>
 </body>
 
-</html>
 </html>

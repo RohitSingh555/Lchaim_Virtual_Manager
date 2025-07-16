@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import StudentProfile, College, Shift, VolunteerLog, StudentFile
+from .models import StudentProfile, College, Shift, VolunteerLog, StudentFile, ActivityLog
 
 @admin.register(StudentProfile)
 class StudentProfileAdmin(admin.ModelAdmin):
@@ -25,3 +25,4 @@ admin.site.register(College)
 admin.site.register(Shift)
 admin.site.register(VolunteerLog)
 admin.site.register(StudentFile)
+admin.site.register(ActivityLog)

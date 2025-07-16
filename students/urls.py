@@ -14,6 +14,7 @@ urlpatterns = [
     path('delete/<int:pk>/', views.delete_student_profile, name='delete_student_profile'),
     path('attendance/', views.student_attendance, name='student_attendance'),
     path('attendance/update/<int:student_id>/<str:date>/', views.update_attendance, name='update_attendance'),
+    path('attendance/add-extended-log/', views.add_extended_volunteer_log, name='add_extended_volunteer_log'),
 
     path('auth/signup/', views.signup_view, name='signup_page'),
     path('auth/login/', views.login_view, name='login'),
@@ -37,9 +38,12 @@ urlpatterns = [
     path('orientation-dates/add/', views.add_orientation_date, name='add_orientation_date'),
     path('orientation-dates/edit/<int:pk>/', views.edit_orientation_date, name='edit_orientation_date'),
     path('orientation-dates/delete/<int:pk>/', views.delete_orientation_date, name='delete_orientation_date'),
+    path('orientation-dates/hide/<int:pk>/', views.hide_orientation_date, name='hide_orientation_date'),
+    path('orientation-dates/unhide/<int:pk>/', views.unhide_orientation_date, name='unhide_orientation_date'),
     path('log/delete/<int:log_id>/', views.delete_log, name='delete_log'),
     path('students/update_start_date/<int:pk>/', views.update_start_date, name='update_start_date'),
     path('api/student-counts-by-date-shift/', views.student_counts_by_date_and_shift, name='student_counts_by_date_and_shift'),
+    path('dashboard/', views.admin_dashboard, name='admin_dashboard'),
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

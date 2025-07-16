@@ -9,7 +9,7 @@ from rest_framework.response import Response
 from rest_framework import status
 # Django Imports
 from django.shortcuts import render, get_object_or_404, redirect
-from .models import StudentProfile, VolunteerLog
+from .models import StudentProfile, VolunteerLog, ActivityLog
 from datetime import timedelta
 import re
 from django.conf import settings
@@ -31,6 +31,8 @@ from io import BytesIO
 from openpyxl import Workbook
 from .forms import CollegeForm, OrientationDateForm, StudentFileForm, StudentProfileForm, VolunteerLogForm
 from .models import College, OrientationDate, Shift, StudentFile, StudentProfile, VolunteerLog
+from .utils import log_activity
+from django.views.decorators.http import require_POST
 
 
 def admin_required(function):
@@ -299,7 +301,7 @@ def validate_shift_capacity(user, date, assigned_shift):
     if user.is_superuser:
         return True
 
-    shift_students_count = VolunteerLog.objects.filter(date=date, shift=assigned_shift).count()
+    shift_students_count = VolunteerLog.objects.filter(date=date, shift=assigned_shift, extended=False).count()
     return shift_students_count < assigned_shift.max_students
 
 @login_required
@@ -332,7 +334,7 @@ def create_student_profile(request):
                 assigned_shift = Shift.objects.get(id=shift_id)
                 student_profile.assigned_shift = assigned_shift
 
-                # âœ… New logic to auto-fill shift_requested and weekdays_selected
+                # ✅ New logic to auto-fill shift_requested and weekdays_selected
                 shift_type = assigned_shift.type.lower()
                 if "weekendnight" in shift_type:
                     student_profile.shift_requested = "Weekend"
@@ -370,6 +372,8 @@ def create_student_profile(request):
                     weekdays_selected = [0, 1, 2, 3, 4]
 
                 student_profile.save()
+                # Log activity
+                
             except Shift.DoesNotExist:
                 messages.error(request, "The specified shift does not exist.")
                 return render(request, 'create_profile.html', {'form': profile_form, 'shifts': shifts})
@@ -409,6 +413,19 @@ def create_student_profile(request):
 
                 student_profile.end_date = current_date - timedelta(days=1)
                 student_profile.save()
+                log_activity(
+                    action_type="profile_created",
+                    profile=student_profile,
+                    created_by=request.user if request.user.is_authenticated else None,
+                    shift_type=assigned_shift.type if assigned_shift else None,
+                    shift_capacity=assigned_shift.max_students if assigned_shift else None,
+                    start_date=student_profile.start_date,
+                    end_date=student_profile.end_date,
+                    extra_data={
+                        "school": student_profile.school,
+                        "email": student_profile.email,
+                    }
+                )
 
             threading.Thread(target=send_student_creation_email, args=(student_profile,)).start()
 
@@ -418,6 +435,10 @@ def create_student_profile(request):
             messages.error(request, "There were errors in the form. Please correct them.")
     else:
         profile_form = StudentProfileForm()
+
+    # Only show non-hidden orientation dates in the form dropdown
+    from .models import OrientationDate
+    profile_form.fields['lchaim_orientation_date'].queryset = OrientationDate.objects.filter(hidden=False)
 
     return render(request, 'create_profile.html', {'form': profile_form, 'shifts': shifts})
 
@@ -446,6 +467,7 @@ def send_email(request):
 
     return JsonResponse({'status': 'error', 'message': 'Invalid request method. Only POST is allowed.'})
                          
+                     
 def send_student_creation_email(student):
     orientation_date = student.lchaim_orientation_date.date.strftime('%Y-%m-%d') if student.lchaim_orientation_date else student.start_date.strftime('%Y-%m-%d')
     orientation_description = student.lchaim_orientation_date.description if student.lchaim_orientation_date else None
@@ -489,24 +511,26 @@ def send_student_creation_email(student):
     <div class="email-container">
         <p>Dear {student.first_name},</p>
 
-        <p>Welcome to Lâ€™Chaim! We are thrilled to have you join us and look forward to supporting you throughout your placement.</p>
+        <p>Welcome to L’Chaim! We are thrilled to have you join us and look forward to supporting you throughout your placement.</p>
 
-        <p>Your orientation has been scheduled for <strong>{orientation_date} at 10:00 AM</strong>, and will take place at <strong>Lâ€™Chaim Retirement Home</strong>.</p>
+        <p>Your orientation has been scheduled for <strong>{orientation_date} at 10:00 AM</strong>, and will take place at <strong>L’Chaim Retirement Home</strong>.</p>
 
         <p>During this session, we will walk you through important information to help ensure a smooth and successful start.</p>
         <p>Students may only begin their placement after the agreement has been signed.</p>
 
-<p style="padding-bottom:10px;">To get started with your placement, make sure to fill up the linked form below.</p>
-        <p style="padding-bottom:10px;">ðŸ‘‰ <strong>Student Placement Agreement Link:</strong> <a href="https://ca.services.docusign.net/webforms-ux/v1.0/forms/ae58e83ba452d7d8605aaf046d9e9f27" target="_blank">Click here.</a></p>
-
         <strong>Orientation Date & Time:</strong> {orientation_date} at 10:00 AM<br>
-        <strong>Placement Location:</strong> Lâ€™Chaim Retirement Home â€“ 718 Sheppard Ave West, Toronto, Ontario</p>
+        <strong>Placement Location:</strong> L’Chaim Retirement Home – 718 Sheppard Ave West, Toronto, Ontario</p>
 
-        <p>Before your orientation, please take some time to review the attached training documents, which outline our key policies and guidelines. Once youâ€™ve read and understood them, kindly confirm your acknowledgement by replying to this email.</p>
+        <p>Before your orientation, please take some time to review the attached training documents, which outline our key policies and guidelines. Once you’ve read and understood them, kindly confirm your acknowledgement by replying to this email.</p>
 
-        <p>If you have any questions or need further clarification, donâ€™t hesitate to reach outâ€”weâ€™re here to help.</p>
+        
+<p style="padding-bottom:10px;">To get started with your placement, make sure to fill up the linked form below.</p>
+        <p style="padding-bottom:10px;">👉 <strong>Student Placement Agreement Link:</strong> <a href="https://ca.services.docusign.net/webforms-ux/v1.0/forms/ae58e83ba452d7d8605aaf046d9e9f27" target="_blank">Click here.</a></p>
 
-        <p>Wishing you a meaningful and enriching experience with us at Lâ€™Chaim!</p>
+
+        <p>If you have any questions or need further clarification, don’t hesitate to reach out—we’re here to help.</p>
+
+        <p>Wishing you a meaningful and enriching experience with us at L’Chaim!</p>
 
         <p>Warm regards,</p>
 
@@ -566,6 +590,7 @@ def send_student_creation_email(student):
     else:
         print(f"Attachments folder not found at {attachments_folder}.")
     email.send()
+
 
 
 @login_required
@@ -1039,45 +1064,63 @@ def log_volunteer_hours(request, pk):
 @admin_required
 def student_attendance(request):
     date_str = request.GET.get('date') or timezone.now().strftime('%Y-%m-%d')
-    shift_filter = request.GET.get('shift', '').strip()  # New: get shift filter from GET params
+    shift_filter = request.GET.get('shift', '').strip()
     try:
         selected_date = timezone.datetime.strptime(date_str, '%Y-%m-%d').date()
     except ValueError:
         selected_date = timezone.now().date()
 
-    students = StudentProfile.objects.filter(status='Training')
+    print(f"[DEBUG] Selected date: {selected_date}")
+    print(f"[DEBUG] Shift filter: {shift_filter}")
+
+    # Fetch logs for the selected date
+    logs = VolunteerLog.objects.filter(date=selected_date)
+    print(f"[DEBUG] VolunteerLog entries for date {selected_date}: {logs.count()}")
     if shift_filter:
-        students = students.filter(assigned_shift__type=shift_filter)
+        logs = logs.filter(shift__type=shift_filter)
+        print(f"[DEBUG] VolunteerLog entries after shift filter '{shift_filter}': {logs.count()}")
+
+    # Print first few logs for inspection
+    debug_logs = list(logs.select_related('student', 'shift')[:5])
+    for log in debug_logs:
+        print(f"[DEBUG] Log: student={log.student.first_name} {log.student.last_name}, status={log.status}, shift={log.shift.type if log.shift else None}")
+
+    # Prepare student_logs for the template
     student_logs = []
+    present_count = 0
+    absent_count = 0
+    total_count = logs.count()
 
-    for student in students:
-        log, created = VolunteerLog.objects.get_or_create(student=student, date=selected_date)
-        hours_worked = log.hours_worked 
-        if hours_worked is not None:
-            hours = int(hours_worked) 
-            minutes = round((hours_worked - hours) * 60) 
-
-            log.hours_worked = f"{hours}:{minutes:02}" 
+    for log in logs.select_related('student', 'shift'):
+        if log.status == 'Present':
+            present_count += 1
+        elif log.status == 'Absent':
+            absent_count += 1
+        # Format hours_worked for display
+        if log.hours_worked is not None:
+            hours = int(log.hours_worked)
+            minutes = round((log.hours_worked - hours) * 60)
+            log.hours_worked_display = f"{hours}:{minutes:02}"
         else:
-            log.hours_worked = "00:00" 
+            log.hours_worked_display = "00:00"
+        student_logs.append({'student': log.student, 'log': log})
 
-        student_logs.append({'student': student, 'log': log})
-
-    # Get all available shifts for filter dropdown
-    from .models import Shift
+    from .models import Shift, StudentProfile
     all_shifts = Shift.objects.all()
+    all_students = StudentProfile.objects.all()
 
     context = {
         'students': student_logs,
         'selected_date': selected_date,
         'all_shifts': all_shifts,
         'shift_filter': shift_filter,
+        'present_count': present_count,
+        'absent_count': absent_count,
+        'total_count': total_count,
+        'all_students': all_students,  # For modal dropdown
     }
 
-    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':  
-        return render(request, 'attendance/attendance_partial.html', context)
-    else: 
-        return render(request, 'attendance/attendance.html', context)
+    return render(request, 'attendance/attendance.html', context)
 
 def update_attendance(request, student_id, date):
     student = get_object_or_404(StudentProfile, id=student_id)
@@ -1269,7 +1312,7 @@ def calendar_student_logs(request):
     student_data = []
 
     for student in students:
-        volunteer_logs = VolunteerLog.objects.filter(student=student, status='Present').order_by('start_time')
+        volunteer_logs = VolunteerLog.objects.filter(student=student, extended=False).order_by('start_time')
 
         total_hours = 0
         formatted_logs = []
@@ -1468,8 +1511,13 @@ class MarkGraduateAPIView(APIView):
         }, status=status.HTTP_200_OK)
     
 def orientation_date_list(request):
-    dates = OrientationDate.objects.all()
     is_admin = request.user.groups.filter(name='Admin').exists()
+    if is_admin:
+        # Show all dates to admin, both hidden and not hidden
+        dates = OrientationDate.objects.all()
+    else:
+        # Only show dates that are not hidden to non-admins
+        dates = OrientationDate.objects.filter(hidden=False)
     return render(request, 'orientation_date_list.html', {'dates': dates, 'is_admin': is_admin})
 
 
@@ -1559,3 +1607,105 @@ def update_start_date(request, pk):
     else:
         messages.error(request, "Invalid start date.")
     return redirect('student_profile_list')
+
+@admin_required
+@require_POST
+def hide_orientation_date(request, pk):
+    orientation_date = get_object_or_404(OrientationDate, pk=pk)
+    orientation_date.hidden = True
+    orientation_date.save()
+    return redirect('orientation_date_list')
+
+@admin_required
+@require_POST
+def unhide_orientation_date(request, pk):
+    orientation_date = get_object_or_404(OrientationDate, pk=pk)
+    orientation_date.hidden = False
+    orientation_date.save()
+    return redirect('orientation_date_list')
+
+@csrf_exempt
+@admin_required
+def add_extended_volunteer_log(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            student_id = data.get('student_id')
+            date_str = data.get('date')
+            shift_id = data.get('shift_id')
+            start_time = data.get('start_time')
+            end_time = data.get('end_time')
+            hours_worked = data.get('hours_worked')
+            notes = data.get('notes', '')
+
+            student = StudentProfile.objects.get(id=student_id)
+            shift = Shift.objects.get(id=shift_id)
+            date_obj = datetime.strptime(date_str, '%Y-%m-%d').date()
+            start_time_obj = datetime.strptime(start_time, '%H:%M').time()
+            end_time_obj = datetime.strptime(end_time, '%H:%M').time()
+            hours_worked = float(hours_worked)
+
+            # Remove any existing extended log for this student/date/shift
+            VolunteerLog.objects.filter(student=student, date=date_obj, shift=shift, extended=True).delete()
+
+            log = VolunteerLog.objects.create(
+                student=student,
+                date=date_obj,
+                shift=shift,
+                start_time=start_time_obj,
+                end_time=end_time_obj,
+                hours_worked=hours_worked,
+                notes=notes,
+                status='Present',
+                extended=True
+            )
+            return JsonResponse({'success': True, 'log_id': log.id})
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)}, status=400)
+    return JsonResponse({'success': False, 'error': 'Invalid request'}, status=400)
+
+@admin_required
+def admin_dashboard(request):
+    from .models import ActivityLog, StudentProfile, Shift
+    # Filtering, searching, sorting
+    logs = ActivityLog.objects.select_related('profile', 'created_by')
+    search = request.GET.get('search', '').strip()
+    action_type = request.GET.get('action_type', '').strip()
+    sort = request.GET.get('sort', '-created_at')
+
+    if search:
+        logs = logs.filter(
+            Q(profile__first_name__icontains=search) |
+            Q(profile__last_name__icontains=search) |
+            Q(created_by__username__icontains=search) |
+            Q(shift_type__icontains=search)
+        )
+    if action_type:
+        logs = logs.filter(action_type=action_type)
+    if sort:
+        logs = logs.order_by(sort)
+    else:
+        logs = logs.order_by('-created_at')
+
+    logs = logs[:200]  # Limit for performance
+    total_logs = ActivityLog.objects.count()
+    # Stats
+    total_profiles = StudentProfile.objects.count()
+    total_shifts = Shift.objects.count()
+    total_admins = request.user.__class__.objects.filter(groups__name='Admin').count()
+    profiles_created_today = StudentProfile.objects.filter(created_at__date=timezone.now().date()).count() if hasattr(StudentProfile, 'created_at') else None
+    # For filter dropdown
+    action_types = ActivityLog.ACTION_CHOICES
+    context = {
+        'logs': logs,
+        'total_logs': total_logs,
+        'total_profiles': total_profiles,
+        'total_shifts': total_shifts,
+        'total_admins': total_admins,
+        'profiles_created_today': profiles_created_today,
+        'search': search,
+        'action_type': action_type,
+        'sort': sort,
+        'action_types': action_types,
+    }
+    return render(request, 'admin_dashboard.html', context)

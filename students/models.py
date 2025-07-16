@@ -1,3 +1,4 @@
+from django.contrib.auth.models import User
 from django.db import models
 from datetime import datetime, date, timedelta
 
@@ -17,6 +18,7 @@ class OrientationDate(models.Model):
     description = models.CharField(max_length=255, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)  
     updated_at = models.DateTimeField(auto_now=True)  
+    hidden = models.BooleanField(default=False)
 
     def __str__(self):
         return self.date.strftime('%Y-%m-%d')
@@ -79,6 +81,7 @@ class StudentProfile(models.Model):
         choices=[('Training', 'Training'), ('Graduated', 'Graduated')],
         default='Training'
     )
+    created_at = models.DateTimeField(auto_now_add=True)
 
     # def __str__(self):
     #     return f"{self.first_name} {self.last_name}"
@@ -98,6 +101,7 @@ class VolunteerLog(models.Model):
     hours_worked = models.DecimalField(max_digits=5, decimal_places=2, null=True)
     status = models.CharField(max_length=10, choices=[('Present', 'Present'), ('Absent', 'Absent')], default='Absent')
     notes = models.TextField(blank=True, null=True)
+    extended = models.BooleanField(default=False)
 
     def __str__(self):
         return f"Log for {self.student} on {self.date}"
@@ -116,4 +120,25 @@ class StudentFile(models.Model):
 
     class Meta:
         ordering = ['uploaded_at']
+
+
+class ActivityLog(models.Model):
+    ACTION_CHOICES = [
+        ("profile_created", "Profile Created"),
+        ("profile_updated", "Profile Updated"),
+        ("profile_deleted", "Profile Deleted"),
+        # Add more as needed
+    ]
+    action_type = models.CharField(max_length=32, choices=ACTION_CHOICES)
+    profile = models.ForeignKey('StudentProfile', on_delete=models.CASCADE, related_name='activity_logs')
+    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    shift_type = models.CharField(max_length=64, blank=True, null=True)
+    shift_capacity = models.PositiveIntegerField(blank=True, null=True)
+    start_date = models.DateField(blank=True, null=True)
+    end_date = models.DateField(blank=True, null=True)
+    extra_data = models.JSONField(blank=True, null=True, default=dict)
+
+    def __str__(self):
+        return f"{self.get_action_type_display()} for {self.profile} at {self.created_at}"
 

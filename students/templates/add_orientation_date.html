@@ -8,38 +8,50 @@
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 
-<body class="bg-gray-100 font-sans">
-
+<body class="bg-gray-100 font-sans min-h-screen">
     {% include 'navbar.html' %}
-    
-    <div class="flex justify-center items-center min-h-screen bg-gray-50">
-        <div class="max-w-3xl w-full p-10 bg-white rounded-lg shadow-lg">
-            <h1 class="text-5xl font-semibold text-center text-gray-800 mb-8">Add Orientation Date</h1>
-            
-            <form method="post">
-                {% csrf_token %}
-                
-                <div class="space-y-8">
-                    <div class="grid grid-cols-1 gap-6">
-                        {{ form.as_p|safe }}
-                        
-                   
-                    </div>
+    <div class="flex justify-center items-center min-h-screen bg-gradient-to-br from-blue-50 to-white px-2 py-8">
+        <div class="max-w-2xl w-full p-8 bg-white rounded-2xl shadow-xl border border-blue-100">
+            <!-- Header -->
+            <div class="flex flex-col items-center mb-8">
+                <div class="bg-blue-100 rounded-full p-3 flex items-center justify-center mb-2">
+                    <svg class="w-8 h-8 text-blue-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 17l4 4 4-4m-4-5v9" /><rect width="20" height="12" x="2" y="7" rx="2"/><path stroke-linecap="round" stroke-linejoin="round" d="M16 3H8a2 2 0 00-2 2v2h12V5a2 2 0 00-2-2z"/></svg>
                 </div>
-
-                <div class="mt-10">
-                    <button type="submit" class="w-full bg-blue-600 text-white py-4 px-8 text-lg font-semibold rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-300 ease-in-out">
+                <h1 class="text-3xl md:text-4xl font-extrabold text-blue-800 tracking-tight text-center">Add Orientation Date</h1>
+                <p class="mt-2 text-base text-gray-500 text-center max-w-xl">Create a new orientation date and set the earliest start date for student placements.</p>
+            </div>
+            <form method="post" class="space-y-8">
+                {% csrf_token %}
+                <div class="grid grid-cols-1 gap-6">
+                    <div class="flex flex-col gap-2">
+                        <label for="id_date" class="text-blue-700 font-semibold">Orientation Date</label>
+                        <input type="date" name="date" id="id_date" class="rounded-lg border border-blue-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 px-4 py-3 text-gray-800 bg-blue-50 placeholder-gray-400 transition" value="{{ form.date.value|default:'' }}" required>
+                    </div>
+                    <div class="flex flex-col gap-2">
+                        <label for="id_start_date" class="text-blue-700 font-semibold">Earliest Start Date</label>
+                        <input type="date" name="start_date" id="id_start_date" class="rounded-lg border border-blue-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 px-4 py-3 text-gray-800 bg-blue-50 placeholder-gray-400 transition" value="{{ form.start_date.value|default:'' }}">
+                    </div>
+                    {% for field in form %}
+                        {% if field.name != 'date' and field.name != 'start_date' %}
+                            <div>{{ field.label_tag }}{{ field }}</div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+                <div class="pt-6">
+                    <button type="submit" class="w-full bg-blue-600 text-white py-4 px-8 text-lg font-semibold rounded-lg shadow hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-300 ease-in-out flex items-center justify-center gap-2">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
                         Save
                     </button>
                 </div>
             </form>
-
             <div class="mt-8 text-center">
-                <a href="{% url 'orientation_date_list' %}" class="text-blue-600 hover:underline text-xl font-semibold">Back to List</a>
+                <a href="{% url 'orientation_date_list' %}" class="inline-flex items-center gap-2 text-blue-600 hover:text-blue-800 hover:underline text-base font-semibold px-4 py-2 rounded transition">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+                    Back to List
+                </a>
             </div>
         </div>
     </div>
-
 </body>
 
 </html>
