@@ -1312,7 +1312,7 @@ def calendar_student_logs(request):
     student_data = []
 
     for student in students:
-        volunteer_logs = VolunteerLog.objects.filter(student=student, extended=False).order_by('start_time')
+        volunteer_logs = VolunteerLog.objects.filter(student=student, extended=False, status='Present').order_by('start_time')
 
         total_hours = 0
         formatted_logs = []

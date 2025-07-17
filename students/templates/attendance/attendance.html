@@ -60,6 +60,97 @@
             border-color: #2563eb;
             box-shadow: 0 0 0 2px #2563eb33;
         }
+        
+        /* Tab Styles */
+        .tab-button {
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .tab-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+            transition: left 0.5s;
+        }
+        
+        .tab-button:hover::before {
+            left: 100%;
+        }
+        
+        .tab-button.active {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            color: white;
+            border-bottom-color: #3b82f6;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+        
+        .tab-button.active span {
+            background: rgba(255, 255, 255, 0.2) !important;
+            color: white !important;
+        }
+        
+        .tab-content {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .tab-content.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .tab-content.hidden {
+            display: none;
+        }
+        
+        /* Row filtering animations */
+        .student-row {
+            transition: all 0.3s ease;
+        }
+        
+        .student-row.filtered-out {
+            opacity: 0;
+            transform: scale(0.95);
+            pointer-events: none;
+        }
+        
+        .student-row.filtered-in {
+            opacity: 1;
+            transform: scale(1);
+            animation: slideIn 0.4s ease;
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        
+        /* Pulse animation for active tab */
+        .tab-button.active svg {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.1);
+            }
+        }
     </style>
 </head>
 
@@ -109,22 +200,87 @@
             </div>
         </div>
 
-        <!-- Minimal Dashboard Section -->
-        <div class="flex flex-col sm:flex-row gap-4 mb-8">
-            <div class="flex items-center bg-gray-100 border border-gray-200 rounded-lg px-5 py-3 flex-1 min-w-[120px]">
-                <svg class="w-6 h-6 text-green-500 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg>
-                <span class="text-lg font-semibold text-gray-700">Present:</span>
-                <span class="ml-2 text-xl font-bold text-green-700">{{ present_count }}</span>
+        <!-- Enhanced Dashboard with Tabs -->
+        <div class="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden mb-8">
+            <!-- Tab Navigation -->
+            <div class="flex bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-gray-200">
+                <button id="all-tab" class="tab-button active flex-1 flex items-center justify-center gap-3 py-4 px-6 text-sm font-semibold text-gray-700 hover:text-blue-700 transition-all duration-300 border-b-2 border-transparent hover:border-blue-300" onclick="switchTab('all')">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" /><path stroke-linecap="round" stroke-linejoin="round" d="M8 12h4v4" /></svg>
+                    All Students
+                    <span class="bg-blue-100 text-blue-800 text-xs font-bold px-2 py-1 rounded-full">{{ total_count }}</span>
+                </button>
+                <button id="present-tab" class="tab-button flex-1 flex items-center justify-center gap-3 py-4 px-6 text-sm font-semibold text-gray-700 hover:text-green-700 transition-all duration-300 border-b-2 border-transparent hover:border-green-300" onclick="switchTab('present')">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg>
+                    Present
+                    <span class="bg-green-100 text-green-800 text-xs font-bold px-2 py-1 rounded-full">{{ present_count }}</span>
+                </button>
+                <button id="absent-tab" class="tab-button flex-1 flex items-center justify-center gap-3 py-4 px-6 text-sm font-semibold text-gray-700 hover:text-red-700 transition-all duration-300 border-b-2 border-transparent hover:border-red-300" onclick="switchTab('absent')">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                    Absent
+                    <span class="bg-red-100 text-red-800 text-xs font-bold px-2 py-1 rounded-full">{{ absent_count }}</span>
+                </button>
             </div>
-            <div class="flex items-center bg-gray-100 border border-gray-200 rounded-lg px-5 py-3 flex-1 min-w-[120px]">
-                <svg class="w-6 h-6 text-red-500 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
-                <span class="text-lg font-semibold text-gray-700">Absent:</span>
-                <span class="ml-2 text-xl font-bold text-red-700">{{ absent_count }}</span>
-            </div>
-            <div class="flex items-center bg-gray-100 border border-gray-200 rounded-lg px-5 py-3 flex-1 min-w-[120px]">
-                <svg class="w-6 h-6 text-blue-500 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" /><path stroke-linecap="round" stroke-linejoin="round" d="M8 12h4v4" /></svg>
-                <span class="text-lg font-semibold text-gray-700">Total:</span>
-                <span class="ml-2 text-xl font-bold text-blue-700">{{ total_count }}</span>
+
+            <!-- Tab Content -->
+            <div class="p-6">
+                <!-- All Students Tab -->
+                <div id="all-content" class="tab-content active">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="flex items-center bg-gradient-to-r from-blue-50 to-blue-100 border border-blue-200 rounded-lg px-5 py-4">
+                            <div class="bg-blue-500 rounded-full p-2 mr-3">
+                                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" /><path stroke-linecap="round" stroke-linejoin="round" d="M8 12h4v4" /></svg>
+                            </div>
+                            <div>
+                                <p class="text-sm font-medium text-blue-700">Total Students</p>
+                                <p class="text-2xl font-bold text-blue-800">{{ total_count }}</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center bg-gradient-to-r from-green-50 to-green-100 border border-green-200 rounded-lg px-5 py-4">
+                            <div class="bg-green-500 rounded-full p-2 mr-3">
+                                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg>
+                            </div>
+                            <div>
+                                <p class="text-sm font-medium text-green-700">Present Today</p>
+                                <p class="text-2xl font-bold text-green-800">{{ present_count }}</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center bg-gradient-to-r from-red-50 to-red-100 border border-red-200 rounded-lg px-5 py-4">
+                            <div class="bg-red-500 rounded-full p-2 mr-3">
+                                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                            </div>
+                            <div>
+                                <p class="text-sm font-medium text-red-700">Absent Today</p>
+                                <p class="text-2xl font-bold text-red-800">{{ absent_count }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Present Students Tab -->
+                <div id="present-content" class="tab-content hidden">
+                    <div class="flex items-center bg-gradient-to-r from-green-50 to-green-100 border border-green-200 rounded-lg px-5 py-4 mb-4">
+                        <div class="bg-green-500 rounded-full p-2 mr-3">
+                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg>
+                        </div>
+                        <div>
+                            <p class="text-lg font-semibold text-green-800">Present Students</p>
+                            <p class="text-sm text-green-600">{{ present_count }} students are present today</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Absent Students Tab -->
+                <div id="absent-content" class="tab-content hidden">
+                    <div class="flex items-center bg-gradient-to-r from-red-50 to-red-100 border border-red-200 rounded-lg px-5 py-4 mb-4">
+                        <div class="bg-red-500 rounded-full p-2 mr-3">
+                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                        </div>
+                        <div>
+                            <p class="text-lg font-semibold text-red-800">Absent Students</p>
+                            <p class="text-sm text-red-600">{{ absent_count }} students are absent today</p>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -472,33 +628,130 @@
         }
         function setupAttendanceSearch() {
             const searchInput = document.getElementById('attendance-search-input');
-            const table = document.getElementById('attendance-table');
-            if (searchInput && table) {
+            if (searchInput) {
                 searchInput.addEventListener('input', function() {
-                    const filter = this.value.trim().toLowerCase();
-                    const rows = table.querySelectorAll('tbody tr.student-row');
-                    let visibleCount = 0;
-                    rows.forEach(row => {
-                        const nameCell = row.querySelector('td');
-                        if (!nameCell) return;
-                        const name = nameCell.textContent.trim().toLowerCase();
-                        if (filter === "" || name.includes(filter)) {
-                            row.style.display = "";
-                            visibleCount++;
-                        } else {
-                            row.style.display = "none";
-                        }
-                    });
-                    const emptyRow = table.querySelector('tbody tr.no-students-row');
-                    if (emptyRow) {
-                        emptyRow.style.display = visibleCount === 0 ? "" : "none";
-                    }
+                    const activeTab = document.querySelector('.tab-button.active');
+                    const tabName = activeTab.id.replace('-tab', '');
+                    filterTableRows(tabName);
                 });
             }
         }
         document.addEventListener('DOMContentLoaded', function() {
             setupAttendanceSearch();
+            initializeTabs();
         });
+
+        // Tab switching functionality
+        function switchTab(tabName) {
+            // Update tab buttons
+            document.querySelectorAll('.tab-button').forEach(button => {
+                button.classList.remove('active');
+            });
+            document.getElementById(tabName + '-tab').classList.add('active');
+
+            // Update tab content
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+                content.classList.add('hidden');
+            });
+            
+            const activeContent = document.getElementById(tabName + '-content');
+            activeContent.classList.remove('hidden');
+            
+            // Trigger animation after a small delay
+            setTimeout(() => {
+                activeContent.classList.add('active');
+            }, 50);
+
+            // Filter table rows based on tab
+            filterTableRows(tabName);
+        }
+
+        function filterTableRows(tabName) {
+            const rows = document.querySelectorAll('.student-row');
+            const searchInput = document.getElementById('attendance-search-input');
+            const searchFilter = searchInput ? searchInput.value.trim().toLowerCase() : '';
+
+            rows.forEach((row, index) => {
+                const statusCell = row.querySelector('.status-text');
+                const nameCell = row.querySelector('td');
+                const status = statusCell ? statusCell.textContent.trim() : '';
+                const name = nameCell ? nameCell.textContent.trim().toLowerCase() : '';
+
+                let shouldShow = true;
+
+                // Apply tab filter
+                if (tabName === 'present') {
+                    shouldShow = status === 'Present';
+                } else if (tabName === 'absent') {
+                    shouldShow = status === 'Absent';
+                }
+                // 'all' tab shows everything
+
+                // Apply search filter if exists
+                if (shouldShow && searchFilter) {
+                    shouldShow = name.includes(searchFilter);
+                }
+
+                // Apply visual effects
+                if (shouldShow) {
+                    row.classList.remove('filtered-out');
+                    row.classList.add('filtered-in');
+                    row.style.display = '';
+                    
+                    // Add staggered animation delay
+                    row.style.animationDelay = (index * 0.05) + 's';
+                } else {
+                    row.classList.remove('filtered-in');
+                    row.classList.add('filtered-out');
+                    setTimeout(() => {
+                        if (row.classList.contains('filtered-out')) {
+                            row.style.display = 'none';
+                        }
+                    }, 300);
+                }
+            });
+
+            // Update empty state
+            updateEmptyState(tabName);
+        }
+
+        function updateEmptyState(tabName) {
+            const visibleRows = document.querySelectorAll('.student-row:not(.filtered-out)');
+            const emptyRow = document.querySelector('.no-students-row');
+            
+            if (emptyRow) {
+                if (visibleRows.length === 0) {
+                    emptyRow.style.display = '';
+                    emptyRow.innerHTML = `<td colspan="8" class="text-center py-8 text-gray-400">
+                        <div class="flex flex-col items-center">
+                            <svg class="w-12 h-12 text-gray-300 mb-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"/>
+                            </svg>
+                            <p class="text-lg font-medium text-gray-500">No ${tabName} students found</p>
+                            <p class="text-sm text-gray-400">Try adjusting your filters or search terms</p>
+                        </div>
+                    </td>`;
+                } else {
+                    emptyRow.style.display = 'none';
+                }
+            }
+        }
+
+        function initializeTabs() {
+            // Set initial tab state
+            switchTab('all');
+            
+            // Update search to work with tabs
+            const searchInput = document.getElementById('attendance-search-input');
+            if (searchInput) {
+                searchInput.addEventListener('input', function() {
+                    const activeTab = document.querySelector('.tab-button.active');
+                    const tabName = activeTab.id.replace('-tab', '');
+                    filterTableRows(tabName);
+                });
+            }
+        }
 
         // Auto-calculate hours worked in modal
         function updateModalHoursWorked() {
