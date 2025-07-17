@@ -301,7 +301,7 @@ def validate_shift_capacity(user, date, assigned_shift):
     if user.is_superuser:
         return True
 
-    shift_students_count = VolunteerLog.objects.filter(date=date, shift=assigned_shift, extended=False).count()
+    shift_students_count = VolunteerLog.objects.filter(date=date, shift=assigned_shift).count()
     return shift_students_count < assigned_shift.max_students
 
 @login_required
@@ -1073,6 +1073,25 @@ def student_attendance(request):
     print(f"[DEBUG] Selected date: {selected_date}")
     print(f"[DEBUG] Shift filter: {shift_filter}")
 
+    # Debug: Print logs with no shift or shift type null/empty for this date
+    logs_no_shift = VolunteerLog.objects.filter(date=selected_date, shift__isnull=True)
+    if logs_no_shift.exists():
+        print("[DEBUG] (Attendance) VolunteerLog entries with shift=None:")
+        for log in logs_no_shift:
+            print(f"  id={log.id}, student={log.student}, status={log.status}")
+
+    logs_null_type = VolunteerLog.objects.filter(date=selected_date, shift__type__isnull=True)
+    if logs_null_type.exists():
+        print("[DEBUG] (Attendance) VolunteerLog entries with shift.type=None:")
+        for log in logs_null_type:
+            print(f"  id={log.id}, student={log.student}, shift_id={log.shift_id}, status={log.status}")
+
+    logs_empty_type = VolunteerLog.objects.filter(date=selected_date, shift__type='')
+    if logs_empty_type.exists():
+        print("[DEBUG] (Attendance) VolunteerLog entries with shift.type='':")
+        for log in logs_empty_type:
+            print(f"  id={log.id}, student={log.student}, shift_id={log.shift_id}, status={log.status}")
+
     # Fetch logs for the selected date
     logs = VolunteerLog.objects.filter(date=selected_date)
     print(f"[DEBUG] VolunteerLog entries for date {selected_date}: {logs.count()}")
@@ -1106,13 +1125,13 @@ def student_attendance(request):
         student_logs.append({'student': log.student, 'log': log})
 
     from .models import Shift, StudentProfile
-    all_shifts = Shift.objects.all()
+    all_shifts = Shift.objects.all()  # Always pass all shifts from backend
     all_students = StudentProfile.objects.all()
 
     context = {
         'students': student_logs,
         'selected_date': selected_date,
-        'all_shifts': all_shifts,
+        'all_shifts': all_shifts,  # Use this for filter and modal
         'shift_filter': shift_filter,
         'present_count': present_count,
         'absent_count': absent_count,
@@ -1308,11 +1327,30 @@ def calendar_student_logs(request):
     week_start_date = get_start_of_week(current_date)
     week_end_date = get_end_of_week(current_date)
 
+    # Debug: Print logs with no shift or shift type null/empty for this week
+    logs_no_shift = VolunteerLog.objects.filter(date__gte=week_start_date, date__lte=week_end_date, shift__isnull=True)
+    if logs_no_shift.exists():
+        print("[DEBUG] (Calendar) VolunteerLog entries with shift=None:")
+        for log in logs_no_shift:
+            print(f"  id={log.id}, student={log.student}, date={log.date}, status={log.status}")
+
+    logs_null_type = VolunteerLog.objects.filter(date__gte=week_start_date, date__lte=week_end_date, shift__type__isnull=True)
+    if logs_null_type.exists():
+        print("[DEBUG] (Calendar) VolunteerLog entries with shift.type=None:")
+        for log in logs_null_type:
+            print(f"  id={log.id}, student={log.student}, date={log.date}, shift_id={log.shift_id}, status={log.status}")
+
+    logs_empty_type = VolunteerLog.objects.filter(date__gte=week_start_date, date__lte=week_end_date, shift__type='')
+    if logs_empty_type.exists():
+        print("[DEBUG] (Calendar) VolunteerLog entries with shift.type='':")
+        for log in logs_empty_type:
+            print(f"  id={log.id}, student={log.student}, date={log.date}, shift_id={log.shift_id}, status={log.status}")
+
     students = StudentProfile.objects.all()
     student_data = []
 
     for student in students:
-        volunteer_logs = VolunteerLog.objects.filter(student=student, extended=False, status='Present').order_by('start_time')
+        volunteer_logs = VolunteerLog.objects.filter(student=student, status='Present').order_by('start_time')
 
         total_hours = 0
         formatted_logs = []
@@ -1569,6 +1607,25 @@ def delete_log(request, log_id):
     return redirect('student_details', student_id=log.student.id)
 
 def student_counts_by_date_and_shift(request):
+    # Debug: Print logs with no shift or shift type null/empty
+    logs_no_shift = VolunteerLog.objects.filter(shift__isnull=True)
+    if logs_no_shift.exists():
+        print("[DEBUG] VolunteerLog entries with shift=None:")
+        for log in logs_no_shift:
+            print(f"  id={log.id}, student={log.student}, date={log.date}, status={log.status}")
+
+    logs_null_type = VolunteerLog.objects.filter(shift__type__isnull=True)
+    if logs_null_type.exists():
+        print("[DEBUG] VolunteerLog entries with shift.type=None:")
+        for log in logs_null_type:
+            print(f"  id={log.id}, student={log.student}, date={log.date}, shift_id={log.shift_id}, status={log.status}")
+
+    logs_empty_type = VolunteerLog.objects.filter(shift__type='')
+    if logs_empty_type.exists():
+        print("[DEBUG] VolunteerLog entries with shift.type='':")
+        for log in logs_empty_type:
+            print(f"  id={log.id}, student={log.student}, date={log.date}, shift_id={log.shift_id}, status={log.status}")
+
     # Filter only logs where status is Present to count actual attendance
     data = (
         VolunteerLog.objects
@@ -1637,6 +1694,7 @@ def add_extended_volunteer_log(request):
             end_time = data.get('end_time')
             hours_worked = data.get('hours_worked')
             notes = data.get('notes', '')
+            status = data.get('status', 'Present')
 
             student = StudentProfile.objects.get(id=student_id)
             shift = Shift.objects.get(id=shift_id)
@@ -1645,7 +1703,12 @@ def add_extended_volunteer_log(request):
             end_time_obj = datetime.strptime(end_time, '%H:%M').time()
             hours_worked = float(hours_worked)
 
-            # Remove any existing extended log for this student/date/shift
+            # Prevent duplicate: check for any log (regular or extended) for this student/date/shift
+            duplicate_log = VolunteerLog.objects.filter(student=student, date=date_obj, shift=shift).exists()
+            if duplicate_log:
+                return JsonResponse({'success': False, 'error': 'A log for this student, date, and shift already exists.'}, status=400)
+
+            # Remove any existing extended log for this student/date/shift (shouldn't be needed now, but keep for safety)
             VolunteerLog.objects.filter(student=student, date=date_obj, shift=shift, extended=True).delete()
 
             log = VolunteerLog.objects.create(
@@ -1656,13 +1719,27 @@ def add_extended_volunteer_log(request):
                 end_time=end_time_obj,
                 hours_worked=hours_worked,
                 notes=notes,
-                status='Present',
+                status=status,
                 extended=True
             )
             return JsonResponse({'success': True, 'log_id': log.id})
         except Exception as e:
             return JsonResponse({'success': False, 'error': str(e)}, status=400)
     return JsonResponse({'success': False, 'error': 'Invalid request'}, status=400)
+
+# New: Delete volunteer log by ID (admin only, POST only)
+@csrf_exempt
+@admin_required
+@require_POST
+def delete_volunteer_log(request, log_id):
+    try:
+        log = VolunteerLog.objects.get(id=log_id)
+        log.delete()
+        return JsonResponse({'success': True})
+    except VolunteerLog.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Log not found.'}, status=404)
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=400)
 
 @admin_required
 def admin_dashboard(request):

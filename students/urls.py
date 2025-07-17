@@ -15,6 +15,7 @@ urlpatterns = [
     path('attendance/', views.student_attendance, name='student_attendance'),
     path('attendance/update/<int:student_id>/<str:date>/', views.update_attendance, name='update_attendance'),
     path('attendance/add-extended-log/', views.add_extended_volunteer_log, name='add_extended_volunteer_log'),
+    path('attendance/delete-log/<int:log_id>/', views.delete_volunteer_log, name='delete_volunteer_log'),
 
     path('auth/signup/', views.signup_view, name='signup_page'),
     path('auth/login/', views.login_view, name='login'),

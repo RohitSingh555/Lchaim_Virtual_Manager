@@ -322,7 +322,7 @@
                         <select id="modal-shift" name="shift_id" class="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-200 focus:outline-none">
                             <option value="">Select a shift</option>
                             {% for shift in all_shifts %}
-                                <option value="{{ shift.id }}">{{ shift.type }} ({{ shift.start_time|time:'H:i' }} - {{ shift.end_time|time:'H:i' }})</option>
+                                <option value="{{ shift.id }}" data-start="{{ shift.start_time|time:'H:i' }}" data-end="{{ shift.end_time|time:'H:i' }}">{{ shift.type }} ({{ shift.start_time|time:'H:i' }} - {{ shift.end_time|time:'H:i' }})</option>
                             {% endfor %}
                         </select>
                     </div>
@@ -343,6 +343,17 @@
                     <div>
                         <label for="modal-notes" class="block text-sm font-semibold text-gray-700 mb-1">Notes</label>
                         <textarea id="modal-notes" name="notes" rows="2" class="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-200 focus:outline-none"></textarea>
+                    </div>
+                    <!-- Present/Absent Toggle -->
+                    <div class="flex items-center gap-4">
+                        <span class="font-semibold text-gray-700">Status:</span>
+                        <label class="inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="modal-status-toggle" class="sr-only peer" checked>
+                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-200 rounded-full peer peer-checked:bg-green-500 transition-colors duration-300"></div>
+                            <div class="absolute ml-1 mt-1 w-4 h-4 bg-white rounded-full shadow transform peer-checked:translate-x-5 transition-transform duration-300"></div>
+                            <span id="modal-status-label" class="ml-3 text-sm font-medium text-green-700">Present</span>
+                        </label>
+                        <input type="hidden" id="modal-status" name="status" value="Present">
                     </div>
                     <div class="flex justify-end pt-2">
                         <button type="button" onclick="submitExtendedEntry()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded shadow">Add Entry</button>
@@ -386,6 +397,40 @@
             });
         }
 
+        // Auto-populate start/end time when shift changes
+        const modalShift = document.getElementById('modal-shift');
+        const modalStartTime = document.getElementById('modal-start-time');
+        const modalEndTime = document.getElementById('modal-end-time');
+        if (modalShift && modalStartTime && modalEndTime) {
+            modalShift.addEventListener('change', function() {
+                const selected = this.options[this.selectedIndex];
+                const start = selected.getAttribute('data-start');
+                const end = selected.getAttribute('data-end');
+                if (start) modalStartTime.value = start;
+                if (end) modalEndTime.value = end;
+                updateModalHoursWorked();
+            });
+        }
+        // Present/Absent toggle logic
+        const modalStatusToggle = document.getElementById('modal-status-toggle');
+        const modalStatus = document.getElementById('modal-status');
+        const modalStatusLabel = document.getElementById('modal-status-label');
+        if (modalStatusToggle && modalStatus && modalStatusLabel) {
+            modalStatusToggle.addEventListener('change', function() {
+                if (this.checked) {
+                    modalStatus.value = 'Present';
+                    modalStatusLabel.textContent = 'Present';
+                    modalStatusLabel.classList.remove('text-red-700');
+                    modalStatusLabel.classList.add('text-green-700');
+                } else {
+                    modalStatus.value = 'Absent';
+                    modalStatusLabel.textContent = 'Absent';
+                    modalStatusLabel.classList.remove('text-green-700');
+                    modalStatusLabel.classList.add('text-red-700');
+                }
+            });
+        }
+
         // AJAX submit
         function submitExtendedEntry() {
             const form = document.getElementById('extendedEntryForm');
@@ -396,6 +441,7 @@
             const endTime = document.getElementById('modal-end-time').value;
             const hoursWorked = document.getElementById('modal-hours-worked').value;
             const notes = document.getElementById('modal-notes').value;
+            const status = document.getElementById('modal-status').value;
             const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
             if (!studentId || !date || !shiftId || !startTime || !endTime || !hoursWorked) {
@@ -416,7 +462,8 @@
                     start_time: startTime,
                     end_time: endTime,
                     hours_worked: hoursWorked,
-                    notes: notes
+                    notes: notes,
+                    status: status
                 })
             })
             .then(response => response.json())
@@ -446,6 +493,7 @@
                         <th class="px-4 py-2 text-center font-medium cursor-pointer" onclick="sortTable(5)">Hours</th>
                         <th class="px-4 py-2 text-center font-medium">Toggle</th>
                         <th class="px-4 py-2 text-left font-medium">Remarks</th>
+                        <th class="px-4 py-2 text-center font-medium">Delete</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -461,7 +509,7 @@
                             {% endif %}
                         </td>
                         <td class="px-4 py-2">
-                            {{ student_log.student.assigned_shift.type|default:"-" }}
+                            {{ student_log.log.shift.type|default:"-" }}
                         </td>
                         <td class="px-4 py-2">
                             <span class="status-text font-semibold"
@@ -501,6 +549,9 @@
                             <textarea name="notes" class="remarks-field w-full p-1 border border-gray-200 rounded focus:ring-2 focus:ring-blue-100"
                                 data-student-id="{{ student_log.student.id }}"
                                 oninput="saveAttendance(this)">{{ student_log.log.notes }}</textarea>
+                        </td>
+                        <td class="px-4 py-2 text-center">
+                            <button class="delete-log-btn bg-red-500 hover:bg-red-700 text-white rounded px-3 py-1 font-bold transition" onclick="deleteLog({{ student_log.log.id }}, this)">Delete</button>
                         </td>
                     </tr>
                     {% empty %}
@@ -774,6 +825,30 @@
         }
         document.getElementById('modal-start-time').addEventListener('input', updateModalHoursWorked);
         document.getElementById('modal-end-time').addEventListener('input', updateModalHoursWorked);
+
+        function deleteLog(logId, btn) {
+            if (!confirm('Are you sure you want to delete this log entry?')) return;
+            const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+            fetch(`/attendance/delete-log/${logId}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrfToken
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Remove the row from the table
+                    const row = btn.closest('tr');
+                    if (row) row.remove();
+                } else {
+                    alert('Error: ' + (data.error || 'Could not delete log.'));
+                }
+            })
+            .catch(error => {
+                alert('Request failed: ' + error);
+            });
+        }
     </script>
 </body>
 
